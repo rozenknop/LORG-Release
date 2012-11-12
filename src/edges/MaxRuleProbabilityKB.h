@@ -3,13 +3,14 @@
 #define _MAXRULEPROBABILITYKB_H_
 
 #include "PackedEdgeProbability.h"
+#include "BestProbability.h"
 #include "PackedEdge.h"
 #include "maxrule_functions.h"
 
 class MaxRuleProbabilityKB
 {
 public:
-  typedef std::vector<packed_edge_probability> heap_type;
+  typedef std::vector<packed_edge_probability_with_index> heap_type;
   typedef PackedEdge<MaxRuleProbabilityKB> Edge;
   typedef PCKYAllCell<Edge> Cell;
   private:
@@ -29,7 +30,7 @@ public:
 
   static void set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
 
-  const packed_edge_probability& get(unsigned idx) const
+  const packed_edge_probability_with_index& get(unsigned idx) const
   {return derivations[idx];}
   packed_edge_probability& get(unsigned idx)
   {return derivations[idx];}
@@ -43,7 +44,7 @@ public:
 
 
   void finalize();
-  void find_succ(Edge*,packed_edge_probability& pep, bool licence_unaries);
+  void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
   void extend_derivation(Edge*, unsigned, bool) ;
 
   unsigned n_deriv() const {return derivations.size();};
@@ -53,15 +54,31 @@ public:
 private:
   struct test_helper
   {
-    const packed_edge_probability& pep;
-    test_helper(const packed_edge_probability& p) : pep(p) {};
+    const packed_edge_probability_with_index& pep;
+    test_helper(const packed_edge_probability_with_index& p) : pep(p) {};
 
-    bool operator()(const packed_edge_probability& p)
+    bool operator()(const packed_edge_probability_with_index& p)
     {return (p.probability == pep.probability) //|| (p.dtrs == pep.dtrs)
         ;}
   };
+  
+  public:
+    std::ostream& operator>>(std::ostream& out) const;
 };
 
+
+
+std::ostream & MaxRuleProbabilityKB::operator>> (std::ostream & out) const
+{
+  for(auto& cand: candidates) { out << "cand:" << cand.probability << " "; }
+  return out;
+}
+
+
+std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityKB& p)
+{
+  return p >> out ;
+}
 
 
 
@@ -74,10 +91,10 @@ void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const LexicalPackedEd
   const LexicalRuleC2f* rule = dtr.get_rule();
   assert(rule != NULL);
 
-  packed_edge_probability pep;
+  packed_edge_probability_with_index pep;
   pep.probability = maxrule_function::update_maxrule_probability(a, rule, log_normalisation_factor);
 
-  //  std::cout << pep.probability << std::endl;
+//    std::cout << "lexical " << pep.probability << std::endl;
   assert(pep.probability <=0);
 
   pep.dtrs = &dtr;
@@ -88,16 +105,18 @@ void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const LexicalPackedEd
      derivations.push_back(pep);
   else if(pep.probability > derivations[0].probability)
       derivations[0] = pep;
+
+//   std::cout << *this << std::endl;
 }
 
 void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const UnaryPackedEdgeDaughters<Cell>& dtr)
 {
-  packed_edge_probability pep;
+  packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
   //  std::cout << "before ump" << std::endl;
   pep.probability= maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
 
-  //  std::cout << pep.probability << std::endl;
+//    std::cout << "unary "<< pep.probability << std::endl;
   assert(pep.probability <=0);
 
   candidates.push_back(pep);
@@ -106,18 +125,19 @@ void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const UnaryPackedEdge
        derivations.push_back(pep);
   else if(pep.probability > derivations[0].probability)
        derivations[0] = pep;
-
+  
+//   std::cout << *this << std::endl;
 }
 
 void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const BinaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<MaxRuleProbabilityKB> > >& dtr)
 {
-  packed_edge_probability pep;
+  packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
 
   pep.probability= maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
 
   //  std::cout << candidates.size() << std::endl;
-  //  std::cout << pep.probability << std::endl;
+//   std::cout << "binary " << pep.probability << std::endl;
   //  std::cout << pep.dtrs << std::endl;
 
 
@@ -131,11 +151,13 @@ void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const BinaryPackedEdg
     derivations.push_back(pep);
   else if(pep.probability > derivations[0].probability)
     derivations[0] = pep;
+
+//     std::cout << *this << std::endl;
 }
 
 struct gt_pep
 {
-  bool operator()(const packed_edge_probability& p1, const packed_edge_probability& p2) const
+  bool operator()(const packed_edge_probability_with_index& p1, const packed_edge_probability_with_index& p2) const
   {
     return p1 > p2;
   }
@@ -199,7 +221,7 @@ void MaxRuleProbabilityKB::extend_derivation(Edge* edge, unsigned i, bool licenc
 
   if(derivations.size() > 0) {
 
-    packed_edge_probability& last = derivations[derivations.size() -1];
+    packed_edge_probability_with_index& last = derivations[derivations.size() -1];
 
     //    std::cout << "last.probability " << last.probability << std::endl;
 
@@ -242,7 +264,7 @@ void MaxRuleProbabilityKB::extend_derivation(Edge* edge, unsigned i, bool licenc
 
 }
 
-void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, packed_edge_probability& pep, bool licence_unaries)
+void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, packed_edge_probability_with_index& pep, bool licence_unaries)
 {
   typedef PackedEdge<MaxRuleProbabilityKB> P;
 
@@ -253,14 +275,14 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
     //extend to the left
     unsigned left_pos = d->get_rule()->get_rhs0();
-    P* left  = (*(d->left_daughter()))[left_pos];
+    P* left  = d->left_daughter()->get_edge_ptr(left_pos);
     unsigned nextleft = pep.left_index + 1;
     left->extend_derivation(nextleft+1,true);
 
     // we haven't reached the expected number of solutions
     if(nextleft < left->get_best().n_deriv()) {
 
-      packed_edge_probability p(pep);
+      packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
       p.probability = maxrule_function::update_maxrule_probability<Edge>(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
 
@@ -278,7 +300,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
     //extend to the right
     unsigned right_pos = d->get_rule()->get_rhs1();
-    P* right = (*(d->right_daughter()))[right_pos];
+    P* right = d->right_daughter()->get_edge_ptr(right_pos);
     unsigned nextright = pep.right_index + 1;
 
     right->extend_derivation(nextright+1,true);
@@ -287,7 +309,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
       //        std::cout << "bin extending on the right" << std::endl;
 
 
-      packed_edge_probability p(pep);
+      packed_edge_probability_with_index p(pep);
       p.right_index = nextright;
       p.probability = maxrule_function::update_maxrule_probability<Edge>(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
 
@@ -315,14 +337,14 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
     //extend to the left
     unsigned left_pos = d->get_rule()->get_rhs0();
-    P* left  = (*(d->left_daughter()))[left_pos];
+    P* left  = d->left_daughter()->get_edge_ptr(left_pos);
     unsigned nextleft = pep.left_index + 1;
 
     left->extend_derivation(nextleft+1, false);
 
     if(nextleft < left->get_best().n_deriv() ) {
       //        std::cout << "un extending" << std::endl;
-      packed_edge_probability p(pep);
+      packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
       p.probability = maxrule_function::update_maxrule_probability<Edge>(edge->get_annotations(), *d, log_normalisation_factor, p.left_index);
 

@@ -1,15 +1,16 @@
-// -*- mode: c++ -*-
+// // -*- mode: c++ -*-
 #ifndef _MAXRULEPROBABILITY_H_
 #define _MAXRULEPROBABILITY_H_
 #include <numeric>
 
 #include "PackedEdgeProbability.h"
+#include "BestProbability.h"
 #include "PackedEdge.h"
 #include "PCKYAllCell.h"
 #include "maxrule_functions.h"
 
 
-class MaxRuleProbability
+class MaxRuleProbability : public BestProbability
 {
 private:
   packed_edge_probability best;
@@ -67,7 +68,7 @@ void MaxRuleProbability::update(const AnnotationInfo& a, const UnaryPackedEdgeDa
 {
   double probability = -std::numeric_limits<double>::infinity();
 
-  PackedEdge<MaxRuleProbability>& left  = dtr.left_daughter()->at(dtr.get_rule()->get_rhs0());
+  PackedEdge<MaxRuleProbability>& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
   if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
     probability =  maxrule_function::update_maxrule_probability<PackedEdge<MaxRuleProbability> >(a, dtr, log_normalisation_factor);
   }

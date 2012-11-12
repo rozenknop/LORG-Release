@@ -9,6 +9,9 @@
 #include <vector>
 #include <Bracketing.h>
 
+#include <iostream>
+using std::ostream;
+using std::endl;
 
 /**
   \class ChartCKY
@@ -74,8 +77,57 @@ public:
 
   bool is_valid(int start_symbol) const;
 
+  ostream & to_stream(ostream & s) const;
+  
+  
+  void opencells_apply_bottom_up( std::function<void(Cell &)> f );
+
+  std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
 };
 
+
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f )
+{
+  unsigned sent_size = get_size();
+  for (unsigned span = 0; span < sent_size; ++span) {
+    unsigned end_of_begin=sent_size-span;
+    for (unsigned begin=0; begin < end_of_begin; ++begin) {
+      unsigned end = begin + span ;
+
+      //std::cout << "(" << begin << "," << end << ")" << std::endl;
+
+      Cell& cell = access(begin,end);
+
+      if(!cell.is_closed()) f(cell);
+    }
+  }
+}
+
+
+template<class Cell, class MyWord>
+ostream & operator<<(ostream & out, const ChartCKY<Cell,MyWord> & chart) { return chart.to_stream(out) ; }
+
+template<class Cell, class MyWord>
+ostream & ChartCKY<Cell, MyWord>::to_stream(ostream & s) const {
+  unsigned sent_size=get_size();
+  for (signed span = sent_size-1; span >= 0; --span) {
+    unsigned end_of_begin=sent_size-span;
+    s << endl;
+    for (unsigned begin=0; begin < end_of_begin; ++begin) {
+      unsigned end = begin + span ;
+      //std::cout << '(' << begin << ',' << end << ')' << std::endl;
+      
+      Cell& cell = access(begin,end);
+      
+      s << "(span " << span+1 << ", begin " << begin << ")" << std::endl;
+      s << cell << std::endl;
+    }
+  }
+  return s;
+}
 
 //#include "utils/SymbolTable.h"
 
@@ -138,7 +190,7 @@ PtbPsTree* ChartCKY<Cell, MyWord>::get_best_tree(int start_symbol, unsigned k, b
 template<class Cell, class MyWord>
 double ChartCKY<Cell, MyWord>::get_score(int symbol, unsigned k) const
 {
-  return get_root().at(symbol).get_best().get(k).probability;
+  return get_root().get_edge(symbol).get_best().get(k).probability;
 }
 
 
@@ -222,7 +274,7 @@ template<class Cell, class MyWord>
 bool ChartCKY<Cell, MyWord>::has_solution(int symb, unsigned i) const
 {
   //  std::cout << SymbolTable::instance_nt().translate(symb) << std::endl;
-  return get_root()[symb]->has_solution(i);
+  return get_root().get_edge(symb).has_solution(i);
 }
 
 template<class Cell, class MyWord>

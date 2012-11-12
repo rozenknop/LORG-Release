@@ -156,15 +156,15 @@ void BRule::compact()
     for(unsigned j = 0; j < probabilities[i].size(); ++j) {
       bool allzeros = true;
       for(unsigned k = 0; k < probabilities[i][j].size(); ++k) {
-  	if(probabilities[i][j][k] != 0.0) {
-  	  allzeros = false;
-  	  break;
-  	}
+        if(probabilities[i][j][k] != 0.0) {
+          allzeros = false;
+          break;
+        }
       }
       if(allzeros) {
-  	//probabilities[i][j] = std::vector<double>();
-	//std::cout << "brule::compact inner level" << std::endl;
-	std::vector<double>().swap(probabilities[i][j]);
+        //probabilities[i][j] = std::vector<double>();
+        //std::cout << "brule::compact inner level" << std::endl;
+        std::vector<double>().swap(probabilities[i][j]);
       }
     }
 
@@ -173,8 +173,8 @@ void BRule::compact()
     bool allempty = true;
     for(unsigned j = 0; j < probabilities[i].size(); ++j) {
       if(!probabilities[i][j].empty()) {
-  	allempty = false;
-  	break;
+        allempty = false;
+        break;
       }
     }
     if(allempty) {
@@ -196,7 +196,7 @@ void BRule::uncompact(unsigned rhs0_size, unsigned rhs1_size)
       probabilities[i].resize(rhs0_size);
     for(unsigned j = 0; j < probabilities[i].size(); ++j) {
       if(probabilities[i][j].size() != rhs1_size)
-  	probabilities[i][j].resize(rhs1_size,0.0);
+        probabilities[i][j].resize(rhs1_size,0.0);
     }
   }
 

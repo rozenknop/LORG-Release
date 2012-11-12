@@ -6,7 +6,9 @@
 #include "edges/MaxRuleProbabilityKB.h"
 
 
-class ParserCKYAllMaxRuleKB : public ParserCKYAll_Impl<MaxRuleProbabilityKB>
+typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityKB> > ParserCKYAllMaxRuleKBCell ;
+
+class ParserCKYAllMaxRuleKB : public ParserCKYAll_Impl<ParserCKYAllMaxRuleKBCell>
 {
 private:
   unsigned k;
@@ -15,13 +17,13 @@ public:
                         const std::vector<double>& p, double b_t,
                         const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
                         bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-    : ParserCKYAll_Impl<MaxRuleProbabilityKB>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
+  : ParserCKYAll_Impl<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
   {
     //TODO maybe make this a parser option?
     //create the coarse-to-fine map
     create_coarse_to_fine_mapping(grammars);
 
-    Cell::CellEdge::set_viterbi_unary_chains(grammars[grammars.size() - 1]->get_unary_decoding_paths());
+    Edge::set_viterbi_unary_chains(grammars[grammars.size() - 1]->get_unary_decoding_paths());
   };
   ~ParserCKYAllMaxRuleKB() {};
 
@@ -45,7 +47,7 @@ void ParserCKYAllMaxRuleKB::extend_all_derivations()
   for (unsigned i = 2; i <= k; ++i)
     {
       //      std::cout << "before extend" << std::endl;
-      chart->get_root()[start_symbol]->extend_derivation(i,true);
+      chart->get_root().get_edge(start_symbol).extend_derivation(i,true);
     }
 }
 
