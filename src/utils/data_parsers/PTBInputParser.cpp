@@ -195,9 +195,10 @@ void PTBInputParser::from_file(const char* filename,
    typedef ptbpstree_parser<pos_iterator_type> parser;
    parser p;
 
-   bool res;
+   //   bool res;
    try {
-     res =
+     //     res =
+     (void)
        qi::phrase_parse(position_begin,
                         position_end,
                         p,

@@ -1,7 +1,7 @@
 #SUBDIRS = training
 
 if WANT_LTR
-LIBS+= -lrt 
+LIBS+= -lrt
 endif
 
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) -I.

@@ -602,7 +602,7 @@ void BerkeleyLexicon::update_annotated_counts_from_node(int lhs, int word, const
   }
 }
 
-void BerkeleyLexicon::traverse_leaf_nodes(const BinaryTrainingTree& tree, bool secondhalf, bool last_iteration)
+void BerkeleyLexicon::traverse_leaf_nodes(const BinaryTrainingTree& tree, bool secondhalf, bool /*last_iteration*/)
 {
   std::vector<LexicalTrainingNode*> lexnodes(tree.get_lexical_nodes());
   const scaled_array& tree_prob = tree.get_root()->get_annotations().inside_probabilities;
@@ -636,8 +636,8 @@ void BerkeleyLexicon::traverse_leaf_nodes(const BinaryTrainingTree& tree, bool s
 
 void BerkeleyLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & trees,
 							 bool last_iteration,
-                                                         std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-                                                         unsigned nbthreads)
+                                                           std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& /*lex_occurrences*/,
+                                                         unsigned /*nbthreads*/)
 {
 
   unsigned treebank_size = trees.size();

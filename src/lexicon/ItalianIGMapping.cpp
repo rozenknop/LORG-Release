@@ -532,13 +532,13 @@ std::string ItalianIGMapping::get_unknown_mapping(const std::string& word, unsig
       };
       static std::vector<std::string> suffixes(ig_sufs,ig_sufs+30);
 
-      bool found = false;
+      //      bool found = false;
       for(std::vector<std::string>::const_iterator i(suffixes.begin()); i != suffixes.end(); ++i) {
 	//	std::cout << "testing " << word_lower_case << " against " << *i << std::endl;
 	if(ends_with(word_lower_case, *i)) {
 	  //	  std::cout << "testing " << word_lower_case << " against " << *i << std::endl;
 	  word_class.append("-"); word_class.append(*i);
-	  found = true;
+          //  found = true;
 	  break;
 	}
       }

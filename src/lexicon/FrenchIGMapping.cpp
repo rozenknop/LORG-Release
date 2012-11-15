@@ -9,7 +9,7 @@ bool ends_with(const std::string& word, const std::string& suffix)
     bool result =
             (word.length() >= suffix.length()) &&
             (suffix == word.substr(word.length() - suffix.length(), suffix.length()));
-    
+
     //    std::cout << (result ? "True" : "False") << std::endl;
     return result;
 }
@@ -73,12 +73,12 @@ std::string FrenchIGMapping::get_unknown_mapping(const std::string& word, unsign
 {
     std::string word_class(SymbolTable::unknown_string);
     std::string word_lower_case=to_lower_case(word);
-    
+
     bool hasDigit = word.find_first_of("0123456789") != std::string::npos;
     bool hasDash =  word.find_first_of("-") != std::string::npos;
     bool hasLowerCase = false;
     int upperCaseCount=0;
-    
+
     //std::cout << "this string contains a digit, see " << word << std::endl;
     //std::cout << "this string contains a dash, see " << word << std::endl;
 
@@ -91,14 +91,14 @@ std::string FrenchIGMapping::get_unknown_mapping(const std::string& word, unsign
             hasLowerCase = true;
         }
     }
-    
+
     //	if (upperCaseCount > 0){
     //	std::cout << "original word is " << word << " lower case version is " << word_lower_case << std::endl;
     //}
     //if first character is upper case and it is the first word in sentences and the remaining characters are lower case
-    
+
     SymbolTable& sym_tab_word = SymbolTable::instance_word();
-    
+
     //deal with capitalisation
     if ( is_upper_case_letter(*(word.begin()))){
         if (position==0 && upperCaseCount==1){
@@ -113,14 +113,14 @@ std::string FrenchIGMapping::get_unknown_mapping(const std::string& word, unsign
     }else if (hasLowerCase){
         word_class.append("-LC");
     }
-    
+
     if (hasDigit){
         word_class.append("-NUM");
     }
     if (hasDash){
         word_class.append("-DASH");
     }
-    
+
     unsigned word_length = utf8_length(word_lower_case.c_str());
 
     if (word_length >= 5 && !hasDash && !(hasDigit && upperCaseCount > 0)) {
@@ -1218,13 +1218,13 @@ std::string FrenchIGMapping::get_unknown_mapping(const std::string& word, unsign
 
 
 
-        bool found = false;
+        //        bool found = false;
         for(std::vector<std::string>::const_iterator i(suffixes.begin()); i != suffixes.end(); ++i) {
             //	std::cout << "testing " << word_lower_case << " against " << *i << std::endl;
             if(ends_with(word_lower_case, *i)) {
                 //	  std::cout << "testing " << word_lower_case << " against " << *i << std::endl;
                 word_class.append("-"); word_class.append(*i);
-                found = true;
+                //      found = true;
                 break;
             }
         }
@@ -1242,13 +1242,13 @@ std::string FrenchIGMapping::get_unknown_mapping(const std::string& word, unsign
 
 
     }
-    
-    
+
+
     //std::cout << "word class " << word_class << std::endl;
 
     //    std::cout << word << " " << position << ": " << word_class << std::endl;
 
-    
+
     return word_class;
-    
+
 }

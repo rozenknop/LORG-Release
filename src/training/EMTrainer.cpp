@@ -56,7 +56,8 @@ public:
     //inout_thread(std::vector<BinaryTrainingTree>& ts, unsigned tsb, unsigned tse, double& lp)
     //: trees(ts), trees_begin(tsb), trees_end(tse), logprob(lp), ignored(0) {};
 
-    inout_thread( inout_thread& x, split ) : ignored(0), logprob(0.0) {}
+  // why this ?
+  inout_thread( inout_thread&, split ) : ignored(0), logprob(0.0) {}
 
     void operator()(const blocked_range<std::vector<BinaryTrainingTree>::iterator>& r)
     {
