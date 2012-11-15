@@ -16,8 +16,8 @@ namespace maxrule_function {
     //    std::cout << left_idx << " : " << right_idx << std::endl;
     //    std::cout << *(dtr.get_rule()) << std::endl;
 
-    const P& left  = dtr.left_daughter()->at(dtr.get_rule()->get_rhs0());
-    const P& right = dtr.right_daughter()->at(dtr.get_rule()->get_rhs1());
+    const P& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
+    const P& right = dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1());
 
     double probability = 0.0;
 
@@ -102,8 +102,8 @@ namespace maxrule_function {
 			    unsigned & left_idx,
 			    unsigned & right_idx)
   {
-    const P& left  = dtrs.left_daughter()->at(dtrs.get_rule()->get_rhs0());
-    const P& right = dtrs.right_daughter()->at(dtrs.get_rule()->get_rhs1());
+    const P& left  = dtrs.left_daughter()->get_edge(dtrs.get_rule()->get_rhs0());
+    const P& right = dtrs.right_daughter()->get_edge(dtrs.get_rule()->get_rhs1());
 
     const scaled_array& left_inside = left.get_annotations().inside_probabilities;
     const scaled_array& right_inside = right.get_annotations().inside_probabilities;
@@ -147,7 +147,7 @@ namespace maxrule_function {
   {
     double probability = 0;
 
-    const P& left = (dtrs.left_daughter())->at(dtrs.get_rule()->get_rhs0());
+    const P& left = (dtrs.left_daughter())->get_edge(dtrs.get_rule()->get_rhs0());
 
     const scaled_array& left_inside = left.get_annotations().inside_probabilities;
     const scaled_array& up_outside = up_annotations.outside_probabilities;
@@ -157,8 +157,8 @@ namespace maxrule_function {
       if(!up_annotations.valid_prob_at(i,LorgConstants::NullProba)) continue;
       double inner(0.0);
       for (unsigned j = 0; j < rule_probs[i].size(); ++j) {
-	if(!left.valid_prob_at(j)) continue;
-	inner += rule_probs[i][j] * left_inside.array[j];
+        if(!left.valid_prob_at(j)) continue;
+        inner += rule_probs[i][j] * left_inside.array[j];
       }
       probability += up_outside.array[i] * inner;
     }
@@ -202,7 +202,7 @@ namespace maxrule_function {
 			    double normalisation_factor,
 			    unsigned & left_idx)
   {
-    const P& left  = dtrs.left_daughter()->at(dtrs.get_rule()->get_rhs0());
+    const P& left  = dtrs.left_daughter()->get_edge(dtrs.get_rule()->get_rhs0());
 
     const scaled_array& left_inside = left.get_annotations().inside_probabilities;
     const scaled_array& up_outside = up_annotations.outside_probabilities;

@@ -6,7 +6,9 @@
 #include "edges/MaxRuleProbabilityMultiple.h"
 
 
-class ParserCKYAllMaxRuleMultiple : public ParserCKYAll_Impl<MaxRuleProbabilityMultiple>
+typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityMultiple> > ParserCKYAllMaxRuleMultipleCell ;
+
+class ParserCKYAllMaxRuleMultiple : public ParserCKYAll_Impl<ParserCKYAllMaxRuleMultipleCell>
 {
 public:
   ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,
@@ -90,7 +92,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
                                                          const std::vector< std::vector<AGrammar*> >& fgs,
                                                          const std::vector< annot_descendants_type >& all_annot_descendants_,
 							 bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-  : ParserCKYAll_Impl<MaxRuleProbabilityMultiple>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn, cell_threads),
+: ParserCKYAll_Impl<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn, cell_threads),
     fine_grammars(fgs), all_annot_descendants(all_annot_descendants_), nb_grammars(fgs.size() + 1), k(k_)
 {
   // create a mapping of all grammars
@@ -118,7 +120,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
   create_coarse_to_fine_mapping(maxn_mapping);
 
   //TODO calculate this prperly for multiple grammars
-  Cell::CellEdge::set_viterbi_unary_chains(grammars.back()->get_unary_decoding_paths());
+  Edge::set_viterbi_unary_chains(grammars.back()->get_unary_decoding_paths());
 }
 
 
@@ -236,7 +238,7 @@ void ParserCKYAllMaxRuleMultiple::multiple_inside_outside_specific()
 
 
     if(!chart->get_root().is_closed() && chart->get_root().exists_edge(start_symbol)) {
-      chart->get_root()[start_symbol]->get_annotations().reset_outside_probabilities(1.0);
+      chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
       compute_outside_probabilities();
 
       MaxRuleProbabilityMultiple::set_log_normalisation_factor(std::log(get_sentence_probability()));
@@ -364,7 +366,7 @@ void ParserCKYAllMaxRuleMultiple::extend_all_derivations()
   for (unsigned i = 2; i <= k; ++i)
     {
       //      std::cout << "before extend" << std::endl;
-      chart->get_root()[start_symbol]->extend_derivation(i,true);
+      chart->get_root().get_edge(start_symbol).extend_derivation(i,true);
     }
 }
 

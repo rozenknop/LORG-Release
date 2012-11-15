@@ -14,13 +14,15 @@
 #include <cstring>
 
 #include "edges/AnnotationInfo.h"
+#include "edges/Edge.h"
+#include "edges/PackedEdgeDaughters.h"
 
 #include <numeric>
 #include <algorithm>
+#include <functional>
 
 
-
-
+using std::function;
 
 /**
    \class PCKYAllCell
@@ -30,9 +32,7 @@
 template<class MyEdge>
 class PCKYAllCell {
 public:
-  typedef  MyEdge CellEdge;
-private:
-  typedef void (PCKYAllCell::CellEdge::*cell_edge_create_func)() ;
+  typedef  MyEdge Edge;
 public:
   /**
      \brief Simple constructor
@@ -40,7 +40,7 @@ public:
      to use the created cell will result in segfault !
      You have to call init first
   */
-  PCKYAllCell() : real_cell(NULL), closed(true) {};
+  PCKYAllCell() : edges(NULL), closed(true) {};
 
   /**
      \brief Constructor
@@ -94,7 +94,7 @@ public:
      \param i the label of the edge
      \return the edge with i as lhs
    */
-  CellEdge * operator[](unsigned i);
+  Edge * get_edge_ptr(unsigned i);
 
 
   /**
@@ -102,15 +102,15 @@ public:
      \param i the label of the edge
      \return the edge with i as lhs
   */
-  const CellEdge& at(int i) const;
-  CellEdge& at(int i);
+  const Edge& get_edge(int i) const;
+  Edge& get_edge(int i);
 
   /**
      \brief access the mostprobable edge by its lhs
      \param i the label of the edge
      \return the best edge with i as lhs
   */
-  const CellEdge& best_at(int i) const;
+  const Edge& best_at(int i) const;
 
   /**
      \brief access
@@ -118,7 +118,7 @@ public:
   */
   bool is_closed() const;
 
-
+  
   /**
      \brief calculate the chart specific rule probabilities for all packed edges in this cell and
      set the best daughter edge (max-rule parsing)
@@ -174,8 +174,27 @@ public:
   void change_rules_backup(unsigned backup_idx, unsigned  size_grammars);
   void modify_backup(unsigned backup_idx);
 
+  
+  /**
+   * \brief apply a list of functions on each edge of this cell
+   */
+  template<typename... Args> 
+  void apply_on_edges(Args&&... args) {for(unsigned i=0; i<max_size; ++i) {/*std::cout << "edge " << i << std::endl ;*/ if(edges[i]!=nullptr) edges[i]->apply(args...);}}
+  
+  /**
+   * \brief apply functions to all lexical and binary rules on edges, then on unary rules
+   */
+  void apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
+                                                function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
+                                                function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u);
+  void apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
+                                                function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
+                                                function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u,
+                                                function<void(MyEdge&)> f
+                                               );
+
 private:
-  CellEdge ** real_cell;
+  Edge ** edges;
   bool closed;
 
   static unsigned max_size;
@@ -189,7 +208,7 @@ bool PCKYAllCell<PEProbability>::exists_edge(int label) const
 {
   assert(label >= 0);
   assert(label < (int) max_size);
-  return (real_cell[label] != NULL);
+  return (edges[label] != nullptr);
 }
 
 
@@ -202,7 +221,7 @@ bool PCKYAllCell<PEProbability>::is_empty() const
 
   for (unsigned i = 0; i < max_size; ++i)
     {
-      if(real_cell[i])
+      if(edges[i])
         return false;
     }
   return true;
@@ -216,10 +235,10 @@ inline
 void PCKYAllCell<PEProbability>::init(bool cl)
 {
   if(!(closed = cl)) {
-    real_cell =  new CellEdge * [max_size];
-    memset(real_cell, 0, max_size * sizeof(CellEdge*));
+    edges =  new Edge * [max_size];
+    memset(edges, 0, max_size * sizeof(Edge*));
     //   for(unsigned i = 0; i < max_size;++i)
-    //     real_cell[i]=NULL;
+    //     edges[i]=NULL;
   }
 }
 
@@ -230,39 +249,39 @@ bool PCKYAllCell<PEProbability>::is_closed() const
 
 template<class MyEdge>
 inline
-typename PCKYAllCell<MyEdge>::CellEdge * PCKYAllCell<MyEdge>::operator[](unsigned i)
+MyEdge * PCKYAllCell<MyEdge>::get_edge_ptr(unsigned i)
 {
   assert(!closed);
-  return real_cell[i];
+  return edges[i];
 }
 
 template<class MyEdge>
 inline
-const typename PCKYAllCell<MyEdge>::CellEdge& PCKYAllCell<MyEdge>::at(int i) const
+const MyEdge& PCKYAllCell<MyEdge>::get_edge(int i) const
 {
   //assert(i>=0);
   //assert( i < (int) max_size);
   assert(i>=0 && i < (int) max_size);
 
-  return *real_cell[i];
+  return *edges[i];
 }
 
 template<class MyEdge>
 inline
-typename PCKYAllCell<MyEdge>::CellEdge& PCKYAllCell<MyEdge>::at(int i)
+MyEdge& PCKYAllCell<MyEdge>::get_edge(int i)
 {
   //assert(i>=0);
   //assert( i < (int) max_size);
   assert(i>=0 && i < (int) max_size);
 
-  return *real_cell[i];
+  return *edges[i];
 }
 
 template<class MyEdge>
 inline
-const typename PCKYAllCell<MyEdge>::CellEdge& PCKYAllCell<MyEdge>::best_at(int i) const
+const MyEdge& PCKYAllCell<MyEdge>::best_at(int i) const
 {
-  return at(i);
+  return get_edge(i);
 }
 
 template<class MyEdge>
@@ -277,13 +296,13 @@ void PCKYAllCell<MyEdge>::add_word(const Word & word)
 
     int tag = (*it)->get_lhs();
 
-    CellEdge ** e = &real_cell[tag];
+    Edge ** e = &edges[tag];
 
     if(*e) {
       (*e)->add_daughters(static_cast<const LexicalRuleC2f*>(*it), &word);
     }
     else {
-      *e = new CellEdge(LDaughters(static_cast<const LexicalRuleC2f*>(*it), &word));
+      *e = new Edge(LDaughters(static_cast<const LexicalRuleC2f*>(*it), &word));
     }
 
     (*e)->get_annotations().inside_probabilities.array[0] += static_cast<const LexicalRuleC2f*>(*it)->get_probability()[0];
@@ -305,11 +324,11 @@ unsigned PCKYAllCell<MyEdge>::max_size = 0;
 
 template<class MyEdge>
 PCKYAllCell<MyEdge>::PCKYAllCell(bool cl):
-  real_cell(NULL), closed(cl)
+  edges(NULL), closed(cl)
 {
   if(!closed) {
-    real_cell =  new CellEdge * [max_size];
-    memset(real_cell, 0, max_size * sizeof(CellEdge*));
+    edges =  new Edge * [max_size];
+    memset(edges, 0, max_size * sizeof(Edge*));
   }
 }
 
@@ -318,12 +337,12 @@ PCKYAllCell<MyEdge>::~PCKYAllCell()
 {
   if(!closed) {
     for(unsigned i = 0; i < max_size;++i) {
-      delete real_cell[i];
-      //      real_cell[i] = NULL;
+      delete edges[i];
+      //      edges[i] = NULL;
     }
   }
-  delete[] real_cell;
-  //  real_cell = NULL;
+  delete[] edges;
+  //  edges = NULL;
 }
 
 template<class MyEdge>
@@ -332,7 +351,7 @@ void PCKYAllCell<MyEdge>::process_candidate(PCKYAllCell<MyEdge>* left,
                                             const BRuleC2f* rule,
                                             double LR_inside)
 {
-  MyEdge ** e = &real_cell[rule->get_lhs()];
+  MyEdge ** e = &edges[rule->get_lhs()];
 
   if(*e)
     (*e)->add_daughters(left,right,rule);
@@ -351,7 +370,7 @@ void PCKYAllCell<MyEdge>::process_candidate(const URuleC2f* rule, double L_insid
   assert(rule->get_probability().size() > 0);
 
 
-  MyEdge ** e = &real_cell[rule->get_lhs()];
+  MyEdge ** e = &edges[rule->get_lhs()];
 
   if(*e)  {
     (*e)->add_daughters(this,rule);
@@ -375,8 +394,8 @@ void PCKYAllCell<MyEdge>::reset_probabilities()
 {
   //  std::cout << max_size << std::endl;
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
-      real_cell[i]->local_reset_probabilities(0.0);
+    if(edges[i]) {
+      edges[i]->reset_probabilities(0.0);
     }
 }
 
@@ -387,39 +406,39 @@ void PCKYAllCell<MyEdge>::compute_inside_probabilities()
   // Doesn't work in multiple grammar (see FIXME in ParserCKYAll.h)
 // #ifndef NDEBUG
 //   for(unsigned i = 0; i < max_size; ++i)
-//     if(real_cell[i])
-//       for(unsigned j = 0; j < real_cell[i]->get_annotations().get_size(); ++j)
-//         assert(real_cell[i]->get_annotations().inside_probabilities.array[j] == 0
-//                || real_cell[i]->get_annotations().inside_probabilities.array[j] == LorgConstants::NullProba);
+//     if(edges[i])
+//       for(unsigned j = 0; j < edges[i]->get_annotations().get_size(); ++j)
+//         assert(edges[i]->get_annotations().inside_probabilities.array[j] == 0
+//                || edges[i]->get_annotations().inside_probabilities.array[j] == LorgConstants::NullProba);
 // #endif
 
   clean_binary_daughters();
 
   // for(unsigned i = 0; i < max_size; ++i) {
   //   if(exists_edge(i)) {
-  //     real_cell[i]->get_annotations().reset_probabilities();
+  //     edges[i]->get_annotations().reset_probabilities();
   //   }
   // }
 
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
 
-      // if (real_cell[i]->get_lex())
-      //   real_cell[i]->compute_inside_probability_lexicals_only();
+      // if (edges[i]->get_lex())
+      //   edges[i]->compute_inside_probability_lexicals_only();
 
 
-      if (real_cell[i]->get_lex())
-        real_cell[i]->compute_inside_probability_lexicals_only();
+      if (edges[i]->get_lex())
+        edges[i]->compute_inside_probability_lexicals_only();
 
-      real_cell[i]->compute_inside_probability_binaries_only();
+      edges[i]->compute_inside_probability_binaries_only();
 
-      real_cell[i]->prepare_inside_probability();
+      edges[i]->prepare_inside_probability();
     }
   }
 
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->compute_inside_probability_unaries_only();
+      edges[i]->compute_inside_probability_unaries_only();
     }
   }
 
@@ -431,7 +450,7 @@ void PCKYAllCell<MyEdge>::adjust_inside_probability()
 {
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->adjust_inside_probability();
+      edges[i]->adjust_inside_probability();
     }
   }
 }
@@ -445,52 +464,82 @@ void PCKYAllCell<MyEdge>::compute_outside_probabilities()
 {
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->prepare_outside_probability();
+      edges[i]->prepare_outside_probability();
     }
   }
 
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->compute_outside_probability_unaries_only();
+      edges[i]->compute_outside_probability_unaries_only();
     }
   }
 
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->adjust_outside_probability();
+      edges[i]->adjust_outside_probability();
     }
   }
 
 
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      // if(real_cell[i]->get_lex())
-      //   real_cell[i]->compute_outside_probability_lexicals_only();
+      // if(edges[i]->get_lex())
+      //   edges[i]->compute_outside_probability_lexicals_only();
 
-        real_cell[i]->compute_outside_probability_binaries_only();
+        edges[i]->compute_outside_probability_binaries_only();
     }
   }
+}
+
+template<class MyEdge>
+void PCKYAllCell<MyEdge>::apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
+                                                                   function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
+                                                                   function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u)
+{
+  assert(!closed);
+  apply_on_edges( l, b );
+  apply_on_edges( u );
+}
+
+template<class MyEdge>
+void PCKYAllCell<MyEdge>::apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
+                                                                   function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
+                                                                   function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u,
+                                                                   function<void(MyEdge&)> f
+                                                                  )
+{
+  assert(!closed);
+  apply_on_edges( l, b );
+  apply_on_edges( u, f );
 }
 
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::calculate_maxrule_probabilities()
 {
   assert(!closed);
-
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      if(real_cell[i]->get_lex())
-	real_cell[i]->compute_best_lexical();
-      //else TODO ?
-      real_cell[i]->compute_best_binary();
-    }
-  }
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      real_cell[i]->compute_best_unary();
-    }
-  }
+  apply_lexical_binary_then_unary_on_edges(MyEdge::update_proba_lexical, MyEdge::update_proba_binary, MyEdge::update_proba_unary, MyEdge::finalize_after_unary);
 }
+
+// template<class MyEdge>
+// void PCKYAllCell<MyEdge>::calculate_maxrule_probabilities()
+// {
+//   assert(!closed);
+// 
+//   for(unsigned i = 0; i < max_size; ++i) {
+//     if(exists_edge(i)) {
+//       if(edges[i]->get_lex())
+//         edges[i]->compute_best_lexical();
+//       // else TODO ?
+//       edges[i]->compute_best_binary();
+//       
+//     }
+//   }
+//   for(unsigned i = 0; i < max_size; ++i) {
+//     if(exists_edge(i)) {
+//       edges[i]->compute_best_unary();
+//     }
+//   }
+// }
 
 ///////////
 
@@ -502,15 +551,15 @@ void PCKYAllCell<MyEdge>::calculate_best_edge_multiple_grammars()
 
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      if(real_cell[i]->get_lex())
-	real_cell[i]->find_best_multiple_grammars_lexical();
-
-      real_cell[i]->find_best_multiple_grammars_binary();
+      if(edges[i]->get_lex())
+        edges[i]->find_best_multiple_grammars_lexical();
+      
+      edges[i]->find_best_multiple_grammars_binary();
     }
   }
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->find_best_multiple_grammars_unary();
+      edges[i]->find_best_multiple_grammars_unary();
     }
   }
 
@@ -522,16 +571,16 @@ void PCKYAllCell<MyEdge>::compute_best_viterbi_derivation(const AnnotatedLabelsI
   //iterate through all the packed edges in this cell, processing the lexical daughters first
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i))  {
-      real_cell[i]->create_viterbi(symbol_map.get_number_of_annotations(i));
-      real_cell[i]->replace_rule_probabilities(0);
-      real_cell[i]->compute_best_lexical();
-      real_cell[i]->compute_best_binary();
+      edges[i]->create_viterbi(symbol_map.get_number_of_annotations(i));
+      edges[i]->replace_rule_probabilities(0);
+      edges[i]->compute_best_lexical();
+      edges[i]->compute_best_binary();
     }
   }
   //now process the unary daughters
   for(unsigned i = 0; i < max_size; ++i) {
     if(exists_edge(i)) {
-      real_cell[i]->compute_best_unary();
+      edges[i]->compute_best_unary();
     }
   }
 }
@@ -542,41 +591,41 @@ void PCKYAllCell<MyEdge>::backup_annotations()
   for(unsigned i = 0; i < max_size; ++i)
     if(exists_edge(i)) {
       //      std::cout << i << std::endl;
-      real_cell[i]->backup_annotations();
+      edges[i]->backup_annotations();
     }
 }
 
 // these 2 predicates returns true if the edge can be removed
 // ie, if it's pointing to invalid edges
 template <typename Cell>
-struct pred_beam_clean_bin : public std::unary_function<typename Cell::CellEdge::BinaryDaughters, bool>
+struct pred_beam_clean_bin : public std::unary_function<typename Cell::Edge::BinaryDaughters, bool>
 {
-  bool operator()(const typename Cell::CellEdge::BinaryDaughters& packededgedaughter) const
+  bool operator()(const typename Cell::Edge::BinaryDaughters& packededgedaughter) const
   {
 
     Cell * cell0 = packededgedaughter.left_daughter();
     if(cell0->is_closed()) return true;
-    typename Cell::CellEdge * lefty = (*cell0)[packededgedaughter.get_rule()->get_rhs0()];
+    typename Cell::Edge * lefty = cell0->get_edge_ptr(packededgedaughter.get_rule()->get_rhs0());
     if (lefty == NULL) return true;
 
 
     Cell * cell1 = packededgedaughter.right_daughter();
     if(cell1->is_closed()) return true;
-    typename Cell::CellEdge * righty = (*cell1)[packededgedaughter.get_rule()->get_rhs1()];
+    typename Cell::Edge * righty = cell1->get_edge_ptr(packededgedaughter.get_rule()->get_rhs1());
     return righty == NULL;
   }
 };
 
 
 template <typename Cell>
-struct pred_beam_clean_un : public std::unary_function<typename Cell::CellEdge::UnaryDaughters, bool>
+struct pred_beam_clean_un : public std::unary_function<typename Cell::Edge::UnaryDaughters, bool>
 {
-  bool operator()(const typename Cell::CellEdge::UnaryDaughters& packededgedaughter) const
+  bool operator()(const typename Cell::Edge::UnaryDaughters& packededgedaughter) const
   {
     Cell * cell = packededgedaughter.left_daughter();
     // cell should be equal to the current cell so this test is useless
     //    if(cell->is_closed()) return true;
-    return (*cell)[packededgedaughter.get_rule()->get_rhs0()] == NULL;
+    return cell->get_edge_ptr(packededgedaughter.get_rule()->get_rhs0()) == NULL;
   }
 };
 
@@ -590,18 +639,18 @@ void PCKYAllCell<MyEdge>::clean()
 
     // go through all the lists of unary daughters and remove the ones pointing on removed edges
     for(unsigned i = 0; i < max_size; ++i)
-      if(real_cell[i]) {
-	std::vector<typename MyEdge::UnaryDaughters >& udaughters = real_cell[i]->get_unary_daughters();
+      if(edges[i]) {
+	std::vector<typename MyEdge::UnaryDaughters >& udaughters = edges[i]->get_unary_daughters();
 	udaughters.erase(std::remove_if(udaughters.begin(), udaughters.end(),
                                         pred_beam_clean_un<PCKYAllCell<MyEdge> >()),
 			 udaughters.end());
 
-	if(real_cell[i]->get_binary_daughters().empty() &&
-           real_cell[i]->get_lexical_daughters().empty() &&
-           real_cell[i]->get_unary_daughters().empty()) {
+	if(edges[i]->get_binary_daughters().empty() &&
+           edges[i]->get_lexical_daughters().empty() &&
+           edges[i]->get_unary_daughters().empty()) {
 	  //	std::cout << "I shall be removed!" << std::endl;
-	  delete real_cell[i];
-	  real_cell[i]=NULL;
+	  delete edges[i];
+	  edges[i]=NULL;
 	  changed =  true;
 	}
       }
@@ -611,8 +660,8 @@ void PCKYAllCell<MyEdge>::clean()
   // final memory reclaim
   // TODO: benchmark this carefully
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
-      std::vector<typename MyEdge::UnaryDaughters >& udaughters = real_cell[i]->get_unary_daughters();
+    if(edges[i]) {
+      std::vector<typename MyEdge::UnaryDaughters >& udaughters = edges[i]->get_unary_daughters();
       if(udaughters.capacity() != udaughters.size()) {
         std::vector<typename MyEdge::UnaryDaughters > tmp;
         tmp.swap(udaughters);
@@ -623,16 +672,16 @@ void PCKYAllCell<MyEdge>::clean()
   // //should be a proper method
   // //if all edge pointers are NULL, close the cell
   //an overcomplicated way to do the same as below
-  if(std::find_if(real_cell,real_cell+max_size,std::bind2nd(std::not_equal_to<MyEdge*>(), (MyEdge*)NULL)) == real_cell+max_size)
+  if(std::find_if(edges,edges+max_size,std::bind2nd(std::not_equal_to<MyEdge*>(), (MyEdge*)NULL)) == edges+max_size)
     {
       closed = true;
-      delete[] real_cell;
-      real_cell = NULL;
+      delete[] edges;
+      edges = NULL;
     }
 
   // bool all_null = true;
   // for(unsigned i = 0; i < max_size; ++i) {
-  //   if (real_cell[i]) {
+  //   if (edges[i]) {
   //     all_null = false;
   //     break;
   //   }
@@ -640,8 +689,8 @@ void PCKYAllCell<MyEdge>::clean()
   // if(all_null) {
   //   //  std::cout << "ALL NULL" << std::endl;
   //   closed = true;
-  //   delete real_cell;
-  //   real_cell = NULL;
+  //   delete edges;
+  //   edges = NULL;
   // }
 }
 
@@ -660,9 +709,9 @@ void PCKYAllCell<MyEdge>::beam(const std::vector<double>& priors, double thresho
   //computing unannotated inside probabilities
   //looking for the probablity of the most probable symbol
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
-      sums[i] *= std::accumulate(real_cell[i]->get_annotations().inside_probabilities.array.begin(),
-				 real_cell[i]->get_annotations().inside_probabilities.array.end(),0.0);
+    if(edges[i]) {
+      sums[i] *= std::accumulate(edges[i]->get_annotations().inside_probabilities.array.begin(),
+				 edges[i]->get_annotations().inside_probabilities.array.end(),0.0);
       max = std::max(max, sums[i]);
       //      if(max < sums[i]) {max = sums[i];}
     }
@@ -672,10 +721,10 @@ void PCKYAllCell<MyEdge>::beam(const std::vector<double>& priors, double thresho
 
   //looking for edges below threshold
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
+    if(edges[i]) {
       if(sums[i] < beam) {
-	delete real_cell[i];
-  	real_cell[i]=NULL;
+	delete edges[i];
+  	edges[i]=NULL;
       }
     }
 
@@ -698,11 +747,11 @@ void PCKYAllCell<MyEdge>::beam(double threshold)
   //computing unannotated inside probabilities
   //looking for the probability of the most probable symbol
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
-      double ins = std::accumulate(real_cell[i]->get_annotations().inside_probabilities.array.begin(),
-				   real_cell[i]->get_annotations().inside_probabilities.array.end(),0.0);
-      double outs = std::accumulate(real_cell[i]->get_annotations().outside_probabilities.array.begin(),
-				    real_cell[i]->get_annotations().outside_probabilities.array.end(),0.0);
+    if(edges[i]) {
+      double ins = std::accumulate(edges[i]->get_annotations().inside_probabilities.array.begin(),
+				   edges[i]->get_annotations().inside_probabilities.array.end(),0.0);
+      double outs = std::accumulate(edges[i]->get_annotations().outside_probabilities.array.begin(),
+				    edges[i]->get_annotations().outside_probabilities.array.end(),0.0);
 
       sums[i] = ins * outs;
       if(max < sums[i]) {max = sums[i];}
@@ -713,10 +762,10 @@ void PCKYAllCell<MyEdge>::beam(double threshold)
 
   //looking for edges below threshold
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
+    if(edges[i]) {
       if(sums[i] < beam) {
-	delete real_cell[i];
-  	real_cell[i]=NULL;
+	delete edges[i];
+  	edges[i]=NULL;
       }
     }
 
@@ -730,8 +779,8 @@ template<class MyEdge>
 void PCKYAllCell<MyEdge>::clean_binary_daughters()
 {
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
-      MyEdge * edge = real_cell[i];
+    if(edges[i]) {
+      MyEdge * edge = edges[i];
 
       // go through all the lists of binary daughters and remove the ones pointing on removed edges
       std::vector<typename MyEdge::BinaryDaughters >& bdaughters = edge->get_binary_daughters();
@@ -756,9 +805,9 @@ void PCKYAllCell<MyEdge>::beam(double log_threshold, double log_sent_prob)
   double beam = log_threshold  + log_sent_prob;
 
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
+    if(edges[i]) {
       bool all_invalid = true;
-      AnnotationInfo& ai = real_cell[i]->get_annotations();
+      AnnotationInfo& ai = edges[i]->get_annotations();
 
       // calculate posterior for each annotation
       for(unsigned annot = 0 ; annot < ai.inside_probabilities.array.size(); ++annot) {
@@ -779,8 +828,8 @@ void PCKYAllCell<MyEdge>::beam(double log_threshold, double log_sent_prob)
 
       //remove edge if all annotations are NullProba
       if(all_invalid) {
-	delete real_cell[i];
-	real_cell[i]=NULL;
+	delete edges[i];
+	edges[i]=NULL;
       }
     }
   // you must call clean after this method
@@ -800,14 +849,14 @@ struct pred_beam_huang
 
   // assume that clean has already been called
   // and so lefty and righty are never NULL
-  bool operator()(const typename Cell::CellEdge::BinaryDaughters& packededgedaughter) const
+  bool operator()(const typename Cell::Edge::BinaryDaughters& packededgedaughter) const
   {
 
 
     Cell * cell0 = packededgedaughter.left_daughter();
     assert(cell0 != NULL);
 
-    typename Cell::CellEdge * lefty = (*cell0)[packededgedaughter.get_rule()->get_rhs0()];
+    typename Cell::Edge * lefty = cell0->get_edge_ptr(packededgedaughter.get_rule()->get_rhs0());
     assert(lefty != NULL);
     const AnnotationInfo& ailefty = lefty->get_annotations();
 
@@ -823,7 +872,7 @@ struct pred_beam_huang
 
     Cell * cell1 = packededgedaughter.right_daughter();
     assert(cell1 != NULL);
-    typename Cell::CellEdge * righty = (*cell1)[packededgedaughter.get_rule()->get_rhs1()];
+    typename Cell::Edge * righty = cell1->get_edge_ptr(packededgedaughter.get_rule()->get_rhs1());
     assert(righty != NULL);
     const AnnotationInfo& airighty = righty->get_annotations();
 
@@ -841,11 +890,11 @@ struct pred_beam_huang
     return remove;
   }
 
-  bool operator()(const typename Cell::CellEdge::UnaryDaughters& packededgedaughter) const
+  bool operator()(const typename Cell::Edge::UnaryDaughters& packededgedaughter) const
   {
     Cell * cell = packededgedaughter.left_daughter();
     assert(cell != NULL);
-    typename Cell::CellEdge * lefty = (*cell)[packededgedaughter.get_rule()->get_rhs0()];
+    typename Cell::Edge * lefty = cell->get_edge_ptr(packededgedaughter.get_rule()->get_rhs0());
     assert(lefty != NULL);
 
     const AnnotationInfo& ailefty = lefty->get_annotations();
@@ -871,10 +920,10 @@ template<class MyEdge>
 void PCKYAllCell<MyEdge>::beam_huang(double log_threshold, double log_sent_prob)
 {
   for(unsigned i = 0; i < max_size; ++i) {
-    // std::cout << real_cell << std::endl;
+    // std::cout << edges << std::endl;
     // std::cout << i << std::endl;
-    if(real_cell[i]) {
-      MyEdge *  edge = real_cell[i];
+    if(edges[i]) {
+      MyEdge *  edge = edges[i];
       AnnotationInfo& ai = edge->get_annotations();
 
       double total_out = 0;
@@ -906,13 +955,13 @@ void PCKYAllCell<MyEdge>::change_rules_resize(const AnnotatedLabelsInfo& next_an
                                               const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current)
 {
   for(unsigned i = 0; i < max_size; ++i)
-    if(real_cell[i]) {
+    if(edges[i]) {
 
       AnnotationInfo a(next_annotations.get_number_of_annotations(i), 0.0);
 
       //process invalid annotations
-      for(unsigned annot = 0; annot < real_cell[i]->get_annotations().inside_probabilities.array.size(); ++annot) {
-	if(!real_cell[i]->valid_prob_at(annot)) {
+      for(unsigned annot = 0; annot < edges[i]->get_annotations().inside_probabilities.array.size(); ++annot) {
+	if(!edges[i]->valid_prob_at(annot)) {
 
           const std::vector<unsigned>& next_invalids = annot_descendants_current[i][annot];
           for(std::vector<unsigned>::const_iterator new_annot(next_invalids.begin()); new_annot != next_invalids.end(); ++new_annot) {
@@ -925,10 +974,10 @@ void PCKYAllCell<MyEdge>::change_rules_resize(const AnnotatedLabelsInfo& next_an
       }
 
       //replace annot
-      std::swap(a,real_cell[i]->get_annotations());
+      std::swap(a,edges[i]->get_annotations());
 
       //replace rule
-      real_cell[i]->replace_rule_probabilities(0);
+      edges[i]->replace_rule_probabilities(0);
 
     }
 }
@@ -940,14 +989,14 @@ void PCKYAllCell<MyEdge>::change_rules_resize(unsigned new_size, unsigned finer_
 {
   for(unsigned i = 0; i < max_size; ++i)
     {
-      if(real_cell[i]) {
+      if(edges[i]) {
 	//resize
-	real_cell[i]->get_annotations().reset_probabilities(0.0);
-	real_cell[i]->get_annotations().resize(new_size);
+	edges[i]->get_annotations().reset_probabilities(0.0);
+	edges[i]->get_annotations().resize(new_size);
 
 
 	//replace rule
-	real_cell[i]->replace_rule_probabilities(finer_idx);
+	edges[i]->replace_rule_probabilities(finer_idx);
       }
     }
 }
@@ -958,15 +1007,15 @@ void PCKYAllCell<MyEdge>::change_rules_backup(unsigned backup_idx, unsigned size
 {
   for(unsigned i = 0; i < max_size; ++i)
     {
-      if(real_cell[i]) {
+      if(edges[i]) {
 
        	//replace rule TODO : replace all at once
         //	for(unsigned s = 0; s < size_grammars; ++ s)
           // 1 means we are in multiple grammar decoding
-        real_cell[i]->replace_rule_probabilities( size_grammars);
+        edges[i]->replace_rule_probabilities( size_grammars);
 
 	//load backup
-	real_cell[i]->get_annotations() = real_cell[i]->get_annotations_backup()[backup_idx];
+	edges[i]->get_annotations() = edges[i]->get_annotations_backup()[backup_idx];
       }
     }
 
@@ -978,8 +1027,8 @@ void PCKYAllCell<MyEdge>::modify_backup(unsigned backup_idx)
 {
   for(unsigned i = 0; i < max_size; ++i)
     {
-      if(real_cell[i]) {
-        real_cell[i]->get_annotations_backup()[backup_idx] = real_cell[i]->get_annotations();
+      if(edges[i]) {
+        edges[i]->get_annotations_backup()[backup_idx] = edges[i]->get_annotations();
       }
     }
 }
@@ -992,8 +1041,10 @@ std::ostream& operator<<(std::ostream& out, const PCKYAllCell<MyEdge>& cell)
 {
   int nb_entries = 0;
   for(unsigned i = 0; i < cell.max_size ; ++i)
-    if(cell.real_cell[i]) ++nb_entries;
-
+    if(cell.edges[i]) {
+      ++nb_entries;
+      out << i << ":" << *cell.edges[i] << std::endl;
+    }
   return out << "filled entries: " << nb_entries;
 }
 
@@ -1002,17 +1053,17 @@ void PCKYAllCell<MyEdge>::clear()
 {
   closed = false;
 
-  if(!real_cell)
+  if(!edges)
     {
-      real_cell =  new CellEdge * [max_size];
-      memset(real_cell, 0, max_size * sizeof(CellEdge*));
+      edges =  new MyEdge * [max_size];
+      memset(edges, 0, max_size * sizeof(MyEdge*));
     }
   else
     for(unsigned i = 0; i < max_size; ++i)
       {
-        if(real_cell[i]) {
-          delete real_cell[i];
-          real_cell[i] = 0;
+        if(edges[i]) {
+          delete edges[i];
+          edges[i] = 0;
         }
       }
 }

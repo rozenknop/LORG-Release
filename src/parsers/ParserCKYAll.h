@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <numeric>
 
-#define USE_THREADS 1
+//#define USE_THREADS 1
 
 #ifdef USE_THREADS
 #include <tbb/parallel_for.h>
@@ -113,11 +113,13 @@ protected: // attributes
  \class ParserCKYAll
  \brief represents a parsing device for probabilistic cfgs using the cky algorithm
  */
-template<class Probability>
+template<class TCell>
 class ParserCKYAll_Impl : public ParserCKYAll
 {
 public:
-    typedef PCKYAllCell<PackedEdge<Probability> > Cell;
+    typedef TCell Cell;
+    typedef typename TCell::Edge Edge;
+    typedef typename TCell::Edge::Probability Probability;
     typedef ChartCKY<Cell, Word> Chart;
 
 
@@ -301,15 +303,14 @@ protected: // attributes
 
 
 #ifdef USE_THREADS
-    template<typename P>
     struct ProcessCellBody {
 
-        const ParserCKYAll_Impl<P>& parser;
+        const ParserCKYAll_Impl<Cell>& parser;
         double beam_threshold;
         bool isroot;
         unsigned span;
 
-        ProcessCellBody(const ParserCKYAll_Impl<P>& p,
+        ProcessCellBody(const ParserCKYAll_Impl<Cell>& p,
                         double beam_threshold_,
                         bool isroot_,
                         unsigned span_)
@@ -332,7 +333,7 @@ protected: // attributes
             }
         }
     };
-    friend struct ProcessCellBody<Probability>;
+    friend struct ProcessCellBody;
 #endif
 
 
@@ -446,8 +447,8 @@ num_cell_threads(nbCellThreads)
 
 
 
-template <typename P>
-ParserCKYAll_Impl<P>::ParserCKYAll_Impl(std::vector<AGrammar*>& cgs,
+template <typename TCell>
+ParserCKYAll_Impl<TCell>::ParserCKYAll_Impl(std::vector<AGrammar*>& cgs,
                                         const std::vector<double>& p,
                                         double prior_threshold,
                                         const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
@@ -459,8 +460,8 @@ chart(NULL)
 
 
 
-template <typename P>
-ParserCKYAll_Impl<P>::~ParserCKYAll_Impl()
+template <typename TCell>
+ParserCKYAll_Impl<TCell>::~ParserCKYAll_Impl()
 {
     for (std::vector<AGrammar*>::iterator i(grammars.begin()); i != grammars.end(); ++i)
         if(i != grammars.begin()) // the first grammar is deleted by super class
@@ -470,8 +471,8 @@ ParserCKYAll_Impl<P>::~ParserCKYAll_Impl()
         }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::parse(int start_symbol) const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::parse(int start_symbol) const
 {
     int ntries = stubbornness;
     double beam_threshold = prior_beam_threshold;
@@ -527,9 +528,9 @@ void ParserCKYAll_Impl<P>::parse(int start_symbol) const
 
 }
 
-template <typename P>
+template <typename TCell>
 inline
-void ParserCKYAll_Impl<P>::get_candidates(Cell& left_cell,
+void ParserCKYAll_Impl<TCell>::get_candidates(Cell& left_cell,
                                           Cell& right_cell,
                                           Cell& result_cell) const
 {
@@ -543,7 +544,7 @@ void ParserCKYAll_Impl<P>::get_candidates(Cell& left_cell,
         // is L present in the left_cell ?
         if(left_cell.exists_edge(same_rhs0_itr->rhs0)) {
 
-            double LR1 = left_cell[same_rhs0_itr->rhs0]->get_annotations().inside_probabilities.array[0];
+            double LR1 = left_cell.get_edge(same_rhs0_itr->rhs0).get_annotations().inside_probabilities.array[0];
             //iterating through all the rules P -> L R, indexed by R, L fixed
             for (std::vector<vector_rhs1>::const_iterator same_rhs1_itr(same_rhs0_itr->_begin);
                  same_rhs1_itr != same_rhs0_itr->_end; ++same_rhs1_itr) {
@@ -552,7 +553,7 @@ void ParserCKYAll_Impl<P>::get_candidates(Cell& left_cell,
                 if(right_cell.exists_edge(same_rhs1_itr->rhs1)) {
 
 
-                    double LR = LR1 * right_cell[same_rhs1_itr->rhs1]->get_annotations().inside_probabilities.array[0];
+                    double LR = LR1 * right_cell.get_edge(same_rhs1_itr->rhs1).get_annotations().inside_probabilities.array[0];
 
                     //iterating through all the rules P -> L R, indexed by P, R and L fixed
                     std::vector< const BRuleC2f* >::const_iterator bitr(same_rhs1_itr->_begin);
@@ -565,8 +566,8 @@ void ParserCKYAll_Impl<P>::get_candidates(Cell& left_cell,
     }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::process_internal_rules(double beam_threshold) const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) const
 {
 #ifdef USE_THREADS
     task_scheduler_init init(num_cell_threads);
@@ -578,7 +579,7 @@ void ParserCKYAll_Impl<P>::process_internal_rules(double beam_threshold) const
 
 #ifdef USE_THREADS
         parallel_for(blocked_range<unsigned>(0, end_of_begin),
-                     ProcessCellBody<P>(*this, beam_threshold, isroot, span));
+                     ProcessCellBody(*this, beam_threshold, isroot, span));
 
         if(span == sent_size)
         {
@@ -600,8 +601,8 @@ void ParserCKYAll_Impl<P>::process_internal_rules(double beam_threshold) const
     }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::process_cell(Cell& cell, double beam_threshold, unsigned begin, unsigned end, bool isroot) const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::process_cell(Cell& cell, double beam_threshold, unsigned begin, unsigned end, bool isroot) const
 {
     // look for all possible new edges
 
@@ -630,9 +631,9 @@ void ParserCKYAll_Impl<P>::process_cell(Cell& cell, double beam_threshold, unsig
 }
 
 
-template <typename P>
+template <typename TCell>
 inline
-void ParserCKYAll_Impl<P>::add_unary_init(Cell& cell, bool isroot) const
+void ParserCKYAll_Impl<TCell>::add_unary_init(Cell& cell, bool isroot) const
 {
     //for each unary rule set in the grammar [sets made up of all unary rules with a particular rhs]
     static std::vector<short>::const_iterator unary_rhs_itr_begin = unary_rhs_from_pos.begin();
@@ -645,9 +646,9 @@ void ParserCKYAll_Impl<P>::add_unary_init(Cell& cell, bool isroot) const
     }
 }
 
-template <typename P>
+template <typename TCell>
 inline
-void ParserCKYAll_Impl<P>::add_unary_internal(Cell& cell, bool isroot) const
+void ParserCKYAll_Impl<TCell>::add_unary_internal(Cell& cell, bool isroot) const
 {
 
     //for each unary rule set in the grammar [sets made up of all unary rules with a particular rhs being a lhs of a binary rule]
@@ -660,12 +661,12 @@ void ParserCKYAll_Impl<P>::add_unary_internal(Cell& cell, bool isroot) const
 }
 
 
-template <typename C>
+template <typename TCell>
 struct processunary
 {
-    C& cell;
+    TCell& cell;
     double L_inside;
-    processunary(C& c, double L) : cell(c), L_inside(L) {};
+    processunary(TCell& c, double L) : cell(c), L_inside(L) {};
     void operator()(const URuleC2f* r) const
     {
       cell.process_candidate(r,L_inside);
@@ -673,20 +674,20 @@ struct processunary
 };
 
 
-template <typename P>
-void ParserCKYAll_Impl<P>::process_unary(Cell& cell, int lhs, bool isroot) const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) const
 {
     const std::vector<const URuleC2f*>& rules = isroot ?
             unary_rhs_2_rules_toponly[lhs] :
             unary_rhs_2_rules_notop[lhs];
 
-    double L_inside = cell.at(lhs).get_annotations().inside_probabilities.array[0];
+    double L_inside = cell.get_edge(lhs).get_annotations().inside_probabilities.array[0];
 
     std::for_each(rules.begin(),rules.end(),processunary<Cell>(cell, L_inside));
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::compute_outside_probabilities() const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::compute_outside_probabilities() const
 {
     unsigned sent_size=chart->get_size();
     for (unsigned span = sent_size; span > 0; --span) {
@@ -709,8 +710,8 @@ void ParserCKYAll_Impl<P>::compute_outside_probabilities() const
     }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::compute_inside_probabilities() const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::compute_inside_probabilities() const
 {
     unsigned sent_size=chart->get_size();
 
@@ -729,24 +730,24 @@ void ParserCKYAll_Impl<P>::compute_inside_probabilities() const
 }
 
 
-template <typename P>
-double ParserCKYAll_Impl<P>::get_sentence_probability() const
+template <typename TCell>
+double ParserCKYAll_Impl<TCell>::get_sentence_probability() const
 {
     static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
     if(chart->get_root().exists_edge(start_symbol))
-        return chart->get_root()[start_symbol]->get_annotations().get_inside(0);
+        return chart->get_root().get_edge(start_symbol).get_annotations().get_inside(0);
     else
         return LorgConstants::NullProba;
 }
 
 // relative beam
-template <typename P>
-void ParserCKYAll_Impl<P>::beam_chart_io_relative() const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::beam_chart_io_relative() const
 {
     static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
-    chart->get_root()[start_symbol]->get_annotations().reset_outside_probabilities(1.0);
+    chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
     compute_outside_probabilities(chart);
 
     unsigned sent_size=chart->get_size();
@@ -765,12 +766,12 @@ void ParserCKYAll_Impl<P>::beam_chart_io_relative() const
 }
 
 //absolute beam
-template <typename P>
-void ParserCKYAll_Impl<P>::beam_chart(double log_sent_prob, double log_threshold, bool huang) const
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_threshold, bool huang) const
 {
     static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
-    chart->get_root()[start_symbol]->get_annotations().reset_outside_probabilities(1.0);
+    chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
     compute_outside_probabilities();
 
     unsigned sent_size=chart->get_size();
@@ -847,8 +848,8 @@ void process_internal(typename rulevect2mapvect<Key,MyRule>::map_type& map, std:
 #define MAP boost::unordered_map
 //#define MAP std::map
 
-template <typename P>
-void ParserCKYAll_Impl<P>::create_coarse_to_fine_mapping(std::vector<AGrammar*>& cgs)
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::create_coarse_to_fine_mapping(std::vector<AGrammar*>& cgs)
 {
     //  std::clog << "before mapping" << std::endl;
 
@@ -874,7 +875,7 @@ void ParserCKYAll_Impl<P>::create_coarse_to_fine_mapping(std::vector<AGrammar*>&
 
     std::vector<LexicalRuleC2f*> l2remove = calculate_mapping<ukey,LexicalRuleC2f>(lmap, cgs.size());
     for(std::vector<LexicalRuleC2f*>::iterator i(l2remove.begin()); i != l2remove.end(); ++i) {
-        remove_lex_rule(*i);
+      remove_lex_rule(*i);
     }
 
     //  std::clog << "after mapping" << std::endl;
@@ -884,16 +885,16 @@ void ParserCKYAll_Impl<P>::create_coarse_to_fine_mapping(std::vector<AGrammar*>&
 ////////////////////////////////
 /////////////// C2f ///////////
 ///////////////////////////////
-template <typename P>
-void ParserCKYAll_Impl<P>::beam_c2f(int start_symbol)
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::beam_c2f(int start_symbol)
 {
     if(!chart->get_root().is_closed() && chart->get_root().exists_edge(start_symbol)) {
         beam_c2f(grammars, annot_descendants);
     }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::beam_c2f(const std::vector<AGrammar*>& current_grammars,
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::beam_c2f(const std::vector<AGrammar*>& current_grammars,
                                     const annot_descendants_type& /*current_annot_descendants*/) const
 {
     static int top_idx = SymbolTable::instance_nt().get_label_id(LorgConstants::tree_root_name);
@@ -952,8 +953,8 @@ void ParserCKYAll_Impl<P>::beam_c2f(const std::vector<AGrammar*>& current_gramma
     }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::change_rules_resize(unsigned step,
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::change_rules_resize(unsigned step,
                                                const std::vector<AGrammar*>& current_grammars) const
 {
     const AnnotatedLabelsInfo& next_annotations = current_grammars[step+1]->get_annotations_info();
@@ -974,8 +975,8 @@ void ParserCKYAll_Impl<P>::change_rules_resize(unsigned step,
     }
 }
 
-template <typename P>
-void ParserCKYAll_Impl<P>::get_parses(int start_symbol, unsigned kbest,
+template <typename TCell>
+void ParserCKYAll_Impl<TCell>::get_parses(int start_symbol, unsigned kbest,
                                       bool always_output_forms, bool output_annotations,
                                       std::vector<std::pair<PtbPsTree *,double> >& best_trees)
 {
@@ -990,27 +991,27 @@ void ParserCKYAll_Impl<P>::get_parses(int start_symbol, unsigned kbest,
 
 }
 
-template<class Probability>
+template<class TCell>
 inline
-typename ParserCKYAll_Impl<Probability>::AGrammar& ParserCKYAll_Impl<Probability>::get_grammar(unsigned idx)
+typename ParserCKYAll_Impl<TCell>::AGrammar& ParserCKYAll_Impl<TCell>::get_grammar(unsigned idx)
 {
     return *(grammars[idx]);
 }
 
-template<class Probability>
+template<class TCell>
 inline
-const typename ParserCKYAll_Impl<Probability>::AGrammar& ParserCKYAll_Impl<Probability>::get_grammar(unsigned idx) const
+const typename ParserCKYAll_Impl<TCell>::AGrammar& ParserCKYAll_Impl<TCell>::get_grammar(unsigned idx) const
 {
     return *(grammars[idx]);
 }
 
 
-template<class Probability>
-void ParserCKYAll_Impl<Probability>::compute_inside_outside_probabilities() const
+template<class TCell>
+void ParserCKYAll_Impl<TCell>::compute_inside_outside_probabilities() const
 {
     compute_inside_probabilities();
     static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-    chart->get_root()[start_symbol]->get_annotations().reset_outside_probabilities(1.0);
+    chart->get_root().get_edge(start_symbol).reset_outside_probabilities(1.0);
     compute_outside_probabilities();
 }
 

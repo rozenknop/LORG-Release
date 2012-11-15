@@ -5,8 +5,9 @@
 #include "ParserCKYAll.h"
 #include "edges/ViterbiProbability.h"
 
+typedef PCKYAllCell<PackedEdge<ViterbiProbability> > ParserCKYAllViterbiCell ;
 
-class ParserCKYAllViterbi : public ParserCKYAll_Impl<ViterbiProbability>
+class ParserCKYAllViterbi : public ParserCKYAll_Impl<ParserCKYAllViterbiCell>
 {
 public:
   ParserCKYAllViterbi(std::vector<AGrammar*>& cgs,
@@ -33,7 +34,7 @@ ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
 					 const std::vector<double>& p, double b_t,
                                          const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
 					 bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads)
-  : ParserCKYAll_Impl<ViterbiProbability>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
+: ParserCKYAll_Impl<ParserCKYAllViterbiCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
 {
   fine_grammar = new ParserCKYAll::AGrammar(*cgs[cgs.size()-1]);
   fine_grammar->set_logmode(); // the Viterbi algorithms assume the fine grammar rules weights are log_probs
@@ -46,7 +47,7 @@ ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
 
   create_coarse_to_fine_mapping(all_grammars);
 
-  ParserCKYAll_Impl<ViterbiProbability>::Cell::CellEdge::set_viterbi_unary_chains(fine_grammar->get_unary_decoding_paths());
+  Edge::set_viterbi_unary_chains(fine_grammar->get_unary_decoding_paths());
 }
 
 

@@ -15,7 +15,7 @@
 */
 class PCKYBestCell {
  private:
-  Edge ** real_cell;
+  Edge ** edges;
   bool closed;
   const Edge * word_edge;
 
@@ -30,7 +30,7 @@ public:
      to use it will result in segfault !
      You have to call init first
    */
-  PCKYBestCell() : real_cell(NULL), closed(true), word_edge(NULL) {};
+  PCKYBestCell() : edges(NULL), closed(true), word_edge(NULL) {};
 
   /**
      \brief Constructor
@@ -139,7 +139,7 @@ bool PCKYBestCell::exists_edge(int label) const
 {
 //   assert(label >= 0);
 //   assert(label < (int) max_size);
-  return (real_cell[label] != NULL);
+  return (edges[label] != NULL);
 }
 
 
@@ -153,7 +153,7 @@ const Edge * PCKYBestCell::process_candidate(const Edge& candidate)
   //  assert(candidate.get_lhs() <= (int) max_size);
 
 
-  Edge ** current = &real_cell[candidate.get_lhs()];
+  Edge ** current = &edges[candidate.get_lhs()];
 
   if(*current) {
     if (candidate.get_probability() > (*current)->get_probability()) {
@@ -171,14 +171,14 @@ const Edge * PCKYBestCell::process_candidate(const Edge& candidate)
 inline
 const Edge * PCKYBestCell::add_edge(const Edge& edge)
 {
-  return real_cell[edge.get_lhs()] = new Edge(edge);
+  return edges[edge.get_lhs()] = new Edge(edge);
 }
 
 
 inline
 Edge& PCKYBestCell::operator[](unsigned i)
 {
-  return *real_cell[i];
+  return *edges[i];
 }
 
 inline
@@ -188,7 +188,7 @@ const Edge& PCKYBestCell::at(int i) const
   //assert( i < (int) max_size);
   assert(i>=0 && i < (int) max_size);
 
-  return *real_cell[i];
+  return *edges[i];
 }
 
 inline
@@ -203,10 +203,10 @@ void PCKYBestCell::init(bool cl)
 {
   if(!(closed = cl)) {
     word_edge = NULL;
-    real_cell =  new Edge * [max_size];
-    memset(real_cell, 0, max_size * sizeof(Edge*));
+    edges =  new Edge * [max_size];
+    memset(edges, 0, max_size * sizeof(Edge*));
     //   for(unsigned i = 0; i < max_size;++i)
-    //     real_cell[i]=NULL;
+    //     edges[i]=NULL;
   }
 }
 
@@ -251,14 +251,14 @@ void PCKYBestCell::apply_beam()
   double max_prob = - std::numeric_limits<double>::infinity();
 
   for(unsigned i = 0 ; i < max_size; ++i)
-    if(real_cell[i] && max_prob < real_cell[i]->get_probability())
-      max_prob = real_cell[i]->get_probability();
+    if(edges[i] && max_prob < edges[i]->get_probability())
+      max_prob = edges[i]->get_probability();
 
 
   for(unsigned i = 0 ; i < max_size; ++i)
-    if(real_cell[i] && max_prob > real_cell[i]->get_probability() + BEAM_CONST) {
-      delete real_cell[i];
-      real_cell[i] =  NULL;
+    if(edges[i] && max_prob > edges[i]->get_probability() + BEAM_CONST) {
+      delete edges[i];
+      edges[i] =  NULL;
     }
 }
 

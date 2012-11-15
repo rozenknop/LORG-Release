@@ -10,7 +10,7 @@
 class ViterbiProbability //: public PackedEdgeProbability
 {
 private:
-  std::vector<packed_edge_probability> best;
+  std::vector<packed_edge_probability_with_index> best;
 public:
   ViterbiProbability() {};
   ViterbiProbability(unsigned size) : best(size) {};
@@ -61,11 +61,11 @@ void ViterbiProbability::update(const AnnotationInfo& a, const UnaryPackedEdgeDa
 {
   const std::vector<std::vector<double> >& rule_probs = dtr.get_rule()->get_probability();
 
-  const PackedEdge<ViterbiProbability>& left = (dtr.left_daughter())->at(dtr.get_rule()->get_rhs0());
+  const PackedEdge<ViterbiProbability>& left = (dtr.left_daughter())->get_edge(dtr.get_rule()->get_rhs0());
 
   for (unsigned i = 0; i < rule_probs.size(); ++i) {
     if(!a.valid_prob_at(i, LorgConstants::NullProba)) continue;
-    packed_edge_probability& current_best = best[i];
+    packed_edge_probability_with_index& current_best = best[i];
     const std::vector<double>& rule_probs_i = rule_probs[i];
     for (unsigned j = 0; j < rule_probs_i.size(); ++j) {
       if(!left.valid_prob_at(j)) continue;
@@ -83,12 +83,12 @@ void ViterbiProbability::update(const AnnotationInfo& a, const BinaryPackedEdgeD
 {
   const std::vector<std::vector<std::vector<double> > >& rule_probs = dtr.get_rule()->get_probability();
 
-  const PackedEdge<ViterbiProbability>& left  = dtr.left_daughter()->at(dtr.get_rule()->get_rhs0());
-  const PackedEdge<ViterbiProbability>& right = dtr.right_daughter()->at(dtr.get_rule()->get_rhs1());
+  const PackedEdge<ViterbiProbability>& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
+  const PackedEdge<ViterbiProbability>& right = dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1());
 
   for (unsigned i = 0; i < rule_probs.size(); ++i) {
     if(!a.valid_prob_at(i, LorgConstants::NullProba)) continue;
-    packed_edge_probability& current_best = best[i];
+    packed_edge_probability_with_index& current_best = best[i];
     const std::vector<std::vector<double> >& rule_probs_i = rule_probs[i];
     for (unsigned j=0; j < rule_probs_i.size(); ++j) {
       if(!left.valid_prob_at(j)) continue;
