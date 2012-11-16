@@ -2,6 +2,13 @@
 
 #include <boost/thread.hpp>
 
+#include <tbb/tick_count.h>
+#include <tbb/parallel_reduce.h>
+#include <tbb/parallel_for.h>
+#include <tbb/task_scheduler_init.h>
+#include <tbb/blocked_range.h>
+
+
 typedef std::map<std::pair<int,int> , int> lexical_counts_map;
 
 BasicLexicon::~BasicLexicon() {}
@@ -170,30 +177,23 @@ void BasicLexicon::maximisation(){
 
 }
 
-
-struct basic_lexicon_update_thread
+struct basic_lexicon_update_thread_tbb
 {
   const BasicLexicon & lexicon;
-  std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences;
-  unsigned begin;
-  unsigned end;
 
-  basic_lexicon_update_thread(const BasicLexicon& lexicon_,
-      std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences_,
-      unsigned begin_,
-      unsigned end_)
-      : lexicon(lexicon_), lex_occurrences(lex_occurrences_), begin(begin_), end(end_) {};
+  basic_lexicon_update_thread_tbb(const BasicLexicon& lexicon_)
+    : lexicon(lexicon_)
+  {};
 
-  void operator()()
+  typedef std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > > vector_type;
+
+  void operator()(const typename tbb::blocked_range<vector_type::iterator>& r) const
   {
-    for(unsigned i = begin; i < end; ++i) {
+    for(typename vector_type::iterator i = r.begin(); i < r.end(); ++i) {
 
+      LexicalRuleTraining * rule = i->first;
 
-      LexicalRuleTraining * rule = lex_occurrences[i].first;
-
-
-      for(std::vector<lrule_occurrence>::iterator iter(lex_occurrences[i].second.begin());
-          iter != lex_occurrences[i].second.end(); ++iter) {
+      for(typename std::vector<lrule_occurrence>::iterator iter(i->second.begin()); iter != i->second.end(); ++iter) {
 
         const TrainingNode * root = iter->root;
         const TrainingNode * node = iter->up;
@@ -201,8 +201,6 @@ struct basic_lexicon_update_thread
         const scaled_array& tree_prob = root->get_annotations().inside_probabilities;
 
         lexicon.update_annotated_rule_counts(*rule, node->get_annotations(), tree_prob);
-
-
       }
     }
   }
@@ -210,19 +208,69 @@ struct basic_lexicon_update_thread
 };
 
 
+
+// struct basic_lexicon_update_thread
+// {
+//   const BasicLexicon & lexicon;
+//   std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences;
+//   unsigned begin;
+//   unsigned end;
+
+//   basic_lexicon_update_thread(const BasicLexicon& lexicon_,
+//       std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences_,
+//       unsigned begin_,
+//       unsigned end_)
+//       : lexicon(lexicon_), lex_occurrences(lex_occurrences_), begin(begin_), end(end_) {};
+
+//   void operator()()
+//   {
+//     for(unsigned i = begin; i < end; ++i) {
+
+
+//       LexicalRuleTraining * rule = lex_occurrences[i].first;
+
+
+//       for(std::vector<lrule_occurrence>::iterator iter(lex_occurrences[i].second.begin());
+//           iter != lex_occurrences[i].second.end(); ++iter) {
+
+//         const TrainingNode * root = iter->root;
+//         const TrainingNode * node = iter->up;
+
+//         const scaled_array& tree_prob = root->get_annotations().inside_probabilities;
+
+//         lexicon.update_annotated_rule_counts(*rule, node->get_annotations(), tree_prob);
+
+
+//       }
+//     }
+//   }
+
+// };
+
+
 void BasicLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & /*trees ignored*/,
 						      bool /*ignored*/,
                                                       std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-                                                      unsigned nbthreads
+                                                      unsigned /*nbthreads*/
                                                       )
 {
-  boost::thread_group mygroup;
 
-  for(unsigned i = 0; i < nbthreads; ++i) {
-    mygroup.create_thread(basic_lexicon_update_thread(*this, lex_occurrences, i * lex_occurrences.size() / nbthreads, (i+1) * lex_occurrences.size() / nbthreads));
-  }
 
-    mygroup.join_all();
+
+
+  // boost::thread_group mygroup;
+
+  // for(unsigned i = 0; i < nbthreads; ++i) {
+  //   mygroup.create_thread(basic_lexicon_update_thread(*this, lex_occurrences, i * lex_occurrences.size() / nbthreads, (i+1) * lex_occurrences.size() / nbthreads));
+  // }
+
+  //   mygroup.join_all();
+
+  basic_lexicon_update_thread_tbb blut(*this);
+  parallel_for(tbb::blocked_range<typename basic_lexicon_update_thread_tbb::vector_type::iterator>(lex_occurrences.begin(),
+                                                                                                   lex_occurrences.end()),
+               blut);
+
 
 
   // for(std::vector<BinaryTrainingTree>::const_iterator tree_iter(trees.begin()); tree_iter != trees.end(); ++tree_iter)

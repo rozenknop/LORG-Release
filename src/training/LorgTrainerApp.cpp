@@ -345,19 +345,23 @@ int LorgTrainerApp::run()
         //std::cout << "### itersm:\t" << iter << "\t" << (tick_count::now() - itersm_start).seconds() << std::endl;
     } //End of for split-merge cycles
 
-    //one iteration with lexical rule smoothing turned on, relevant for berkeley sophisticated lexicon
-    em_trainer.do_em(training_trees, em_grammar, 2, 0.0, 0.0, true, smooth_method);
 
+    if (lexicon_type != LexiconFactory::Basic)
+      {
+        //one iteration with lexical rule smoothing turned on, relevant for berkeley sophisticated lexicon
+        em_trainer.do_em(training_trees, em_grammar, 2, 0.0, 0.0, true, smooth_method);
 
-    //  std::cout << "creating additional rules" << std::endl;
-    em_grammar.create_additional_rules();
-    //  std::cout << "created " << em_grammar.additional_rules.size() << " additional rules" << std::endl;
+        //  std::cout << "creating additional rules" << std::endl;
+        em_grammar.create_additional_rules();
+        //  std::cout << "created " << em_grammar.additional_rules.size() << " additional rules" << std::endl;
 
-    em_grammar.lexical_smoothing();
-    em_trainer.smooth_grammar_rules(em_grammar, smooth_grammar, smooth_lexicon,smooth_method);
+        em_grammar.lexical_smoothing();
+        em_trainer.smooth_grammar_rules(em_grammar, smooth_grammar, smooth_lexicon,smooth_method);
 
-    std::clog << "outputting final grammar" << std::endl;
-    write_grammar(em_grammar, "_final");
+        std::clog << "outputting final grammar" << std::endl;
+        write_grammar(em_grammar, "_final");
+      }
+
 
     if(verbose)
         std::cerr << "overall time: " << (tick_count::now() - t0).seconds() << std::endl;

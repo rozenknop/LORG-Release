@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <numeric>
 
+//#include <boost/thread.hpp>
 
-#include <boost/thread.hpp>
 
 #include <tbb/tick_count.h>
 #include <tbb/parallel_reduce.h>
@@ -19,22 +19,22 @@ using namespace tbb;
 
 namespace {
 
-void calculate_occurrences(const TrainingNode* n,
-                           bumap<BRuleTraining*,std::vector<brule_occurrence> >& bmap,
-                           bumap<URuleTraining*,std::vector<urule_occurrence> >& umap,
-                           bumap<LexicalRuleTraining*,std::vector<lrule_occurrence> >& lmap)
-{
+  void calculate_occurrences(const TrainingNode* n,
+                             bumap<BRuleTraining*,std::vector<brule_occurrence> >& bmap,
+                             bumap<URuleTraining*,std::vector<urule_occurrence> >& umap,
+                             bumap<LexicalRuleTraining*,std::vector<lrule_occurrence> >& lmap)
+  {
     n->add_occurrences(bmap,umap,lmap, n);
-}
+  }
 
-void calculate_occurrences(const std::vector<BinaryTrainingTree>& trees,
-                           bumap<BRuleTraining*,std::vector<brule_occurrence> >& bmap,
-                           bumap<URuleTraining*,std::vector<urule_occurrence> >& umap,
-                           bumap<LexicalRuleTraining*,std::vector<lrule_occurrence> >& lmap)
-{
+  void calculate_occurrences(const std::vector<BinaryTrainingTree>& trees,
+                             bumap<BRuleTraining*,std::vector<brule_occurrence> >& bmap,
+                             bumap<URuleTraining*,std::vector<urule_occurrence> >& umap,
+                             bumap<LexicalRuleTraining*,std::vector<lrule_occurrence> >& lmap)
+  {
     for(std::vector<BinaryTrainingTree>::const_iterator i(trees.begin()); i != trees.end(); ++i)
-        calculate_occurrences(i->get_root(), bmap,umap, lmap);
-}
+      calculate_occurrences(i->get_root(), bmap,umap, lmap);
+  }
 }
 
 
@@ -44,17 +44,13 @@ namespace multithread {
 // also computing the log likelihood of this portion
 class inout_thread
 {
-    /*std::vector<BinaryTrainingTree>& trees;
-          unsigned trees_begin;
-          unsigned trees_end;*/
     unsigned ignored;
 
 public:
     double logprob;
 
     inout_thread(): ignored(0), logprob(0.0) {}
-    //inout_thread(std::vector<BinaryTrainingTree>& ts, unsigned tsb, unsigned tse, double& lp)
-    //: trees(ts), trees_begin(tsb), trees_end(tse), logprob(lp), ignored(0) {};
+
 
   // why this ?
   inout_thread( inout_thread&, split ) : ignored(0), logprob(0.0) {}
@@ -62,23 +58,22 @@ public:
     void operator()(const blocked_range<std::vector<BinaryTrainingTree>::iterator>& r)
     {
         for(std::vector<BinaryTrainingTree>::iterator i = r.begin(); i != r.end(); ++i) {
-            //for(unsigned i = trees_begin; i != trees_end; ++i) {
 
             // calculate the inside probability of all nodes in the tree
-            BinaryTrainingTree t = *i;
-            /*trees[i]*/
+            BinaryTrainingTree& t = *i;
+
             t.compute_inside_probability();
 
             // update the likelihood with the inside probability of the tree
             // (this will be the inside probability of the root node which has no annotations)
 
-            double log_tree_prob = /*trees[i]*/t.get_log_probability();
+            double log_tree_prob =t.get_log_probability();
 
             if(std::isnan(log_tree_prob) || log_tree_prob == - std::numeric_limits<double>::infinity())
                 ++ignored;
             else {
                 logprob +=  log_tree_prob;
-                /*trees[i]*/t.compute_outside_probability();
+                t.compute_outside_probability();
             }
         }
     }
@@ -100,23 +95,22 @@ struct update_thread_tbb
     void operator()(const blocked_range<typename vector_type::iterator>& r) const
     {
         for(typename vector_type::iterator i = r.begin(); i < r.end(); ++i) {
-            //for(unsigned i = begin; i < end; ++i) {
 
-            std::pair<rule_type*, std::vector<occurrence_type> > p = *i;
-            rule_type * rule = p.first; //v[i].first;
-            const std::vector<occurrence_type>& occurrences = p.second; //v[i].second;
+          rule_type * rule = i->first;
+          const std::vector<occurrence_type>& occurrences = i->second;
 
-            for(typename std::vector<occurrence_type>::const_iterator it(occurrences.begin()); it != occurrences.end(); ++ it) {
+          for(typename std::vector<occurrence_type>::const_iterator it(occurrences.begin()); it != occurrences.end(); ++it) {
 
-                double logprob = it->root->get_annotations().get_inside(0);
+            double logprob = it->root->get_annotations().get_inside(0);
 
-                if(std::isnan(logprob) || logprob == - std::numeric_limits<double>::infinity())
-                    break;
-                update_count_in_occurrences(rule, *it);
-            }
+            if(std::isnan(logprob) || logprob == - std::numeric_limits<double>::infinity())
+              break;
+            update_count_in_occurrences(rule, *it);
+          }
         }
     }
 
+  inline
     void update_count_in_occurrences(BRuleTraining* r, const brule_occurrence& bo) const
     {
         r->update_rule_frequencies(bo.left->get_annotations().inside_probabilities,
@@ -125,6 +119,7 @@ struct update_thread_tbb
                                    bo.root->get_annotations().inside_probabilities);
     }
 
+  inline
     void update_count_in_occurrences(URuleTraining* r, const urule_occurrence& o) const
     {
         r->update_rule_frequencies(o.left->get_annotations().inside_probabilities,
@@ -133,36 +128,36 @@ struct update_thread_tbb
     }
 };
 
-struct update_counts_unary
-{
-    std::vector< std::pair<URuleTraining*,std::vector<urule_occurrence> > >&vu;
-    update_counts_unary(std::vector< std::pair<URuleTraining*,
-                        std::vector<urule_occurrence> > >& _vu)
-        :vu(_vu){}
+// struct update_counts_unary
+// {
+//     std::vector< std::pair<URuleTraining*,std::vector<urule_occurrence> > >&vu;
+//     update_counts_unary(std::vector< std::pair<URuleTraining*,
+//                         std::vector<urule_occurrence> > >& _vu)
+//         :vu(_vu){}
 
-    void operator()()const
-    {
-        typedef std::vector< std::pair<URuleTraining*, std::vector<urule_occurrence> > > VectorPairsURules;
-        multithread::update_thread_tbb<URuleTraining, urule_occurrence> uut;
-        parallel_for(blocked_range<VectorPairsURules::iterator>(vu.begin(), vu.end(), vu.size()/2), uut);
-    }
-};
+//     void operator()()const
+//     {
+//         typedef std::vector< std::pair<URuleTraining*, std::vector<urule_occurrence> > > VectorPairsURules;
+//         multithread::update_thread_tbb<URuleTraining, urule_occurrence> uut;
+//         parallel_for(blocked_range<VectorPairsURules::iterator>(vu.begin(), vu.end()), uut);
+//     }
+// };
 
-struct update_counts_binary
-{
-    std::vector< std::pair<BRuleTraining*,std::vector<brule_occurrence> > >&vb;
-    update_counts_binary(std::vector< std::pair<BRuleTraining*,
-                         std::vector<brule_occurrence> > >& _vb)
-        :vb(_vb){}
+// struct update_counts_binary
+// {
+//     std::vector< std::pair<BRuleTraining*,std::vector<brule_occurrence> > >&vb;
+//     update_counts_binary(std::vector< std::pair<BRuleTraining*,
+//                          std::vector<brule_occurrence> > >& _vb)
+//         :vb(_vb){}
 
-    void operator()()const
-    {
-        typedef std::vector< std::pair<BRuleTraining*, std::vector<brule_occurrence> > > VectorPairsBRules;
-        std::random_shuffle(vb.begin(),vb.end());
-        multithread::update_thread_tbb<BRuleTraining, brule_occurrence> but;
-        parallel_for(blocked_range<VectorPairsBRules::iterator>(vb.begin(), vb.end(), vb.size()/2), but);
-    }
-};
+//     void operator()()const
+//     {
+//         typedef std::vector< std::pair<BRuleTraining*, std::vector<brule_occurrence> > > VectorPairsBRules;
+//         //std::random_shuffle(vb.begin(),vb.end());
+//         multithread::update_thread_tbb<BRuleTraining, brule_occurrence> but;
+//         parallel_for(blocked_range<VectorPairsBRules::iterator>(vb.begin(), vb.end()), but);
+//     }
+// };
 }
 
 
@@ -258,17 +253,20 @@ void EMTrainer::expectation(std::vector<BinaryTrainingTree>& trees, TrainingGram
 
     log_likelihood = 0;
 
-    std::cout << "Before in/out" << std::endl;
+    if(verbose)
+      std::clog << "Before in/out" << std::endl;
+
     task_scheduler_init init(threads);
     // TODO make  a separate function
     {
         multithread::inout_thread io;
-        parallel_reduce(blocked_range<std::vector<BinaryTrainingTree>::iterator>(trees.begin(), trees.end(), trees.size()/(threads*3)), io);
+        parallel_reduce(blocked_range<std::vector<BinaryTrainingTree>::iterator>(trees.begin(), trees.end()), io);
         log_likelihood += io.logprob;
     }
 
 
-    std::cout << "Before update counts" << std::endl;
+    if(verbose)
+      std::clog << "Before update counts" << std::endl;
 
     {
         typedef std::vector< std::pair<URuleTraining*, std::vector<urule_occurrence> > > VectorPairsURules;
@@ -276,7 +274,7 @@ void EMTrainer::expectation(std::vector<BinaryTrainingTree>& trees, TrainingGram
         parallel_for(blocked_range<VectorPairsURules::iterator>(vu.begin(), vu.end()), uut);
 
         typedef std::vector< std::pair<BRuleTraining*, std::vector<brule_occurrence> > > VectorPairsBRules;
-        std::random_shuffle(vb.begin(),vb.end());
+        //std::random_shuffle(vb.begin(),vb.end());
         multithread::update_thread_tbb<BRuleTraining, brule_occurrence> but;
         parallel_for(blocked_range<VectorPairsBRules::iterator>(vb.begin(), vb.end()), but);
 
@@ -284,14 +282,16 @@ void EMTrainer::expectation(std::vector<BinaryTrainingTree>& trees, TrainingGram
         //parallel_invoke(multithread::update_counts_binary(vb), multithread::update_counts_unary(vu));
     }
 
-    std::cout << "Before lexical" << std::endl;
+    if(verbose)
+      std::clog << "Before lexical" << std::endl;
 
     em_grammar.update_lexical_counts(trees, last_iteration, vl, threads);
 
-    if (verbose) {
+    if (verbose)
+      {
         std::clog << "tree: " << trees.size() << std::endl;
         //    std::clog << "ignored: " << tree_ignored << " tree(s)" << std::endl;
-    }
+      }
 }
 
 

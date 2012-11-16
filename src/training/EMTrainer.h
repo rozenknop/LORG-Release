@@ -29,7 +29,6 @@ public:
     threshold(threshold_), annotated_node_counts(), threads(threads_)
   {};
 
-  //where are these typedefs defined?
   /**
      \brief the EM algorithm in action - Expectation Step followed by Maximisation step for a set number of iterations
      \param trees the treebank
@@ -52,7 +51,10 @@ public:
 
 
   /**
-   * 	\brief the merge step, containing four mains steps: calculate proportions; calculate delta scores;  sort delta scores and select splits that will be merged;
+   * \brief the merge step, containing four mains steps:
+   * \ calculate proportions;
+   * \ calculate delta scores;
+   * \ sort delta scores and select splits that will be merged;
    * \ finally, merge the binary, unary, and lexical rules of the grammar.
    \param trees the treebank, needed to calculate proportions
    \param em_grammar The grammar whose binary, unary and lexical rules will be merged.
@@ -104,7 +106,7 @@ private:
 		   std::vector< std::pair<BRuleTraining*, std::vector<brule_occurrence> > >& vbrule,
 		   std::vector< std::pair<URuleTraining*, std::vector<urule_occurrence> > >& vurule,
                    std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& vlrule
-		   );  
+		   );
 
   /**
      \brief The Maximisation Step of the EM algorithm - calculate new rule probabilities using the new rule counts

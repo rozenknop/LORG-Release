@@ -74,7 +74,8 @@ private:
   void lexical_smoothing();
   void create_additional_rules();
 
-  friend class basic_lexicon_update_thread;
+  //  friend class basic_lexicon_update_thread;
+  friend class basic_lexicon_update_thread_tbb;
 };
 
 #endif /*BASICLEXICON_H_*/
