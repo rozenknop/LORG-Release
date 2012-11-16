@@ -31,7 +31,7 @@ class Tree
 public:
   friend class DepthFirstTreeIterator<Content>;
   friend class BreadthFirstTreeIterator<Content>;
-  friend class LeafTreeIterator<Content>;  
+  friend class LeafTreeIterator<Content>;
 
   friend class ConstDepthFirstTreeIterator<Content>;
 
@@ -176,7 +176,7 @@ public:
     \param pos the node which gets the sister
     \param content the content of the new node
     \return a depth_first_iterator pointing to the new node
-  */  
+  */
   depth_first_iterator add_right_sister( const depth_first_iterator& pos, const Content& content );
 
   /**
@@ -219,7 +219,7 @@ public:
   /////// should be in another file
 
   std::vector<Content> yield() const;
-  
+
   unsigned number_of_leaves() const;
 
   std::vector< const_depth_first_iterator > get_at_depth(unsigned depth) const;
@@ -300,7 +300,7 @@ Tree<Content>& Tree<Content>::operator= ( const Tree<Content>& rhs )
 
 template<class Content>
 inline
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::dfbegin()
 {
   return ++dfend();
@@ -308,7 +308,7 @@ Tree<Content>::dfbegin()
 
 template<class Content>
 inline
-typename Tree<Content>::const_depth_first_iterator 
+typename Tree<Content>::const_depth_first_iterator
 Tree<Content>::dfbegin() const
 {
   return ++dfend();
@@ -316,7 +316,7 @@ Tree<Content>::dfbegin() const
 
 template<class Content>
 inline
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::dflast()
 {
   return --dfend();
@@ -324,7 +324,7 @@ Tree<Content>::dflast()
 
 template<class Content>
 inline
-typename Tree<Content>::const_depth_first_iterator 
+typename Tree<Content>::const_depth_first_iterator
 Tree<Content>::dflast() const
 {
   return --dfend();
@@ -333,7 +333,7 @@ Tree<Content>::dflast() const
 
 template<class Content>
 inline
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::dfend()
 {
   return depth_first_iterator(this,0);
@@ -341,7 +341,7 @@ Tree<Content>::dfend()
 
 template<class Content>
 inline
-typename Tree<Content>::const_depth_first_iterator 
+typename Tree<Content>::const_depth_first_iterator
 Tree<Content>::dfend() const
 {
   return const_depth_first_iterator(this,0);
@@ -350,7 +350,7 @@ Tree<Content>::dfend() const
 
 template<class Content>
 inline
-typename Tree<Content>::breadth_first_iterator 
+typename Tree<Content>::breadth_first_iterator
 Tree<Content>::bfbegin()
 {
   return ++bfend();
@@ -358,7 +358,7 @@ Tree<Content>::bfbegin()
 
 template<class Content>
 inline
-typename Tree<Content>::breadth_first_iterator 
+typename Tree<Content>::breadth_first_iterator
 Tree<Content>::bflast()
 {
   return --bfend();
@@ -366,7 +366,7 @@ Tree<Content>::bflast()
 
 template<class Content>
 inline
-typename Tree<Content>::breadth_first_iterator 
+typename Tree<Content>::breadth_first_iterator
 Tree<Content>::bfend()
 {
   return breadth_first_iterator(this,0);
@@ -374,7 +374,7 @@ Tree<Content>::bfend()
 
 template<class Content>
 inline
-typename Tree<Content>::leaf_iterator 
+typename Tree<Content>::leaf_iterator
 Tree<Content>::lbegin()
 {
   return ++lend();
@@ -382,7 +382,7 @@ Tree<Content>::lbegin()
 
 template<class Content>
 inline
-typename Tree<Content>::const_leaf_iterator 
+typename Tree<Content>::const_leaf_iterator
 Tree<Content>::lbegin() const
 {
   return ++lend();
@@ -391,7 +391,7 @@ Tree<Content>::lbegin() const
 
 template<class Content>
 inline
-typename Tree<Content>::leaf_iterator 
+typename Tree<Content>::leaf_iterator
 Tree<Content>::llast()
 {
   return --lend();
@@ -399,7 +399,7 @@ Tree<Content>::llast()
 
 template<class Content>
 inline
-typename Tree<Content>::const_leaf_iterator 
+typename Tree<Content>::const_leaf_iterator
 Tree<Content>::llast() const
 {
   return --lend();
@@ -407,7 +407,7 @@ Tree<Content>::llast() const
 
 template<class Content>
 inline
-typename Tree<Content>::leaf_iterator 
+typename Tree<Content>::leaf_iterator
 Tree<Content>::lend()
 {
   return leaf_iterator(this,0);
@@ -415,7 +415,7 @@ Tree<Content>::lend()
 
 template<class Content>
 inline
-typename Tree<Content>::const_leaf_iterator 
+typename Tree<Content>::const_leaf_iterator
 Tree<Content>::lend() const
 {
   return const_leaf_iterator(this,0);
@@ -470,7 +470,7 @@ Tree<Content> Tree<Content>::subtree( const const_depth_first_iterator& pos ) co
 
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator& 
+typename Tree<Content>::depth_first_iterator&
 Tree<Content>::erase( depth_first_iterator& pos )
 {
   Node<Content>* to_delete = pos.m_node; // remember node
@@ -482,7 +482,7 @@ Tree<Content>::erase( depth_first_iterator& pos )
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_root( const Content& content )
 {
   if(m_root)
@@ -494,7 +494,7 @@ Tree<Content>::add_root( const Content& content )
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_first_daughter( const Tree<Content>::depth_first_iterator& pos, const Content& content )
 {
   if(pos == dfend())
@@ -507,7 +507,7 @@ Tree<Content>::add_first_daughter( const Tree<Content>::depth_first_iterator& po
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_last_daughter( const Tree<Content>::depth_first_iterator& pos, const Content& content )
 {
   if(pos == dfend())
@@ -520,7 +520,7 @@ Tree<Content>::add_last_daughter( const Tree<Content>::depth_first_iterator& pos
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_left_sister( const Tree<Content>::depth_first_iterator& pos, const Content& content )
 {
   if(pos == dfend())
@@ -533,7 +533,7 @@ Tree<Content>::add_left_sister( const Tree<Content>::depth_first_iterator& pos, 
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_right_sister( const Tree<Content>::depth_first_iterator& pos, const Content& content )
 {
   if(pos == dfend())
@@ -546,7 +546,7 @@ Tree<Content>::add_right_sister( const Tree<Content>::depth_first_iterator& pos,
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_root( const Tree<Content>& subtree )
 {
   delete m_root;
@@ -557,7 +557,7 @@ Tree<Content>::add_root( const Tree<Content>& subtree )
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_first_daughter( const depth_first_iterator& pos, const Tree<Content>& subtree )
 {
   if(pos == dfend())
@@ -575,11 +575,15 @@ Tree<Content>::add_first_daughter( const depth_first_iterator& pos, const Tree<C
   // update height
   if(m_height < pos->height() + subtree.height())
     m_height = pos->height() + subtree.height();
+
+  // update size
+  m_node_cnt+= subtree.m_node_cnt;
+
   return depth_first_iterator(this,new_node);
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_last_daughter( const depth_first_iterator& pos, const Tree<Content>& subtree )
 {
   if(pos == dfend())
@@ -597,11 +601,14 @@ Tree<Content>::add_last_daughter( const depth_first_iterator& pos, const Tree<Co
   // update height
   if(m_height < pos->height() + subtree.height())
     m_height = pos->height() + subtree.height();
+  // update size
+  m_node_cnt+=subtree.m_node_cnt;
+
   return depth_first_iterator(this,new_node);
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_left_sister( const depth_first_iterator& pos, const Tree<Content>& subtree )
 {
   if(pos == dfend())
@@ -626,7 +633,7 @@ Tree<Content>::add_left_sister( const depth_first_iterator& pos, const Tree<Cont
 }
 
 template<class Content>
-typename Tree<Content>::depth_first_iterator 
+typename Tree<Content>::depth_first_iterator
 Tree<Content>::add_right_sister( const depth_first_iterator& pos, const Tree<Content>& subtree )
 {
   if(pos == dfend())
@@ -666,7 +673,7 @@ Tree<Content>::Tree( Node<Content>* const root )
 
 
 template<class Content>
-std::vector<Content> 
+std::vector<Content>
 Tree<Content>::yield() const
 {
   std::vector<Content> result;
@@ -700,18 +707,18 @@ std::vector< typename Tree<T>::const_depth_first_iterator > Tree<T>::get_at_dept
   unsigned target_height = height() - depth;
 
   for (typename Tree<T>::const_depth_first_iterator i(dfbegin()); i != dfend(); ++i) {
-    
+
     Tree<T> t = subtree(i);
-    
+
     if( t.height() == target_height) {
       //		 std::cout << "\t" << t.height() << " " << t << std::endl;
       result.push_back(i);
     }
   }
-  
-  
+
+
   return result;
-}  
+}
 
 
 
