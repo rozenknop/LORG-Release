@@ -65,7 +65,7 @@ simple_lorgparser_SOURCES += simple_lorgparser.cpp \
 	SimpleLorgParseApp.h SimpleLorgParseApp.cpp
 
 
-simple_lorgparser_CPPFLAGS= $(BOOST_CPPFLAGS) $(TBB_CPPFLAGS) -I. -DNDEBUG
+simple_lorgparser_CPPFLAGS= $(BOOST_CPPFLAGS) $(TBB_CPPFLAGS) -I. --std=c++0x -DNDEBUG
 simple_lorgparser_CXXFLAGS= -O6 -Wall -Wextra -pipe
 #simple_lorgparser_CXXFLAGS= -O3 -Wall -pipe -fomit-frame-pointer -march=core2  -mtune=core2
 #simple_lorgparser_CXXFLAGS= -O3 -Wall -pipe -DNDEBUG -fomit-frame-pointer
@@ -105,7 +105,7 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	rules/LexicalRule.h rules/LexicalRule.cpp rules/LexicalRuleC2f.h \
 	TwoStageLorgParseApp.h
 
-twostage_lorgparser_CPPFLAGS= $(BOOST_CPPFLAGS) $(TBB_CPPFLAGS) -I. -DNDEBUG
+twostage_lorgparser_CPPFLAGS= $(BOOST_CPPFLAGS) $(TBB_CPPFLAGS) -I. --std=c++0x -DNDEBUG
 twostage_lorgparser_CXXFLAGS= -O6 -Wall -Wextra -pipe
 #twostage_lorgparser_CXXFLAGS= -Ofast -Wall -Wextra -pipe
 #twostage_lorgparser_CXXFLAGS= -O3 -Wall -pipe -fomit-frame-pointer -march=core2  -mtune=core2
@@ -115,14 +115,13 @@ twostage_lorgparser_CXXFLAGS= -O6 -Wall -Wextra -pipe
 #twostage_lorgparser_CPPFLAGS= $(BOOST_CPPFLAGS) -I.
 #twostage_lorgparser_CXXFLAGS= -O1 -g -pg -Wall -Wextra -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls
 
-
-
-if WANT_TCMALLOC
-twostage_lorgparser_LDADD = $(BOOST_LDFLAGS) $(BOOST_REGEX_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_THREAD_LIB) $(TBB_LDFLAGS) $(TBB_LIBS) -ltcmalloc
-else
-twostage_lorgparser_LDADD = $(BOOST_LDFLAGS)  $(BOOST_REGEX_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_THREAD_LIB) $(TBB_LDFLAGS) $(TBB_LIBS)
+if WANT_TBB
+twostage_lorgparser_CPPFLAGS+=-DUSE_THREADS
 endif
-#twostage_lorgparser_LDADD = $(BOOST_LDFLAGS) $(BOOST_REGEX_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)  $(BOOST_THREAD_LIB) -lprofiler
+
+twostage_lorgparser_LDADD = $(BOOST_LDFLAGS)  $(BOOST_REGEX_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(TBB_LDFLAGS) $(TBB_LIBS)
+
+#twostage_lorgparser_LDADD = $(BOOST_LDFLAGS) $(BOOST_REGEX_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) -lprofiler
 
 
 # gram2clmodel_CXXFLAGS= -O2 -g -pg -Wall

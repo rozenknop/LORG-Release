@@ -3,7 +3,7 @@
 bin_PROGRAMS = tb2gram
 
 if WANT_LTR
-LIBS+= -lrt 
+LIBS+= -lrt
 endif
 
 

@@ -73,12 +73,17 @@ AX_BOOST_FILESYSTEM
 AX_BOOST_THREAD
 AX_BOOST_UNIT_TEST_FRAMEWORK
 
-AX_TBB([], AC_MSG_ERROR([cannot find the Intel TBB library consider to give --with-tbb to link it]))
+AX_TBB([use_tbb=yes], AC_MSG_WARN([cannot find the Intel TBB library consider to give --with-tbb to link it. Will compile without thread (parser only)]))
+
+
+AM_CONDITIONAL([WANT_TBB],[test "$use_tbb" = yes])
+
+AM_CONDITIONAL([WANT_TBB], [test "x$want_tbb" != "xno"])
 
 AC_CONFIG_FILES([
-	Makefile
+        Makefile
 	src/Makefile
 	src/training/Makefile
-    test/Makefile
+        test/Makefile
 ])
 AC_OUTPUT
