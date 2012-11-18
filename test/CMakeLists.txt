@@ -49,13 +49,6 @@ set(twostage_lorgparser_test_sources
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-if (CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O6 -Wall -Wextra -pipe -ffast-math -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-inline -Wall -pg")
-    #set(CMAKE_CXX_FLAGS_DEBUG -Wall -Wextra  -O2  -g  -pg -DBENCHMARK)
-    #set(CMAKE_CXX_FLAGS_DEBUG -O1  -g  -Wall -Wextra -pg)
-endif()
-
 set(common_libs ${RTLIB} ${TBB_LIBS} ${TCMALLOC_LIB})
 
 add_executable(twostage_lorgparser_test ${twostage_lorgparser_test_sources})

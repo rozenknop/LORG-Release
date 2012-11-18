@@ -48,16 +48,6 @@ set(twostage_lorgparser_SOURCES
          edges/AnnotationInfo.cpp
          rules/BRule.cpp rules/URule.cpp rules/LexicalRule.cpp)
 
-if (CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "-std=c++0x")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O6 -Wall -Wextra -pipe -DNDEBUG")
-    #set(CMAKE_CXX_FLAGS_RELEASE -Ofast -Wall -Wextra -pipe
-    #set(CMAKE_CXX_FLAGS_RELEASE -O3 -Wall -pipe -fomit-frame-pointer -march=core2  -mtune=core2")
-    #set(CMAKE_CXX_FLAGS_RELEASE -O3 -Wall -pipe -DNDEBUG -fomit-frame-pointer")
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls")
-endif()
-
-
 add_executable(simple_lorgparser ${simple_lorgparser_SOURCES})
 add_executable(twostage_lorgparser ${twostage_lorgparser_SOURCES})
 

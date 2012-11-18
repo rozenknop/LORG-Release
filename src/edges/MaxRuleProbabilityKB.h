@@ -3,7 +3,6 @@
 #define _MAXRULEPROBABILITYKB_H_
 
 #include "PackedEdgeProbability.h"
-#include "BestProbability.h"
 #include "PackedEdge.h"
 #include "maxrule_functions.h"
 
@@ -13,7 +12,11 @@ public:
   typedef std::vector<packed_edge_probability_with_index> heap_type;
   typedef PackedEdge<MaxRuleProbabilityKB> Edge;
   typedef PCKYAllCell<Edge> Cell;
-  private:
+  typedef UnaryPackedEdgeDaughters<Cell> UnaryDaughters;
+  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
+  typedef LexicalPackedEdgeDaughters LexicalDaughters;
+
+private:
 
   heap_type candidates;
   heap_type derivations;
@@ -36,14 +39,11 @@ public:
   {return derivations[idx];}
 
 
-  void update(const AnnotationInfo& a, const LexicalPackedEdgeDaughters& dtr);
-
-  void update(const AnnotationInfo& a, const UnaryPackedEdgeDaughters<Cell>& dtr);
-
-  void update(const AnnotationInfo& a, const BinaryPackedEdgeDaughters<Cell>& dtr);
-
-
+  void update_lexical(Edge& e, const LexicalDaughters& dtr);
+  void update_unary(Edge& e, const UnaryDaughters& dtr);
+  void update_binary(Edge& e, const BinaryDaughters& dtr);
   void finalize();
+  
   void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
   void extend_derivation(Edge*, unsigned, bool) ;
 
@@ -86,8 +86,9 @@ double MaxRuleProbabilityKB::log_normalisation_factor = 0;
 unsigned MaxRuleProbabilityKB::size = 0;
 
 
-void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const LexicalPackedEdgeDaughters& dtr)
+void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughters& dtr)
 {
+  const AnnotationInfo & a = e.get_annotations();
   const LexicalRuleC2f* rule = dtr.get_rule();
   assert(rule != NULL);
 
@@ -109,8 +110,9 @@ void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const LexicalPackedEd
 //   std::cout << *this << std::endl;
 }
 
-void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const UnaryPackedEdgeDaughters<Cell>& dtr)
+void MaxRuleProbabilityKB::update_unary(Edge& e, const UnaryDaughters& dtr)
 {
+  const AnnotationInfo & a = e.get_annotations();
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
   //  std::cout << "before ump" << std::endl;
@@ -129,8 +131,9 @@ void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const UnaryPackedEdge
 //   std::cout << *this << std::endl;
 }
 
-void MaxRuleProbabilityKB::update(const AnnotationInfo& a, const BinaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<MaxRuleProbabilityKB> > >& dtr)
+void MaxRuleProbabilityKB::update_binary(Edge& e, const BinaryDaughters& dtr)
 {
+  const AnnotationInfo & a = e.get_annotations();
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
 

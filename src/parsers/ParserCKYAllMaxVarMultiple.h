@@ -2,13 +2,13 @@
 #ifndef _PARSERCKYALLMAXVARMULTIPLE_H_
 #define _PARSERCKYALLMAXVARMULTIPLE_H_
 
-#include "ParserCKYAll.h"
+#include "ParserCKYAllMaxVar.h"
 #include "edges/MaxRuleProbabilityMultiple.h"
 
 
 typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityMultiple> > ParserCKYAllMaxRuleMultipleCell ;
 
-class ParserCKYAllMaxRuleMultiple : public ParserCKYAll_Impl<ParserCKYAllMaxRuleMultipleCell>
+class ParserCKYAllMaxRuleMultiple : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>
 {
 public:
   ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,
@@ -54,7 +54,7 @@ protected:
   /**
      \brief Calculates the chart specific rule probabilities of the packed edges in the chart
   */
-  void calculate_maxrule_probabilities() const;
+  void calculate_maxrule_probabilities();
 
   /**
      \brief pick up the best derivation once the edge scores have been calculated
@@ -92,7 +92,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
                                                          const std::vector< std::vector<AGrammar*> >& fgs,
                                                          const std::vector< annot_descendants_type >& all_annot_descendants_,
 							 bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-: ParserCKYAll_Impl<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn, cell_threads),
+: ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn, cell_threads),
     fine_grammars(fgs), all_annot_descendants(all_annot_descendants_), nb_grammars(fgs.size() + 1), k(k_)
 {
   // create a mapping of all grammars
@@ -281,25 +281,12 @@ void ParserCKYAllMaxRuleMultiple::extract_solution()
 }
 
 
-void ParserCKYAllMaxRuleMultiple::calculate_maxrule_probabilities() const
+void ParserCKYAllMaxRuleMultiple::calculate_maxrule_probabilities()
 {
 
   unsigned sent_size = chart->get_size();
 
-
-  for (unsigned span = 0; span < sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-
-      //      std::cout << "(" << begin << "," << end << ")" << std::endl;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed())
-      	cell.calculate_maxrule_probabilities();
-    }
-  }
+  ParserCKYAllMaxRule::calculate_maxrule_probabilities();
 }
 
 

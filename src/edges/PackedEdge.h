@@ -43,7 +43,9 @@ template<class PEP>
 class PackedEdge
 {
 public:
+  typedef PEP Best;
   typedef PCKYAllCell<PackedEdge<PEP> > Cell;
+  typedef PackedEdge<PEP> Edge;
   typedef PackedEdgeDaughters Daughters; 
   typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters; 
   typedef UnaryPackedEdgeDaughters<Cell>  UnaryDaughters; 
@@ -63,24 +65,6 @@ protected:
   typedef typename lvector::const_iterator  const_literator;
 
 public:
-  typedef PEP Probability;
-
-  /**
-   * \brief apply a list of functions on this edge; depending on the type of the second argument of the function, can apply it on list of daughters
-   */
-  template<class Function, class... Autres>
-  void apply(Function f, Autres... autres);
-  void apply() {};
-  void apply(function<void(PackedEdge<PEP> & e)> f);
-  void apply(function<void(PackedEdge<PEP> & e, BinaryDaughters & d)> f);
-  void apply(function<void(PackedEdge<PEP> & e, UnaryDaughters & d)> f);
-  void apply(function<void(PackedEdge<PEP> & e, LexicalDaughters & d)> f);
-
-  static void update_proba_lexical(PackedEdge<PEP>& e, const LexicalDaughters& dtrs) { e.get_best().update(e.get_annotations(), dtrs); }
-  static void update_proba_binary(PackedEdge<PEP>& e,  const BinaryDaughters&  dtrs) { e.get_best().update(e.get_annotations(), dtrs); }
-  static void update_proba_unary(PackedEdge<PEP>& e,   const UnaryDaughters&   dtrs) { e.get_best().update(e.get_annotations(), dtrs); }
-  static void finalize_after_unary(PackedEdge<PEP>& e) { e.get_best().finalize(); }
-  
 
   /**
      \brief Constructor for creating an empty edge
@@ -303,40 +287,21 @@ private:
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
 		    bool append_annot, bool outpu_forms) const;
 
-
+public:
+  void process(function<void(Edge &, BinaryDaughters &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
+  void process(function<void(Edge &, UnaryDaughters &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
+  void process(function<void(Edge &, LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
+  void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_best(), *this, d);}
+  void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_best(), *this, d);}
+  void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_best(), *this, d);}
+  void process(function<void(PEP &)> f) {f(get_best());}
+  void process(function<void(Edge &)> f) { f(*this); }
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) {process(f);apply(o...);}
+  void apply() {}
 };
 
-template<class PEP>
-template<class Function, class... Autres> 
-void PackedEdge<PEP>::apply(Function f, Autres... autres)
-{
-  apply(f);
-  apply(autres...);
-}
 
-template<class PEP>
-void PackedEdge<PEP>::apply(function<void(PackedEdge<PEP> &)> f)
-{
-  f(*this);
-}
-
-template<class PEP>
-void PackedEdge<PEP>::apply(function<void(PackedEdge<PEP> &, PackedEdge<PEP>::BinaryDaughters &)> f)
-{
-  for(auto& d: binary_daughters) f(*this, d);
-}
-
-template<class PEP>
-void PackedEdge<PEP>::apply(function<void(PackedEdge<PEP> &, PackedEdge<PEP>::UnaryDaughters &)> f)
-{
-  for(auto& d: unary_daughters) f(*this, d);
-}
-
-template<class PEP>
-void PackedEdge<PEP>::apply(function<void(PackedEdge<PEP> &, PackedEdge<PEP>::LexicalDaughters &)> f)
-{
-  for(auto& d: lexical_daughters) f(*this, d);
-}
 
 
 template<class PEP>

@@ -1,23 +1,13 @@
-#ifndef BESTPROBABILITY_H
-#define BESTPROBABILITY_H
+#ifndef UPDATEMAXRULE_H
+#define UPDATEMAXRULE_H
 
-class BestProbability
+#include <functional>
+
+#include "utils/lorg_functional.h"
+
+namespace MaxRuleNS
 {
-  template<class Chart>
-  static void calculate_maxrule_probabilities(Chart & chart);
+  
 };
-
-
-
-
-template<class Chart>
-void
-BestProbability::calculate_maxrule_probabilities (Chart & chart)
-{
-    chart->opencells_apply_bottom_up(
-      [](typename Chart::Cell & cell){ cell.calculate_maxrule_probabilities(); }
-  );
-}
-
 
 #endif

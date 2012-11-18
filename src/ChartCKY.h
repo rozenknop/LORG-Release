@@ -9,6 +9,7 @@
 #include <vector>
 #include <Bracketing.h>
 
+#include <functional>
 #include <iostream>
 using std::ostream;
 using std::endl;
@@ -17,11 +18,14 @@ using std::endl;
   \class ChartCKY
   \brief represents a chart of cells
 */
-template<class Cell, class MyWord>
+template<class TCell, class MyWord>
 class ChartCKY
 {
+public:
+    typedef TCell Cell;
+    
 private:
-  Cell ** chart; ///< the chart itself
+  TCell ** chart; ///< the chart itself
   unsigned size;     ///< the size of the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
@@ -56,9 +60,9 @@ public:
      \return a cell (may segfault if coordinates are out of bounds)
   */
 
-  Cell& access(unsigned start, unsigned end) const;
+  TCell& access(unsigned start, unsigned end) const;
 
-  Cell& get_root() const;
+  TCell& get_root() const;
 
   PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations) const;
 
@@ -82,7 +86,7 @@ public:
   
   void opencells_apply_bottom_up( std::function<void(Cell &)> f );
 
-  std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
+  std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](TCell & cell){return out << cell << endl; }); return out; }
 };
 
 

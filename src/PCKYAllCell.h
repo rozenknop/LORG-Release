@@ -13,9 +13,6 @@
 #include <cassert>
 #include <cstring>
 
-#include "edges/AnnotationInfo.h"
-#include "edges/Edge.h"
-#include "edges/PackedEdgeDaughters.h"
 
 #include <numeric>
 #include <algorithm>
@@ -118,13 +115,6 @@ public:
   */
   bool is_closed() const;
 
-  
-  /**
-     \brief calculate the chart specific rule probabilities for all packed edges in this cell and
-     set the best daughter edge (max-rule parsing)
-  */
-  void calculate_maxrule_probabilities();
-
 
   void calculate_best_edge_multiple_grammars();
 
@@ -175,24 +165,31 @@ public:
   void modify_backup(unsigned backup_idx);
 
   
+  
   /**
    * \brief apply a list of functions on each edge of this cell
    */
-  template<typename... Args> 
-  void apply_on_edges(Args&&... args) {for(unsigned i=0; i<max_size; ++i) {/*std::cout << "edge " << i << std::endl ;*/ if(edges[i]!=nullptr) edges[i]->apply(args...);}}
-  
+  template<typename... Function> 
+  void apply_on_edges(Function&&... args) {
+    for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/ 
+      if(exists_edge(i)) get_edge(i).apply(args...);
+    }
+  }
+
+
   /**
    * \brief apply functions to all lexical and binary rules on edges, then on unary rules
    */
-  void apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
-                                                function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
-                                                function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u);
-  void apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
-                                                function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
-                                                function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u,
-                                                function<void(MyEdge&)> f
+  void apply_lexical_binary_then_unary_on_edges(function<void(Edge&,typename Edge::LexicalDaughters&)> l,
+                                                function<void(Edge&,typename Edge::BinaryDaughters&)> b,
+                                                function<void(Edge&,typename Edge::UnaryDaughters&)> u);
+  void apply_lexical_binary_then_unary_on_edges(function<void(Edge&,typename Edge::LexicalDaughters&)> l,
+                                                function<void(Edge&,typename Edge::BinaryDaughters&)> b,
+                                                function<void(Edge&,typename Edge::UnaryDaughters&)> u,
+                                                function<void(Edge&)> f
                                                );
-
+  unsigned get_max_size() const { return max_size; }
+  
 private:
   Edge ** edges;
   bool closed;
@@ -201,6 +198,10 @@ private:
 
 };
 
+
+#include "edges/AnnotationInfo.h"
+#include "edges/Edge.h"
+#include "edges/PackedEdgeDaughters.h"
 
 template<class PEProbability>
 inline
@@ -257,7 +258,7 @@ MyEdge * PCKYAllCell<MyEdge>::get_edge_ptr(unsigned i)
 
 template<class MyEdge>
 inline
-const MyEdge& PCKYAllCell<MyEdge>::get_edge(int i) const
+const typename PCKYAllCell<MyEdge>::Edge& PCKYAllCell<MyEdge>::get_edge(int i) const
 {
   //assert(i>=0);
   //assert( i < (int) max_size);
@@ -268,7 +269,7 @@ const MyEdge& PCKYAllCell<MyEdge>::get_edge(int i) const
 
 template<class MyEdge>
 inline
-MyEdge& PCKYAllCell<MyEdge>::get_edge(int i)
+typename PCKYAllCell<MyEdge>::Edge& PCKYAllCell<MyEdge>::get_edge(int i)
 {
   //assert(i>=0);
   //assert( i < (int) max_size);
@@ -491,55 +492,6 @@ void PCKYAllCell<MyEdge>::compute_outside_probabilities()
   }
 }
 
-template<class MyEdge>
-void PCKYAllCell<MyEdge>::apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
-                                                                   function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
-                                                                   function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u)
-{
-  assert(!closed);
-  apply_on_edges( l, b );
-  apply_on_edges( u );
-}
-
-template<class MyEdge>
-void PCKYAllCell<MyEdge>::apply_lexical_binary_then_unary_on_edges(function<void(MyEdge&,typename MyEdge::LexicalDaughters&)> l,
-                                                                   function<void(MyEdge&,typename MyEdge::BinaryDaughters&)> b,
-                                                                   function<void(MyEdge&,typename MyEdge::UnaryDaughters&)> u,
-                                                                   function<void(MyEdge&)> f
-                                                                  )
-{
-  assert(!closed);
-  apply_on_edges( l, b );
-  apply_on_edges( u, f );
-}
-
-template<class MyEdge>
-void PCKYAllCell<MyEdge>::calculate_maxrule_probabilities()
-{
-  assert(!closed);
-  apply_lexical_binary_then_unary_on_edges(MyEdge::update_proba_lexical, MyEdge::update_proba_binary, MyEdge::update_proba_unary, MyEdge::finalize_after_unary);
-}
-
-// template<class MyEdge>
-// void PCKYAllCell<MyEdge>::calculate_maxrule_probabilities()
-// {
-//   assert(!closed);
-// 
-//   for(unsigned i = 0; i < max_size; ++i) {
-//     if(exists_edge(i)) {
-//       if(edges[i]->get_lex())
-//         edges[i]->compute_best_lexical();
-//       // else TODO ?
-//       edges[i]->compute_best_binary();
-//       
-//     }
-//   }
-//   for(unsigned i = 0; i < max_size; ++i) {
-//     if(exists_edge(i)) {
-//       edges[i]->compute_best_unary();
-//     }
-//   }
-// }
 
 ///////////
 

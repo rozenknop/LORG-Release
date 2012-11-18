@@ -4,7 +4,6 @@
 #define _MAXRULEMULTIPLEPROBABILITY_H_
 
 #include "PackedEdgeProbability.h"
-#include "BestProbability.h"
 
 #include <boost/unordered_map.hpp>
 
@@ -38,6 +37,10 @@ private:
 public:
   typedef PackedEdge<MaxRuleProbabilityMultiple> Edge;
   typedef PCKYAllCell<Edge> Cell;
+  typedef UnaryPackedEdgeDaughters<Cell> UnaryDaughters;
+  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
+  typedef LexicalPackedEdgeDaughters LexicalDaughters;
+
   MaxRuleProbabilityMultiple() : candidates(),
                                  derivations(heap_type(1))
   {candidates.reserve(50);};
@@ -59,13 +62,11 @@ public:
   packed_edge_probability_with_index& get(unsigned idx)
   {return derivations[idx];}
 
-  void update(const AnnotationInfo& a, const LexicalPackedEdgeDaughters& dtr);
-
-  void update(const AnnotationInfo& a, const UnaryPackedEdgeDaughters<Cell>& dtr);
-
-  void update(const AnnotationInfo& a, const BinaryPackedEdgeDaughters<Cell>& dtr);
-
+  void update_lexical(Edge& e, const LexicalDaughters& dtr);
+  void update_unary(Edge& e, const UnaryDaughters& dtr);
+  void update_binary(Edge& e, const BinaryDaughters& dtr);
   void finalize();
+
   void pick_best_lexical(const Edge* up_edge, const LexicalPackedEdgeDaughters& dtr);
   void pick_best_binary(const Edge* up_edge, const BinaryPackedEdgeDaughters<Cell>& dtr);
   void pick_best_unary(const Edge* up_edge, const UnaryPackedEdgeDaughters<Cell>& dtr);
@@ -163,8 +164,9 @@ void MaxRuleProbabilityMultiple::write_scores(const PackedEdgeDaughters& dtr, do
 }
 
 
-void MaxRuleProbabilityMultiple::update(const AnnotationInfo& a, const LexicalPackedEdgeDaughters& dtr)
+void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughters& dtr)
 {
+  const AnnotationInfo & a = e.get_annotations();
   double probability(maxrule_function::update_maxrule_probability(a, dtr.get_rule(), log_normalisation_factor));
 
   if (probability > derivations[0].probability) {
@@ -175,8 +177,9 @@ void MaxRuleProbabilityMultiple::update(const AnnotationInfo& a, const LexicalPa
   write_scores(dtr, probability);
 }
 
-void MaxRuleProbabilityMultiple::update(const AnnotationInfo& a, const UnaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<MaxRuleProbabilityMultiple> > >& dtr)
+void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughters & dtr)
 {
+  const AnnotationInfo & a = e.get_annotations();
   double probability = -std::numeric_limits<double>::infinity();
 
   Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
@@ -198,8 +201,10 @@ void MaxRuleProbabilityMultiple::update(const AnnotationInfo& a, const UnaryPack
   write_scores(dtr, probability);
 }
 
-void MaxRuleProbabilityMultiple::update(const AnnotationInfo& a, const BinaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<MaxRuleProbabilityMultiple> > >& dtr)
+void MaxRuleProbabilityMultiple::update_binary(Edge& e, const BinaryDaughters& dtr)
 {
+  const AnnotationInfo & a = e.get_annotations();
+
   //calculate the probability for this edge -
   //if it's the best probability so far, update the best edge info
 

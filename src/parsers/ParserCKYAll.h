@@ -9,7 +9,6 @@
 #include "ChartCKY.h"
 #include "edges/PackedEdge.h"
 
-#include "PCKYAllCell.h"
 
 #include "rules/BRule.h"
 #include "rules/URule.h"
@@ -119,7 +118,7 @@ class ParserCKYAll_Impl : public ParserCKYAll
 public:
     typedef TCell Cell;
     typedef typename TCell::Edge Edge;
-    typedef typename TCell::Edge::Probability Probability;
+    typedef typename TCell::Edge::Best Best;
     typedef ChartCKY<Cell, Word> Chart;
 
 
