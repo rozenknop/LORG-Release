@@ -176,18 +176,6 @@ public:
     }
   }
 
-
-  /**
-   * \brief apply functions to all lexical and binary rules on edges, then on unary rules
-   */
-  void apply_lexical_binary_then_unary_on_edges(function<void(Edge&,typename Edge::LexicalDaughters&)> l,
-                                                function<void(Edge&,typename Edge::BinaryDaughters&)> b,
-                                                function<void(Edge&,typename Edge::UnaryDaughters&)> u);
-  void apply_lexical_binary_then_unary_on_edges(function<void(Edge&,typename Edge::LexicalDaughters&)> l,
-                                                function<void(Edge&,typename Edge::BinaryDaughters&)> b,
-                                                function<void(Edge&,typename Edge::UnaryDaughters&)> u,
-                                                function<void(Edge&)> f
-                                               );
   unsigned get_max_size() const { return max_size; }
   
 private:
@@ -198,10 +186,6 @@ private:
 
 };
 
-
-#include "edges/AnnotationInfo.h"
-#include "edges/Edge.h"
-#include "edges/PackedEdgeDaughters.h"
 
 template<class PEProbability>
 inline
@@ -243,9 +227,9 @@ void PCKYAllCell<PEProbability>::init(bool cl)
   }
 }
 
-template<class PEProbability>
+template<class MyEdge>
 inline
-bool PCKYAllCell<PEProbability>::is_closed() const
+bool PCKYAllCell<MyEdge>::is_closed() const
 { return closed; }
 
 template<class MyEdge>
@@ -258,7 +242,7 @@ MyEdge * PCKYAllCell<MyEdge>::get_edge_ptr(unsigned i)
 
 template<class MyEdge>
 inline
-const typename PCKYAllCell<MyEdge>::Edge& PCKYAllCell<MyEdge>::get_edge(int i) const
+const MyEdge& PCKYAllCell<MyEdge>::get_edge(int i) const
 {
   //assert(i>=0);
   //assert( i < (int) max_size);
@@ -269,7 +253,7 @@ const typename PCKYAllCell<MyEdge>::Edge& PCKYAllCell<MyEdge>::get_edge(int i) c
 
 template<class MyEdge>
 inline
-typename PCKYAllCell<MyEdge>::Edge& PCKYAllCell<MyEdge>::get_edge(int i)
+MyEdge& PCKYAllCell<MyEdge>::get_edge(int i)
 {
   //assert(i>=0);
   //assert( i < (int) max_size);
