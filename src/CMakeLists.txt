@@ -48,14 +48,20 @@ set(twostage_lorgparser_SOURCES
          edges/AnnotationInfo.cpp
          rules/BRule.cpp rules/URule.cpp rules/LexicalRule.cpp)
 
+set(common_include_dir ${CMAKE_CURRENT_SOURCE_DIR} ${TBB_INCLUDE_DIR})
+set(common_libs ${RTLIB} ${TBB_LIBS} ${TCMALLOC_LIB})
+
+#message(warning "In src : Include directories are : ${common_include_dir}")
+#message(warning "In src : Common libs are : ${common_libs}")
+
+include_directories(${common_include_dir})
+
 add_executable(simple_lorgparser ${simple_lorgparser_SOURCES})
 add_executable(twostage_lorgparser ${twostage_lorgparser_SOURCES})
 
-set(common_libs ${RTLIB} ${TBB_LIBS} ${TCMALLOC_LIB})
 target_link_libraries(simple_lorgparser ${common_libs} ${Boost_REGEX_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(twostage_lorgparser ${common_libs} ${Boost_LIBRARIES})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # install
