@@ -35,7 +35,13 @@ set(tb2gram_sources
       ../edges/TrainingNode.cpp
       TrainingGrammar.cpp)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(common_include_dir ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${TBB_INCLUDE_DIR})
+set(common_libs ${RTLIB} ${TBB_LIBS} ${TCMALLOC_LIB})
+
+#message(warning "In training : Include directories are : ${common_include_dir}")
+#message(warning "In training : Common libs are : ${common_libs}")
+
+include_directories(${common_include_dir})
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_RELEASE "-O6 -Wall -Wextra -pipe -ffast-math -DNDEBUG")
@@ -44,7 +50,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     #set(CMAKE_CXX_FLAGS_DEBUG -O1  -g  -Wall -Wextra -pg)
 endif()
 
-set(common_libs ${RTLIB} ${TBB_LIBS} ${TCMALLOC_LIB})
 
 if (WITH_TB2GRAM EQUAL 1)
     add_executable(tb2gram ${tb2gram_sources})
