@@ -14,7 +14,8 @@
 #include "utils/LorgConstants.h"
 
 #include "parsers/ParserCKYAllFactory.h"
-#ifdef USE_TBB
+
+#ifdef USE_THREADS
 #include <tbb/tick_count.h>
 using tbb::tick_count;
 #else
@@ -39,12 +40,12 @@ struct tick_count {
             o.tv_time.tv_usec += 1000000 * nsec;
             o.tv_time.tv_sec -= nsec;
         }
-        
+
         /* Compute the time remaining to wait.
          tv_usec is certainly posit*ive. */
         r.tv_time.tv_sec = tv_time.tv_sec - o.tv_time.tv_sec;
         r.tv_time.tv_usec = tv_time.tv_usec - o.tv_time.tv_usec;
-        
+
         return r;
     }
     float seconds() { return tv_time.tv_sec + (float)tv_time.tv_usec/1e6; }
