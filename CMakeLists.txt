@@ -24,6 +24,7 @@ set(TB2GRAM 0)
 if (MULTITHREAD)
     if (DEFINED TBB_FOUND)
         add_definitions(-DUSE_THREADS=1)
+        add_definitions(-DUSE_TBB)
         set(TBB_LIBS ${TBB_LIBRARIES})
         set(WITH_TB2GRAM 1)
     else()
@@ -49,10 +50,6 @@ if(WANT_TCMALLOC)
 endif()
 
 
-# targets are in src and src/training subdirectories
-add_subdirectory(src)
-add_subdirectory(test)
-
 
 # build a CPack driven installer package
 include (InstallRequiredSystemLibraries)
@@ -67,3 +64,37 @@ set(CPACK_SOURCE_IGNORE_FILES
      "^${PROJECT_SOURCE_DIR}/test"
      "^${PROJECT_SOURCE_DIR}/build")
 include (CPack)
+
+
+
+
+
+# compilation options
+
+if (CMAKE_COMPILER_IS_GNUCXX)
+    set(C11_CXX_FLAGS "-std=c++0x")
+    set(C11_CXX_FLAGS_RELEASE "-O6 -Wall -Wextra -pipe -DNDEBUG")
+    #set(CMAKE_CXX_FLAGS_RELEASE -Ofast -Wall -Wextra -pipe
+    #set(CMAKE_CXX_FLAGS_RELEASE -O3 -Wall -pipe -fomit-frame-pointer -march=core2  -mtune=core2")
+    #set(CMAKE_CXX_FLAGS_RELEASE -O3 -Wall -pipe -DNDEBUG -fomit-frame-pointer")
+    set(C11_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls")
+else()
+    set(C11_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(C11_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    set(C11_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+endif()
+    
+set(CMAKE_CXX_FLAGS "${C11_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${C11_CXX_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_RELEASE "${C11_CXX_FLAGS_RELEASE}")
+
+#message(WARNING "Compiler is GNUCXX = " ${CMAKE_COMPILER_IS_GNUCXX})
+#message(WARNING "CMAKE_CXX_FLAGS = " ${CMAKE_CXX_FLAGS})
+#message(WARNING "CMAKE_CXX_FLAGS_DEBUG = " ${CMAKE_CXX_FLAGS_DEBUG})
+
+
+# targets are in src and src/training subdirectories
+add_subdirectory(src)
+add_subdirectory(test)
+    
+    

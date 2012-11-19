@@ -2,13 +2,12 @@
 #ifndef _PARSERCKYALLMAXVARKB_H_
 #define _PARSERCKYALLMAXVARKB_H_
 
-#include "ParserCKYAll.h"
 #include "edges/MaxRuleProbabilityKB.h"
-
+#include "ParserCKYAllMaxVar.h"
 
 typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityKB> > ParserCKYAllMaxRuleKBCell ;
 
-class ParserCKYAllMaxRuleKB : public ParserCKYAll_Impl<ParserCKYAllMaxRuleKBCell>
+class ParserCKYAllMaxRuleKB : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>
 {
 private:
   unsigned k;
@@ -17,7 +16,7 @@ public:
                         const std::vector<double>& p, double b_t,
                         const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
                         bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-  : ParserCKYAll_Impl<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
+  : ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
   {
     //TODO maybe make this a parser option?
     //create the coarse-to-fine map
@@ -29,7 +28,7 @@ public:
 
   void extract_solution();
 private:
-  void initialise_candidates() const;
+  void initialise_candidates();
   void extend_all_derivations();
 };
 
@@ -67,7 +66,7 @@ void ParserCKYAllMaxRuleKB::extract_solution()
 }
 
 
-void ParserCKYAllMaxRuleKB::initialise_candidates() const
+void ParserCKYAllMaxRuleKB::initialise_candidates()
 {
 
   double sentence_probability = std::log(get_sentence_probability());
@@ -76,20 +75,7 @@ void ParserCKYAllMaxRuleKB::initialise_candidates() const
   MaxRuleProbabilityKB::set_log_normalisation_factor(sentence_probability);
   MaxRuleProbabilityKB::set_size(k);
 
-  for (unsigned span = 0; span < sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-
-      //      std::cout << "(" << begin << "," << end << ")" << std::endl;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed()) {
-        cell.calculate_maxrule_probabilities();
-      }
-    }
-  }
+  calculate_maxrule_probabilities();  
 }
 
 

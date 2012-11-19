@@ -3,12 +3,9 @@
 #define _PARSERCKYALLFACTORY_H_
 
 #include "utils/ConfigTable.h"
-#include "ParserCKYAll.h"
-
-#include "ParserCKYAllFactory.h"
 
 #include "ParserCKYAllViterbi.h"
-#include "ParserCKYAllMaxVar.h"
+#include "ParserCKYAllMaxVar1B.h"
 #include "ParserCKYAllMaxVarKB.h"
 #include "ParserCKYAllMaxVarMultiple.h"
 
@@ -176,7 +173,7 @@ ParserCKYAll * create_parser(std::vector<ParserCKYAll::AGrammar*> cgs, ParserCKY
             return new ParserCKYAllViterbi(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, cell_threads);
             break;
         case MaxRule :
-            return new ParserCKYAllMaxRule(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, cell_threads);
+            return new ParserCKYAllMaxRule1B(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, cell_threads);
             break;
         case MaxN :
             return new ParserCKYAllMaxRuleMultiple(cgs, p, b_t, fgs, all_annot_descendants, accurate, min_beam, stubborn, k, cell_threads);

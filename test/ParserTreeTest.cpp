@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_FIXTURE_TEST_SUITE(PtbTreeSuite, FixturePTBTree)
 
 BOOST_AUTO_TEST_CASE(PtbCleanLabelTest){
-    boost::unordered::unordered_set<string> remove;
+    boost::unordered_set<string> remove;
     remove.insert("-NONE-");
     m_tree->clean(remove);
 
