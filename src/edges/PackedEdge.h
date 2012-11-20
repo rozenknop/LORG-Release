@@ -46,11 +46,11 @@ public:
   typedef PEP Best;
   typedef PCKYAllCell<PackedEdge<PEP> > Cell;
   typedef PackedEdge<PEP> Edge;
-  typedef PackedEdgeDaughters Daughters; 
-  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters; 
-  typedef UnaryPackedEdgeDaughters<Cell>  UnaryDaughters; 
-  typedef LexicalPackedEdgeDaughters LexicalDaughters; 
-  
+  typedef PackedEdgeDaughters Daughters;
+  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
+  typedef UnaryPackedEdgeDaughters<Cell>  UnaryDaughters;
+  typedef LexicalPackedEdgeDaughters LexicalDaughters;
+
 protected:
   typedef std::vector<BinaryDaughters> bvector;
   typedef std::vector<UnaryDaughters>  uvector;
@@ -137,7 +137,7 @@ public:
   const LexicalDaughters& get_lexical_daughter(unsigned i) const;
 
   /**
-     \brief
+     \brief is the daughter lexical ?
   */
   bool get_lex() const;
 
@@ -164,10 +164,16 @@ public:
   AnnotationInfo& get_annotations();
   const AnnotationInfo& get_annotations() const;
 
+  /**
+     \brief get previously calculated annotations (maxn parsing)
+   */
   std::vector<AnnotationInfo>& get_annotations_backup();
   const std::vector<AnnotationInfo>& get_annotations_backup() const;
 
 
+  /**
+     \brief store annotions for later use (maxn parsing)
+   */
   void backup_annotations()
   {
     best.backup_annotations(annotations);
@@ -215,6 +221,9 @@ public:
   void prepare_outside_probability();
   void adjust_outside_probability();
 
+  /**
+     \brief build and add a daughter (binary, unary and lexical versions)
+   */
   void add_daughters(Cell * left,
                      Cell * right, const BRuleC2f* rule)
   {
@@ -231,12 +240,20 @@ public:
     lexical_daughters.push_back(LexicalDaughters(rule, w));
   }
 
+  /**
+     \brief get the structure holding the "best calculation" whatever it means
+   */
   const PEP& get_best() const;
   PEP& get_best();
 
 
+  /**
+     \brief set unary chains
+     \note TODO remove "viterbi" from name
+   */
   static void set_viterbi_unary_chains(const PathMatrix& pathmatrix);
   static const PathMatrix& get_viterbi_unary_chains();
+
 
   void replace_rule_probabilities(unsigned i);
 
@@ -829,10 +846,10 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
     //    std::cerr << "invalid prob" << std::endl ;
     return NULL;
   }
-  if(my_isinvalid(best.get(ith_deriv).probability)) {
-    //g    std::cerr << "invalid prob" << std::endl;
-    return NULL;
-  }
+  // if(my_isinvalid(best.get(ith_deriv).probability)) {
+  //   //g    std::cerr << "invalid prob" << std::endl;
+  //   return NULL;
+  // }
 
 
   //  std::cout << best.get(ith_deriv).probability << std::endl;
@@ -859,7 +876,7 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
 
             // std::cout << "deriv " << ith_deriv
             //     << "\t" << best.get(ith_deriv).get_left_index() << std::endl;
-            
+
       const UnaryDaughters * daughters =  static_cast<const UnaryDaughters*>(best.get(ith_deriv).dtrs);
       decode_path(*tree,pos,
                   get_viterbi_unary_chains(),

@@ -16,19 +16,13 @@ public:
                       const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
                       bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads)
   : ParserCKYAllMaxRule<ParserCKYAllMaxRuleCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
-  {
-      //TODO maybe make this a parser option?
-      //create the coarse-to-fine map
-      create_coarse_to_fine_mapping(grammars);
-      
-      Edge::set_viterbi_unary_chains(grammars[grammars.size() - 1]->get_unary_decoding_paths());
-  }
+  {}
 
   ~ParserCKYAllMaxRule1B() {};
 
   void extract_solution();
 
-  
+
 protected:
 
   void change_rules_reset() const;
@@ -39,7 +33,7 @@ protected:
      and uses this to select the best edge (max rule parsing)
    */
   void calculate_chart_specific_rule_probabilities_and_best_edge();
-  
+
   static double log_normalisation_factor;
 };
 
@@ -49,10 +43,10 @@ protected:
 
 double ParserCKYAllMaxRule1B::log_normalisation_factor = 0;
 
-  
+
 void ParserCKYAllMaxRule1B::extract_solution()
 {
-    
+
 //   std::cout << *chart << std::endl;
 
   compute_inside_outside_probabilities();

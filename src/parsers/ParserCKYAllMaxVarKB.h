@@ -9,26 +9,24 @@ typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityKB> > ParserCKYAllMaxRuleKBCell
 
 class ParserCKYAllMaxRuleKB : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>
 {
-private:
+ private:
   unsigned k;
-public:
+
+ public:
   ParserCKYAllMaxRuleKB(std::vector<AGrammar*>& cgs,
                         const std::vector<double>& p, double b_t,
                         const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
                         bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-  : ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
-  {
-    //TODO maybe make this a parser option?
-    //create the coarse-to-fine map
-    create_coarse_to_fine_mapping(grammars);
+      : ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
+  {}
 
-    Edge::set_viterbi_unary_chains(grammars[grammars.size() - 1]->get_unary_decoding_paths());
-  };
   ~ParserCKYAllMaxRuleKB() {};
 
   void extract_solution();
-private:
+
+ private:
   void initialise_candidates();
+
   void extend_all_derivations();
 };
 
@@ -44,10 +42,10 @@ void ParserCKYAllMaxRuleKB::extend_all_derivations()
     return;
 
   for (unsigned i = 2; i <= k; ++i)
-    {
-      //      std::cout << "before extend" << std::endl;
-      chart->get_root().get_edge(start_symbol).extend_derivation(i,true);
-    }
+  {
+    //      std::cout << "before extend" << std::endl;
+    chart->get_root().get_edge(start_symbol).extend_derivation(i,true);
+  }
 }
 
 
@@ -70,12 +68,12 @@ void ParserCKYAllMaxRuleKB::initialise_candidates()
 {
 
   double sentence_probability = std::log(get_sentence_probability());
-  unsigned sent_size = chart->get_size();
+  //  unsigned sent_size = chart->get_size();
 
   MaxRuleProbabilityKB::set_log_normalisation_factor(sentence_probability);
   MaxRuleProbabilityKB::set_size(k);
 
-  calculate_maxrule_probabilities();  
+  calculate_maxrule_probabilities();
 }
 
 

@@ -1,17 +1,13 @@
-#ifndef lorg_functional_h
-#define lorg_functional_h
+// -*- mode: c++ -*-
+#ifndef _LORG_FUNCTIONAL_H_
+#define _LORG_FUNCTIONAL_H_
 
 #include <functional>
 
-template<class Class, class Return, class... Args>
-auto myMethod( Class * object, Return(Class::*f)(Args&&... args)) -> function<Return(Args&&... args)> {
-    return [object,f](Args&&... args){return (object->*f)(std::forward<Args&&>(args)...);};
-}
-
+// transform a method into a function
 template<class Class, class Return, class... Args>
 std::function<Return(Class&, Args&... args)> toFunc( Return(Class::*f)(Args&... args) )  {
     return std::function<Return(Class&, Args&... args)> (f);
 }
 
- 
-#endif
+#endif /* _LORG_FUNCTIONAL_H_ */
