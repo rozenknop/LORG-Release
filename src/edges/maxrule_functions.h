@@ -82,8 +82,8 @@ namespace maxrule_function
     
     
     double res = (std::log (probability) - normalisation_factor)
-    + left.get_best ().get (left_idx).probability
-    + right.get_best ().get (right_idx).probability;
+    + left.get_prob_model().get (left_idx).probability
+    + right.get_prob_model().get (right_idx).probability;
     
     //assert(res <= 0);
     
@@ -128,8 +128,8 @@ namespace maxrule_function
     
     double max_prob = -std::numeric_limits < double >::infinity ();
     double base =
-    -normalisation_factor + left.get_best ().get (0).probability +
-    right.get_best ().get (0).probability;
+    -normalisation_factor + left.get_prob_model().get (0).probability +
+    right.get_prob_model().get (0).probability;
     
     for (unsigned i = 0; i < rule_probs.size (); ++i)
     {
@@ -203,12 +203,12 @@ namespace maxrule_function
     // only relevant in kmax parsing
     if (			//probability != 0
 	 //     &&
-	 left.get_best ().n_deriv () != 0)
+	 left.get_prob_model().n_deriv () != 0)
       {
         
         double res =
         (std::log (probability) - normalisation_factor) +
-        left.get_best ().get (left_idx).probability;
+        left.get_prob_model().get (left_idx).probability;
         // assert(res <= 0);
         
         if (res > 0)
@@ -252,7 +252,7 @@ namespace maxrule_function
     double max_prob = -std::numeric_limits < double >::infinity ();
     
     double base =
-    -normalisation_factor + left.get_best ().get (0).probability;
+    -normalisation_factor + left.get_prob_model().get (0).probability;
     
     
     for (unsigned i = 0; i < rule_probs.size (); ++i)
@@ -432,7 +432,7 @@ namespace maxrule_function
     // only relevant in kmax parsing
     // if(//probability != 0
     //    //     &&
-    //    left.get_best().n_deriv() != 0
+    //    left.get_prob_model().n_deriv() != 0
     //    ) {
       
     double res = (std::log (probability) - normalisation_factor);

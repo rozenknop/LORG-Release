@@ -118,7 +118,7 @@ class ParserCKYAll_Impl : public ParserCKYAll
 public:
     typedef TCell Cell;
     typedef typename TCell::Edge Edge;
-    typedef typename TCell::Edge::Best Best;
+    typedef typename TCell::Edge::ProbaModel ProbaModel;
     typedef ChartCKY<Cell, Word> Chart;
 
 
@@ -709,21 +709,39 @@ void ParserCKYAll_Impl<TCell>::compute_outside_probabilities() const
     }
 }
 
+// template <typename TCell>
+// void ParserCKYAll_Impl<TCell>::compute_inside_probabilities() const
+// {
+//     unsigned sent_size=chart->get_size();
+// 
+//     for (unsigned span = 0; span < sent_size; ++span) {
+//         unsigned end_of_begin=sent_size-span;
+//         for (unsigned begin=0; begin < end_of_begin; ++begin) {
+//             unsigned end = begin + span ;
+// 
+//             Cell& cell = chart->access(begin,end);
+//             if(!cell.is_closed()) {
+//                 cell.compute_inside_probabilities();
+//             }
+// 
+//         }
+//     }
+// }
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_inside_probabilities() const
 {
     unsigned sent_size=chart->get_size();
-
+    
     for (unsigned span = 0; span < sent_size; ++span) {
         unsigned end_of_begin=sent_size-span;
         for (unsigned begin=0; begin < end_of_begin; ++begin) {
             unsigned end = begin + span ;
-
+            
             Cell& cell = chart->access(begin,end);
             if(!cell.is_closed()) {
                 cell.compute_inside_probabilities();
             }
-
+            
         }
     }
 }

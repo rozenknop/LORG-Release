@@ -11,8 +11,10 @@ class ParserCKYAllMaxRule : public ParserCKYAll_Impl<TCell>
 {
 public:
     typedef typename ParserCKYAll_Impl<TCell>::AGrammar AGrammar;
-    typedef typename ParserCKYAll_Impl<TCell>::Edge Edge;
     typedef typename ParserCKYAll_Impl<TCell>::Chart Chart;
+    typedef typename Chart::Cell Cell;
+    typedef typename Cell::Edge Edge;
+    typedef typename Edge::ProbaModel ProbaModel;
     
     ParserCKYAllMaxRule(std::vector<AGrammar*>& cgs,
                           const std::vector<double>& p, double b_t,
@@ -29,18 +31,14 @@ public:
    * @return void
    **/
    void calculate_maxrule_probabilities()
-   {
-     typedef typename Chart::Cell Cell;
-     typedef typename Cell::Edge Edge;
-     typedef typename Edge::Best Best;
-     
+   {     
      this->chart->opencells_apply_bottom_up (
       [](Cell & cell)
       {
-        cell.apply_on_edges (toFunc(&Best::update_lexical),
-                             toFunc (&Best::update_binary));
-        cell.apply_on_edges (toFunc(&Best::update_unary),
-                             toFunc (&Best::finalize));
+        cell.apply_on_edges (toFunc(&ProbaModel::update_lexical),
+                             toFunc (&ProbaModel::update_binary));
+        cell.apply_on_edges (toFunc(&ProbaModel::update_unary),
+                             toFunc (&ProbaModel::finalize));
       }
     );
   }

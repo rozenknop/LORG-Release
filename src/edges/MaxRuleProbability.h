@@ -73,7 +73,7 @@ MaxRuleProbability::update_unary (Edge & e, const UnaryDaughters & dtr)
   double probability = -std::numeric_limits<double>::infinity();
 
   PackedEdge<MaxRuleProbability>& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
-  if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
+  if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
     probability =  maxrule_function::update_maxrule_probability<PackedEdge<MaxRuleProbability> >(e.get_annotations(), dtr, log_normalisation_factor);
   }
 

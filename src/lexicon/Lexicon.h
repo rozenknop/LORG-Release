@@ -30,12 +30,12 @@ public:
 
   virtual void read_lexicon_from_Treebank(std::vector<PtbPsTree>& treebanktrees) = 0;
   virtual std::string get_word_class(const std::string& word, int position) const = 0;
-
+#ifdef USE_THREADS
   virtual void update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & trees,
 						  bool last_iteration,
                                                   std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
                                                   unsigned nbthreads)=0;
-
+#endif
   virtual void maximisation()=0;
 
   virtual void add_lexicon_annotated_node_counts(std::vector< std::vector<double> >& AnnotatedNodeCountMap)=0;

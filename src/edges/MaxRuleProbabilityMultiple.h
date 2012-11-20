@@ -183,7 +183,7 @@ void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughters & dt
   double probability = -std::numeric_limits<double>::infinity();
 
   Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
-  if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
+  if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
     probability =  maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
   }
   // else {
@@ -339,7 +339,7 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const Edge* up_edge, const Bin
                                                                                    rule_probs);
       }
 
-    p.probability += left.get_best().get(0).probability + right.get_best().get(0).probability;
+    p.probability += left.get_prob_model().get(0).probability + right.get_prob_model().get(0).probability;
 
     // if(!(p.probability <= 0)) {
     //   std::cout << "pbb: " << p.probability << std::endl;
@@ -373,7 +373,7 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const Edge* up_edge, const Unar
 
     Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
 
-    if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
+    if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
 
       const std::vector<AnnotationInfo>& leftannots = left.get_annotations_backup();
 
@@ -394,9 +394,9 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const Edge* up_edge, const Unar
         }
 
 
-      //          std::cout << p.probability << " " << left.get_best().get(0).probability << std::endl;
+      //          std::cout << p.probability << " " << left.get_prob_model().get(0).probability << std::endl;
       //std::cout << *(d->get_rule()) << std::endl;
-      p.probability +=  left.get_best().get(0).probability;
+      p.probability +=  left.get_prob_model().get(0).probability;
       //          std::cout << p.probability << std::endl;
       assert(p.probability <= 0.0000001); // rounding errors !
 
@@ -557,7 +557,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
     left.extend_derivation(nextleft+1,true);
 
     // we haven't reached the expected number of solutions
-    if(nextleft < left.get_best().n_deriv()) {
+    if(nextleft < left.get_prob_model().n_deriv()) {
 
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
@@ -580,7 +580,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
                                                                                      rule_probs);
         }
 
-      p.probability += left.get_best().get(p.left_index).probability + right.get_best().get(p.right_index).probability;
+      p.probability += left.get_prob_model().get(p.left_index).probability + right.get_prob_model().get(p.right_index).probability;
 
 
       assert(p.probability <= 0);
@@ -600,7 +600,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
 
     right.extend_derivation(nextright+1,true);
 
-    if(nextright < right.get_best().n_deriv()) {
+    if(nextright < right.get_prob_model().n_deriv()) {
       //      std::cout << "bin extending on the right" << std::endl;
 
 
@@ -623,7 +623,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
                                                                                      rule_probs);
         }
 
-      p.probability += left.get_best().get(p.left_index).probability + right.get_best().get(p.right_index).probability;
+      p.probability += left.get_prob_model().get(p.left_index).probability + right.get_prob_model().get(p.right_index).probability;
 
 
 
@@ -657,7 +657,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
 
     left.extend_derivation(nextleft+1, false);
 
-    if(nextleft < left.get_best().n_deriv() ) {
+    if(nextleft < left.get_prob_model().n_deriv() ) {
       //        std::cout << "un extending" << std::endl;
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
@@ -677,7 +677,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
                                                                                      rule_probs);
         }
 
-      p.probability +=  left.get_best().get(p.left_index).probability;
+      p.probability +=  left.get_prob_model().get(p.left_index).probability;
 
 
 

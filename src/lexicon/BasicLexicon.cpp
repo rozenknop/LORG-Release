@@ -2,11 +2,18 @@
 
 #include <boost/thread.hpp>
 
+#ifdef USE_THREADS
+
 #include <tbb/tick_count.h>
+using tbb::tick_count;
 #include <tbb/parallel_reduce.h>
 #include <tbb/parallel_for.h>
 #include <tbb/task_scheduler_init.h>
 #include <tbb/blocked_range.h>
+
+#else
+#include "utils/tick_count.h"
+#endif
 
 
 typedef std::map<std::pair<int,int> , int> lexical_counts_map;
@@ -176,7 +183,7 @@ void BasicLexicon::maximisation(){
   }
 
 }
-
+#ifdef USE_THREADS
 struct basic_lexicon_update_thread_tbb
 {
   const BasicLexicon & lexicon;
@@ -206,7 +213,7 @@ struct basic_lexicon_update_thread_tbb
   }
 
 };
-
+#endif
 
 
 // struct basic_lexicon_update_thread
@@ -248,6 +255,7 @@ struct basic_lexicon_update_thread_tbb
 // };
 
 
+#ifdef USE_THREADS
 void BasicLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & /*trees ignored*/,
 						      bool /*ignored*/,
                                                       std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
@@ -276,7 +284,7 @@ void BasicLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTr
   // for(std::vector<BinaryTrainingTree>::const_iterator tree_iter(trees.begin()); tree_iter != trees.end(); ++tree_iter)
   //   traverse_leaf_nodes(*tree_iter);
 }
-
+#endif
 
 
 
