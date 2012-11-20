@@ -283,7 +283,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
     left->extend_derivation(nextleft+1,true);
 
     // we haven't reached the expected number of solutions
-    if(nextleft < left->get_best().n_deriv()) {
+    if(nextleft < left->get_prob_model().n_deriv()) {
 
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
@@ -308,7 +308,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
     right->extend_derivation(nextright+1,true);
 
-    if(nextright < right->get_best().n_deriv()) {
+    if(nextright < right->get_prob_model().n_deriv()) {
       //        std::cout << "bin extending on the right" << std::endl;
 
 
@@ -345,7 +345,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
     left->extend_derivation(nextleft+1, false);
 
-    if(nextleft < left->get_best().n_deriv() ) {
+    if(nextleft < left->get_prob_model().n_deriv() ) {
       //        std::cout << "un extending" << std::endl;
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;

@@ -194,7 +194,7 @@ PtbPsTree* ChartCKY<Cell, MyWord>::get_best_tree(int start_symbol, unsigned k, b
 template<class Cell, class MyWord>
 double ChartCKY<Cell, MyWord>::get_score(int symbol, unsigned k) const
 {
-  return get_root().get_edge(symbol).get_best().get(k).probability;
+  return get_root().get_edge(symbol).get_prob_model().get(k).probability;
 }
 
 

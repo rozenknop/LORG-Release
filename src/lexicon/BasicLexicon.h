@@ -37,12 +37,12 @@ private:
   void collect_base_lexical_counts(const std::vector<PtbPsTree>& treebanktrees,
 				   std::map<int,unsigned>& LHS_counts, std::map<int,unsigned>& RHS_counts,
 				   lexical_counts_map& lexical_counts);
-
+#ifdef USE_THREADS
   void update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & trees,
 					  bool last_iteration,
                                           std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
                                           unsigned nbthreads);
-
+#endif
   void update_annotated_rule_counts(LexicalRuleTraining& rule, const AnnotationInfo& up_annotations,
 				    const scaled_array& root_insides) const;
 
@@ -74,8 +74,10 @@ private:
   void lexical_smoothing();
   void create_additional_rules();
 
+#ifdef USE_THREADS
   //  friend class basic_lexicon_update_thread;
   friend class basic_lexicon_update_thread_tbb;
+#endif
 };
 
 #endif /*BASICLEXICON_H_*/

@@ -43,7 +43,7 @@ template<class PEP>
 class PackedEdge
 {
 public:
-  typedef PEP Best;
+  typedef PEP ProbaModel;
   typedef PCKYAllCell<PackedEdge<PEP> > Cell;
   typedef PackedEdge<PEP> Edge;
   typedef PackedEdgeDaughters Daughters;
@@ -241,10 +241,10 @@ public:
   }
 
   /**
-     \brief get the structure holding the "best calculation" whatever it means
+     \brief get the structure holding the "best calculation for the prob. model" whatever it means
    */
-  const PEP& get_best() const;
-  PEP& get_best();
+  const PEP& get_prob_model() const;
+  PEP& get_prob_model();
 
 
   /**
@@ -308,10 +308,10 @@ public:
   void process(function<void(Edge &, BinaryDaughters &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
   void process(function<void(Edge &, UnaryDaughters &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
   void process(function<void(Edge &, LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
-  void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_best(), *this, d);}
-  void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_best(), *this, d);}
-  void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_best(), *this, d);}
-  void process(function<void(PEP &)> f) {f(get_best());}
+  void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(PEP &)> f) {f(get_prob_model());}
   void process(function<void(Edge &)> f) { f(*this); }
   template<typename Function, typename... OtherFunctions>
   void apply(Function&& f, OtherFunctions&&... o) {process(f);apply(o...);}
@@ -401,11 +401,11 @@ void PackedEdge<PEP>::local_resize_annotations(unsigned size) {annotations.resiz
 
 template<class PEP>
 inline
-const PEP& PackedEdge<PEP>::get_best() const {return best;}
+const PEP& PackedEdge<PEP>::get_prob_model() const {return best;}
 
 template<class PEP>
 inline
-PEP& PackedEdge<PEP>::get_best() {return best;}
+PEP& PackedEdge<PEP>::get_prob_model() {return best;}
 
 template<class PEP>
 inline

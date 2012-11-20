@@ -16,6 +16,11 @@ tb2gram_CXXFLAGS = -O6 -Wall -Wextra -pipe -ffast-math -DNDEBUG
 #tb2gram_CXXFLAGS = -Wall -Wextra  -O2  -g  -pg -DBENCHMARK
 #tb2gram_CXXFLAGS = -O1  -g  -Wall -Wextra -pg
 
+if WANT_TBB
+AM_CPPFLAGS+=-DUSE_THREADS
+endif
+
+
 tb2gram_SOURCES = tb2gram.cpp \
 	../LorgApp.h ../LorgApp.cpp LorgTrainerApp.h LorgTrainerApp.cpp \
 	../utils/PtbPsTree.cpp ../utils/PtbPsTree.h \

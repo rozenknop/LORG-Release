@@ -47,9 +47,9 @@ set(twostage_lorgparser_test_sources
   main.cpp
   )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${TBB_INCLUDE_DIRS})
 
-set(common_libs ${RTLIB} ${TBB_LIBS} ${TCMALLOC_LIB})
+set(common_libs ${TBB_LIBRARIES} ${RTLIB} ${TCMALLOC_LIB})
 
 add_executable(twostage_lorgparser_test ${twostage_lorgparser_test_sources})
 target_link_libraries(twostage_lorgparser_test ${common_libs} ${Boost_LIBRARIES})
