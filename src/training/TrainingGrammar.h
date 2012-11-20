@@ -7,15 +7,15 @@
 #include "rules/LexicalRuleTraining.h"
 #include "grammars/Grammar.h"
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <vector>
 
 #include "lexicon/Lexicon.h"
 #include "Treebank.h"
 
-typedef boost::unordered_map< std::pair<int, int >, double> DeltaMap;
+typedef std::unordered_map< std::pair<int, int >, double> DeltaMap;
 typedef std::map<int,std::vector<int> > Merge_map;
-typedef boost::unordered_map<int,double> unannotated_node_count_map;
+typedef std::unordered_map<int,double> unannotated_node_count_map;
 
 class TrainingGrammar: public Grammar<BRuleTraining,URuleTraining,LexicalRuleTraining>, public AnnotatedContents
 {
@@ -218,18 +218,16 @@ inline std::vector<URuleTraining>& TrainingGrammar::get_unary_rules() {return un
 inline std::vector<LexicalRuleTraining>& TrainingGrammar::get_lexical_rules() {return lexicon->get_lexical_rules();}
 
 template <class T> inline void TrainingGrammar::perform_action_all_internal_rules(T& action)
-{        
+{
     std::for_each(binary_rules.begin(),binary_rules.end(), action);
     std::for_each(unary_rules.begin(),unary_rules.end(), action);
 }
 
 template <class T> inline void TrainingGrammar::perform_action_all_internal_rules(T& action) const
-{    
+{
     std::for_each(binary_rules.begin(),binary_rules.end(), action);
     std::for_each(unary_rules.begin(),unary_rules.end(), action);
 }
 
 
 #endif // TRAININGGRAMMAR_H
-
-

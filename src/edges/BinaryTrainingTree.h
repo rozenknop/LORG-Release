@@ -52,11 +52,6 @@ public:
   void compute_inside_probability();
   void compute_outside_probability();
 
-  // void get_rules(boost::unordered_set<const BRule*>& brules,
-  // 		 boost::unordered_set<const URule*>& urules,
-  // 		 boost::unordered_set<const URule*>& lrules) const;
-
-
   void resize_annotations(const AnnotatedLabelsInfo & lookup);
 
   void reset_inside_probabilities(const double& value = 0);

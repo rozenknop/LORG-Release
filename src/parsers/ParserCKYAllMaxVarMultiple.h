@@ -14,7 +14,7 @@ public:
   ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,
 			      const std::vector<double>& p, double b_t,
 			      const std::vector< std::vector<AGrammar*> >& fgs,
-			      const std::vector< annot_descendants_type >& all_annot_descendants_,
+                              const std::vector<annot_descendants_type>& all_annot_descendants_,
 			      bool accurate_, unsigned min_beam, int stubborn, unsigned k, unsigned cell_threads);
 
   ~ParserCKYAllMaxRuleMultiple();
@@ -101,9 +101,6 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
   for (unsigned i = 0; i < fine_grammars.size(); ++i)
     all_grammars.insert(all_grammars.end(), fine_grammars[i].begin(), fine_grammars[i].end());
 
-  //  std::cout << "HERE" << std::endl;
-
-
   create_coarse_to_fine_mapping(all_grammars);
 
 
@@ -119,7 +116,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
 
   create_coarse_to_fine_mapping(maxn_mapping);
 
-  //TODO calculate this prperly for multiple grammars
+  //TODO calculate this properly for multiple grammars
   Edge::set_viterbi_unary_chains(grammars.back()->get_unary_decoding_paths());
 }
 
@@ -196,7 +193,6 @@ void ParserCKYAllMaxRuleMultiple::modify_backup(unsigned backup_idx) const
 
 void ParserCKYAllMaxRuleMultiple::precompute_all_backups()
 {
-
   backup_annotations();
 
   for(unsigned i = 0; i < fine_grammars.size(); ++i) {
@@ -284,7 +280,7 @@ void ParserCKYAllMaxRuleMultiple::extract_solution()
 void ParserCKYAllMaxRuleMultiple::calculate_maxrule_probabilities()
 {
 
-  unsigned sent_size = chart->get_size();
+  //unsigned sent_size = chart->get_size();
 
   ParserCKYAllMaxRule::calculate_maxrule_probabilities();
 }

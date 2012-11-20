@@ -25,7 +25,7 @@ void UnaryTrainingNode::resize_annotations(unsigned size)
   TrainingNode::resize_annotations(size);
   left->resize_annotations(size);
 }
-  
+
 void TrainingNode::resize_annotations(const AnnotatedLabelsInfo& lookup)
 {
   annotations.resize(lookup.get_number_of_annotations(lhs));
@@ -134,9 +134,9 @@ void UnaryTrainingNode::reset_probabilities(double value)
 /////////////// update_delta_scores
 
 void TrainingNode::update_delta_scores(DeltaMap &  delta_scores_map,
-				       int split_number, 
-				       const ProportionsMap & proportions, 
-				       const scaled_array& root_inside) const 
+				       int split_number,
+				       const ProportionsMap & proportions,
+				       const scaled_array& root_inside) const
 {
   calculate_delta_score(delta_scores_map,split_number,proportions, root_inside);
 }
@@ -145,7 +145,7 @@ void TrainingNode::update_delta_scores(DeltaMap &  delta_scores_map,
 void BinaryTrainingNode::update_delta_scores(DeltaMap &  delta_scores_map,
 					     int split_number,
 					     const ProportionsMap & proportions,
-					     const scaled_array& root_inside) const 
+					     const scaled_array& root_inside) const
 {
   TrainingNode::update_delta_scores(delta_scores_map, split_number, proportions, root_inside);
   left->update_delta_scores(delta_scores_map, split_number, proportions, root_inside);
@@ -155,7 +155,7 @@ void BinaryTrainingNode::update_delta_scores(DeltaMap &  delta_scores_map,
 void UnaryTrainingNode::update_delta_scores(DeltaMap &  delta_scores_map,
 					    int split_number,
 					    const ProportionsMap & proportions,
-					    const scaled_array& root_inside) const 
+					    const scaled_array& root_inside) const
 {
   TrainingNode::update_delta_scores(delta_scores_map, split_number, proportions, root_inside);
   left->update_delta_scores(delta_scores_map, split_number, proportions, root_inside);
@@ -176,73 +176,73 @@ namespace {
 
 }
 
-void TrainingNode::calculate_delta_score(DeltaMap &  delta_scores_map, int split_size, 
+void TrainingNode::calculate_delta_score(DeltaMap &  delta_scores_map, int split_size,
 					 const ProportionsMap & proportions,
 					 const scaled_array& root_inside) const
 {
   if (is_top_node(lhs)) { return; }
- 
+
   unsigned number_of_annotations = annotations.get_size();
   std::vector<double> in_out(number_of_annotations);
   unsigned number_of_splits = number_of_annotations / (unsigned) split_size;
   //std::cout << "number of annotations: " << number_of_annotations << " num splits " << split_size << std::endl;
-    
+
   assert((number_of_annotations % split_size) == 0) ;
-    
+
   for(unsigned latent_a=0; latent_a < number_of_annotations; ++latent_a) {
     in_out[latent_a] =  annotations.inside_probabilities.array[latent_a] *
       annotations.outside_probabilities.array[latent_a] ;
     }
-        
+
     unsigned start = 0;
     //for each split set of the node
     for (unsigned i = 0; i< number_of_splits; ++i){
-      
+
       double merged_inside = 0.0;
       double merged_outside = 0.0;
 
       const std::vector<double>& current_proportions = proportions[get_lhs()];
-	    
+
       for (unsigned j=start; j< (start+ split_size); ++j){
-	
+
 	//say we are at node x
-	//IN(x,split i) += proportion(label of node x,annotation j) * IN(x, annotation j) 
-	merged_inside += current_proportions[j] * annotations.inside_probabilities.array[j];	
-	      
-	//OUT(x,split i) + = OUT(x, annotation j) 
+	//IN(x,split i) += proportion(label of node x,annotation j) * IN(x, annotation j)
+	merged_inside += current_proportions[j] * annotations.inside_probabilities.array[j];
+
+	//OUT(x,split i) + = OUT(x, annotation j)
 	merged_outside += annotations.outside_probabilities.array[j];
       }
       //std::cout << "merged inside  " << merged_inside << " merged outside " << merged_outside << std::endl;
-	    
+
       //likelihood after merge of split i
       double likelihood_merge = merged_inside * merged_outside ;
-	    
+
       for (unsigned latent_a=0;latent_a < number_of_annotations; ++latent_a){
-	      
+
 	//if not an annotation that's being merged...
 	if (latent_a < start || latent_a >= (start + split_size)){
 	  likelihood_merge += in_out[latent_a];
 	}
       }
-	
+
       //delta score update
       std::pair<int,int> delta_key = std::make_pair(get_lhs(),start);
-      
+
       assert(likelihood_merge > 0.0);
-      
+
       //initialise
-      if (delta_scores_map.find(delta_key) == delta_scores_map.end()){
-	
-	
+      if (!delta_scores_map.count(delta_key)){
+
+
 	delta_scores_map[delta_key] = 0.0;
       }
-	    
-      delta_scores_map[delta_key] += std::log(root_inside.array[0]) -  std::log(likelihood_merge) + 
-	scaled_array::calculate_logscalingfactor(root_inside.scale - 
-						 (annotations.inside_probabilities.scale + 
+
+      delta_scores_map[delta_key] += std::log(root_inside.array[0]) -  std::log(likelihood_merge) +
+	scaled_array::calculate_logscalingfactor(root_inside.scale -
+						 (annotations.inside_probabilities.scale +
 						  annotations.outside_probabilities.scale));
-	
-      
+
+
       start += split_size;
     }
 
@@ -264,13 +264,13 @@ void BinaryTrainingNode::compute_inside_probability()
   right->compute_inside_probability();
 
   annotations.reset_inside_probabilities();
-  
+
   if(rule) {
     rule->update_inside_annotations(annotations.inside_probabilities.array,
-				    left->get_annotations().inside_probabilities.array, 
+				    left->get_annotations().inside_probabilities.array,
 				    right->get_annotations().inside_probabilities.array);
 
-    annotations.inside_probabilities.scale_array(left->get_annotations().inside_probabilities.scale + 
+    annotations.inside_probabilities.scale_array(left->get_annotations().inside_probabilities.scale +
 						 right->get_annotations().inside_probabilities.scale );
   }
   else // validation tree ?
@@ -283,9 +283,9 @@ void UnaryTrainingNode::compute_inside_probability()
   left->compute_inside_probability();
 
   annotations.reset_inside_probabilities();
-  
+
   if(rule) {
-    rule->update_inside_annotations(annotations.inside_probabilities.array, 
+    rule->update_inside_annotations(annotations.inside_probabilities.array,
 				    left->get_annotations().inside_probabilities.array);
     annotations.inside_probabilities.scale_array(left->get_annotations().inside_probabilities.scale);
   }
@@ -320,7 +320,7 @@ void BinaryTrainingNode::compute_outside_probability()
 
   left->get_annotations().outside_probabilities.scale_array(annotations.outside_probabilities.scale +
 							    right->get_annotations().inside_probabilities.scale);
-  
+
   // rule->update_outside_annotations_right(annotations.outside_probabilities.array,
   // 					 left->get_annotations().inside_probabilities.array,
   // 					 right->get_annotations().outside_probabilities.array);
@@ -328,7 +328,7 @@ void BinaryTrainingNode::compute_outside_probability()
   right->get_annotations().outside_probabilities.scale_array(annotations.outside_probabilities.scale +
 							     left->get_annotations().inside_probabilities.scale);
 
-  
+
   left->compute_outside_probability();
   right->compute_outside_probability();
 }
@@ -342,7 +342,7 @@ void UnaryTrainingNode::compute_outside_probability()
 
   left->get_annotations().outside_probabilities.scale_array(annotations.outside_probabilities.scale);
 
-  
+
   left->compute_outside_probability();
 }
 
@@ -354,23 +354,23 @@ void LexicalTrainingNode::update_rule_frequencies(const scaled_array& /*root_ins
 
 void BinaryTrainingNode::update_rule_frequencies(const scaled_array& root_insides)
 {
-  
+
   rule->update_rule_frequencies(left->get_annotations().inside_probabilities,
-				right->get_annotations().inside_probabilities, 
-				get_annotations().outside_probabilities, 
+				right->get_annotations().inside_probabilities,
+				get_annotations().outside_probabilities,
 				root_insides);
   //now visit the daughters
   left->update_rule_frequencies(root_insides);
   right->update_rule_frequencies(root_insides);
-  
+
 }
 
 
 
 void UnaryTrainingNode::update_rule_frequencies(const scaled_array& root_insides)
 {
-  rule->update_rule_frequencies(left->get_annotations().inside_probabilities, 
-				get_annotations().outside_probabilities,  
+  rule->update_rule_frequencies(left->get_annotations().inside_probabilities,
+				get_annotations().outside_probabilities,
 				root_insides);
   left->update_rule_frequencies(root_insides);
 }
@@ -398,36 +398,36 @@ bool UnaryTrainingNode::contains_empty_rules() const
 
 /////////////////////////////
 
-void LexicalTrainingNode::get_lexical_nodes(std::vector<LexicalTrainingNode*>& buffer) 
+void LexicalTrainingNode::get_lexical_nodes(std::vector<LexicalTrainingNode*>& buffer)
 {
   buffer.push_back(this);
 }
 
 
-void BinaryTrainingNode::get_lexical_nodes(std::vector<LexicalTrainingNode*>& buffer) 
+void BinaryTrainingNode::get_lexical_nodes(std::vector<LexicalTrainingNode*>& buffer)
 {
   left->get_lexical_nodes(buffer);
   right->get_lexical_nodes(buffer);
 }
 
-void UnaryTrainingNode::get_lexical_nodes(std::vector<LexicalTrainingNode*>& buffer) 
+void UnaryTrainingNode::get_lexical_nodes(std::vector<LexicalTrainingNode*>& buffer)
 {left->get_lexical_nodes(buffer);}
 
 
 ///////////////////////////////
 
-void LexicalTrainingNode::add_occurrences(boost::unordered_map<BRuleTraining*,std::vector<brule_occurrence> >&, 
-					  boost::unordered_map<URuleTraining*,std::vector<urule_occurrence> >&,
-                                          boost::unordered_map<LexicalRuleTraining*,std::vector<lrule_occurrence> >& lmap,
+void LexicalTrainingNode::add_occurrences(std::unordered_map<BRuleTraining*,std::vector<brule_occurrence> >&,
+					  std::unordered_map<URuleTraining*,std::vector<urule_occurrence> >&,
+                                          std::unordered_map<LexicalRuleTraining*,std::vector<lrule_occurrence> >& lmap,
 					  const TrainingNode* root) const
 {
   lmap[rule].push_back(lrule_occurrence(this,root));
 }
 
 
-void BinaryTrainingNode::add_occurrences(boost::unordered_map<BRuleTraining*, std::vector<brule_occurrence> >& bmap,
-					 boost::unordered_map<URuleTraining*, std::vector<urule_occurrence> >& umap,
-                                         boost::unordered_map<LexicalRuleTraining*, std::vector<lrule_occurrence> >& lmap,
+void BinaryTrainingNode::add_occurrences(std::unordered_map<BRuleTraining*, std::vector<brule_occurrence> >& bmap,
+					 std::unordered_map<URuleTraining*, std::vector<urule_occurrence> >& umap,
+                                         std::unordered_map<LexicalRuleTraining*, std::vector<lrule_occurrence> >& lmap,
 					 const TrainingNode* root)  const
 {
   bmap[rule].push_back(brule_occurrence(left,right,this,root));
@@ -435,9 +435,9 @@ void BinaryTrainingNode::add_occurrences(boost::unordered_map<BRuleTraining*, st
   right->add_occurrences(bmap, umap, lmap, root);
 }
 
-void UnaryTrainingNode::add_occurrences(boost::unordered_map<BRuleTraining*, std::vector<brule_occurrence> >& bmap,
-					boost::unordered_map<URuleTraining*, std::vector<urule_occurrence> >& umap,
-                                        boost::unordered_map<LexicalRuleTraining*, std::vector<lrule_occurrence> >& lmap,
+void UnaryTrainingNode::add_occurrences(std::unordered_map<BRuleTraining*, std::vector<brule_occurrence> >& bmap,
+					std::unordered_map<URuleTraining*, std::vector<urule_occurrence> >& umap,
+                                        std::unordered_map<LexicalRuleTraining*, std::vector<lrule_occurrence> >& lmap,
 					const TrainingNode* root) const
 {
   umap[rule].push_back(urule_occurrence(left,this,root));

@@ -17,12 +17,16 @@ public:
     typedef typename Edge::ProbaModel ProbaModel;
 
     ParserCKYAllMaxRule(std::vector<AGrammar*>& cgs,
-                          const std::vector<double>& p, double b_t,
-                          const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
-                          bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads)
-    : ParserCKYAll_Impl<TCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
+                        const std::vector<double>& priors,
+                        double beam_threshold,
+                        const annot_descendants_type& annot_descendants_,
+                        bool accurate_, unsigned min_beam_length, int stubborn, unsigned cell_threads)
+    : ParserCKYAll_Impl<TCell>(cgs,
+                               priors,
+                               beam_threshold,
+                               annot_descendants_,
+                               accurate_, min_beam_length, stubborn, cell_threads)
     {
-      //TODO maybe make this a parser option?
       //create the coarse-to-fine map
       this->create_coarse_to_fine_mapping(this->grammars);
 
