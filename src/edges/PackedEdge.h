@@ -26,7 +26,7 @@
 #include "utils/SymbolTable.h"
 #include "PackedEdgeProbability.h"
 
-
+#include "utils/lorg_functional.h"
 
 typedef std::pair< int, unsigned> asymb;
 typedef boost::unordered_map<asymb, boost::unordered_map< asymb, asymb> > PathMatrix;
@@ -279,10 +279,8 @@ public:
 
   bool valid_prob_at(unsigned i) const;
 
-  template < std::unary_function<BinaryDaughters&,bool>& predicate >
   void clean_invalidated_binaries();
-
-
+  
   PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
 
   bool has_solution(unsigned i) const ;
@@ -724,14 +722,18 @@ void PackedEdge<PEP>::compute_best_binary()
 ////////////
 
 template <class PEP>
-template < std::unary_function<typename PackedEdge<PEP>::BinaryDaughters&,bool>& predicate>
 void PackedEdge<PEP>::clean_invalidated_binaries()
 {
-  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), predicate),
-			 binary_daughters.end());
+  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughters::points_towards_invalid_cells)), binary_daughters.end());
+  
+  
+  // Reclaim memory !
+  if(binary_daughters.capacity() != binary_daughters.size()) {
+    decltype(binary_daughters) tmp;
+    tmp.swap(binary_daughters);
+    binary_daughters.insert(binary_daughters.begin(), tmp.begin(), tmp.end());
+  }
 }
-
-
 
 
 

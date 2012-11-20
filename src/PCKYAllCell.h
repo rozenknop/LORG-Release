@@ -531,7 +531,7 @@ void PCKYAllCell<MyEdge>::backup_annotations()
     }
 }
 
-// these 2 predicates returns true if the edge can be removed
+// these 2 predicates returns true if the daughter(s) can be removed
 // ie, if it's pointing to invalid edges
 template <typename Cell>
 struct pred_beam_clean_bin : public std::unary_function<typename Cell::Edge::BinaryDaughters, bool>
@@ -708,7 +708,6 @@ void PCKYAllCell<MyEdge>::beam(double threshold)
   //  clean the cell
   clean();
 }
-
 
 
 template<class MyEdge>

@@ -72,7 +72,15 @@ public:
   {
     return rule == other.rule && left == other.left && right ==other.right;
   }
-
+  inline bool points_towards_invalid_cells() const
+  {
+    return (
+      left->is_closed() or 
+      left->get_edge_ptr(get_rule()->get_rhs0()) == nullptr or
+      right->is_closed() or
+      right->get_edge_ptr(get_rule()->get_rhs1()) == nullptr
+    );
+  }
 };
 
 

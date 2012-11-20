@@ -241,18 +241,18 @@ public:
   /**
      \brief computes the inside probability for all nodes in chart
   */
-  void compute_inside_probabilities() const;
+  void compute_inside_probabilities();
 
   /**
      \brief computes the outside probability for all nodes in chart
   */
-  void compute_outside_probabilities() const;
+  void compute_outside_probabilities();
 
 
   /**
      \brief computes the inside & outside scores in the chart
   */
-  void compute_inside_outside_probabilities() const;
+  void compute_inside_outside_probabilities();
 
 
   /**
@@ -268,7 +268,7 @@ public:
      \param threshold, threshold for pruning
      \param huang, triggers the use of huang/charniak pruning with the base grammar
   */
-  void beam_chart(double sent_prob, double threshold, bool huang) const;
+  void beam_chart(double sent_prob, double threshold, bool huang);
 
 
   /**
@@ -284,7 +284,7 @@ public:
      \para current_annot_descendants the histories of annotations
   */
   void beam_c2f(const std::vector<AGrammar*>& current_grammars,
-                const annot_descendants_type& current_annot_descendants) const;
+                const annot_descendants_type& current_annot_descendants);
 
   void change_rules_resize(unsigned step,
                            const std::vector<AGrammar*>& current_grammars) const;
@@ -640,7 +640,7 @@ void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) c
 }
 
 template <typename TCell>
-void ParserCKYAll_Impl<TCell>::compute_outside_probabilities() const
+void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 {
   unsigned sent_size=chart->get_size();
   for (unsigned span = sent_size; span > 0; --span) {
@@ -682,23 +682,55 @@ void ParserCKYAll_Impl<TCell>::compute_outside_probabilities() const
 //     }
 // }
 template <typename TCell>
-void ParserCKYAll_Impl<TCell>::compute_inside_probabilities() const
+void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
 {
-    unsigned sent_size=chart->get_size();
+  this->chart->opencells_apply_bottom_up (
+    [](Cell & cell)
+    {
+      cell.apply_on_edges( toFunc(& Edge::clean_invalidated_binaries) );
 
-    for (unsigned span = 0; span < sent_size; ++span) {
-        unsigned end_of_begin=sent_size-span;
-        for (unsigned begin=0; begin < end_of_begin; ++begin) {
-            unsigned end = begin + span ;
+      cell.apply_on_edges(
+        /* reset annotation probabilities on lexical edge */
+        std::function<void(Edge&)>([](Edge& edge){
+          if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
+            
+        /* edges[i]->compute_inside_probability_lexicals_only() */
+        std::function<void(Edge&,typename Edge::LexicalDaughters&)>([](Edge& edge, typename Edge::LexicalDaughters& dtr) {
+          const auto * rule = dtr.get_rule();
+          assert(rule != NULL);
+          rule->update_inside_annotations(edge.get_annotations().inside_probabilities.array); }),
+                          
+        /* edges[i]->compute_inside_probability_binaries_only(); */
+        std::function<void(Edge&,typename Edge::BinaryDaughters&)>([](Edge& edge, typename Edge::BinaryDaughters& dtr) {
+          const auto * rule = dtr.get_rule();
+          assert(rule != NULL);
+          rule->update_inside_annotations(edge.get_annotations().inside_probabilities.array,
+                                          dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array,
+                                          dtr.right_daughter()->get_edge(rule->get_rhs1()).get_annotations().inside_probabilities.array); }),
+                           
+        /* edges[i]->prepare_inside_probability */
+        std::function<void(Edge&)>([](Edge& edge){
+          edge.get_annotations().inside_probabilities_unary_temp.resize(edge.get_annotations().inside_probabilities.array.size());
+          for (unsigned i = 0; i < edge.get_annotations().inside_probabilities.array.size(); ++i)
+          {
+            if(edge.get_annotations().inside_probabilities.array[i] == LorgConstants::NullProba)
+              edge.get_annotations().inside_probabilities_unary_temp.array[i] = LorgConstants::NullProba;
+            else
+              edge.get_annotations().inside_probabilities_unary_temp.array[i] = 0;
+          }})
+      );
 
-            Cell& cell = chart->access(begin,end);
-            if(!cell.is_closed()) {
-                cell.compute_inside_probabilities();
-            }
-
-        }
+      /* edges[i]->prepare_inside_probability(); */
+      cell.apply_on_edges(
+        std::function<void(Edge&,typename Edge::UnaryDaughters&)>([](Edge& edge, typename Edge::UnaryDaughters& dtr) {
+          const auto * rule = dtr.get_rule();
+          assert(rule != NULL);
+          rule->update_inside_annotations(edge.get_annotations().inside_probabilities_unary_temp.array,
+                                         dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array);})
+      );
     }
-  }
+  );
+}
 
 
 
@@ -739,7 +771,7 @@ void ParserCKYAll_Impl<TCell>::beam_chart_io_relative() const
 
 //absolute beam
 template <typename TCell>
-void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_threshold, bool huang) const
+void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_threshold, bool huang)
 {
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
@@ -867,7 +899,7 @@ void ParserCKYAll_Impl<TCell>::beam_c2f(int start_symbol)
 
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::beam_c2f(const std::vector<AGrammar*>& current_grammars,
-                                        const annot_descendants_type& /*current_annot_descendants*/) const
+                                        const annot_descendants_type& /*current_annot_descendants*/)
 {
   static int top_idx = SymbolTable::instance_nt().get_label_id(LorgConstants::tree_root_name);
 
@@ -979,7 +1011,7 @@ const typename ParserCKYAll_Impl<TCell>::AGrammar& ParserCKYAll_Impl<TCell>::get
 
 
 template<class TCell>
-void ParserCKYAll_Impl<TCell>::compute_inside_outside_probabilities() const
+void ParserCKYAll_Impl<TCell>::compute_inside_outside_probabilities()
 {
   compute_inside_probabilities();
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
