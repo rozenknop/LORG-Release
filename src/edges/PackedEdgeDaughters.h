@@ -5,6 +5,7 @@
 #include "rules/BRuleC2f.h"
 #include "rules/URuleC2f.h"
 #include "rules/LexicalRuleC2f.h"
+#include "AnnotationInfo.h"
 
 class Word;
 //class PCKYAllCell;
@@ -81,6 +82,24 @@ public:
       right->get_edge_ptr(get_rule()->get_rhs1()) == nullptr
     );
   }
+  
+  inline void update_inside_annotations(AnnotationInfo & annotations) {
+    assert(rule != NULL);
+    rule->update_inside_annotations(annotations.inside_probabilities.array,
+                                  left->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array,
+                                  right->get_edge(rule->get_rhs1()).get_annotations().inside_probabilities.array);
+  }
+  
+  inline void update_outside_annotations(AnnotationInfo & annotations)
+  {
+    auto * leftedge = left->get_edge_ptr(rule->get_rhs0());
+    auto * rightedge= right->get_edge_ptr(rule->get_rhs1());
+    rule->update_outside_annotations(annotations.outside_probabilities.array,
+                                     leftedge->get_annotations().inside_probabilities.array,
+                                     rightedge->get_annotations().inside_probabilities.array,
+                                     leftedge->get_annotations().outside_probabilities.array,
+                                     rightedge->get_annotations().outside_probabilities.array);
+  }
 };
 
 
@@ -103,6 +122,17 @@ public:
   inline bool is_binary() const {return false;}
   inline bool is_lexical() const {return false;}
   inline Cell * left_daughter() const  {return left;}
+  
+  inline void update_inside_annotations(AnnotationInfo & annotations) {
+    assert(rule != NULL);
+    rule->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,
+                                    left->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array);
+  }
+  inline void update_outside_annotations(AnnotationInfo & annotations)
+  {
+    rule->update_outside_annotations(annotations.outside_probabilities.array,
+                                     left->get_edge(rule->get_rhs0()).get_annotations().outside_probabilities_unary_temp.array);
+  }
 };
 
 
@@ -127,6 +157,11 @@ public:
   inline bool is_binary() const {return false;}
   inline bool is_lexical() const {return true;}
   inline const Word* get_word() const {return word;}
+  
+  inline void update_inside_annotations(AnnotationInfo & annotations) {
+    assert(rule != NULL);
+    rule->update_inside_annotations(annotations.inside_probabilities.array);
+  }
 };
 
 

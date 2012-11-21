@@ -37,7 +37,7 @@ public:
      to use the created cell will result in segfault !
      You have to call init first
   */
-  PCKYAllCell() : edges(NULL), closed(true) {};
+  PCKYAllCell() : edges(nullptr), closed(true) {};
 
   /**
      \brief Constructor
@@ -55,8 +55,9 @@ public:
      \brief initialise the cell
      \param cl true if closed
    */
-  void init(bool cl);
-
+  void init(bool cl, unsigned begin, unsigned end, bool top);
+  void reinit(bool cl);
+  
 
   /**
      \brief insert a candidate edge in the cell from application of a binary rule
@@ -115,6 +116,9 @@ public:
   */
   bool is_closed() const;
 
+  inline bool get_top() const { return top; }
+  inline unsigned get_begin() const { return begin; }
+  inline unsigned get_end() const { return end; }
 
   void calculate_best_edge_multiple_grammars();
 
@@ -181,9 +185,11 @@ public:
 private:
   Edge ** edges;
   bool closed;
+  unsigned begin;
+  unsigned end;
+  bool top;
 
   static unsigned max_size;
-
 };
 
 
@@ -217,7 +223,15 @@ bool PCKYAllCell<PEProbability>::is_empty() const
 
 template<class PEProbability>
 inline
-void PCKYAllCell<PEProbability>::init(bool cl)
+void PCKYAllCell<PEProbability>::init(bool cl, unsigned b, unsigned e, bool t)
+{
+  begin = b; end = e; top = t;
+  reinit(cl);
+}
+
+template<class PEProbability>
+inline
+void PCKYAllCell<PEProbability>::reinit(bool cl)
 {
   if(!(closed = cl)) {
     edges =  new Edge * [max_size];
@@ -308,16 +322,6 @@ unsigned PCKYAllCell<MyEdge>::max_size = 0;
 
 
 template<class MyEdge>
-PCKYAllCell<MyEdge>::PCKYAllCell(bool cl):
-  edges(NULL), closed(cl)
-{
-  if(!closed) {
-    edges =  new Edge * [max_size];
-    memset(edges, 0, max_size * sizeof(Edge*));
-  }
-}
-
-template<class MyEdge>
 PCKYAllCell<MyEdge>::~PCKYAllCell()
 {
   if(!closed) {
@@ -384,96 +388,38 @@ void PCKYAllCell<MyEdge>::reset_probabilities()
     }
 }
 
-template<class MyEdge>
-void PCKYAllCell<MyEdge>::compute_inside_probabilities()
-{
-
-  // Doesn't work in multiple grammar (see FIXME in ParserCKYAll.h)
-// #ifndef NDEBUG
-//   for(unsigned i = 0; i < max_size; ++i)
-//     if(edges[i])
-//       for(unsigned j = 0; j < edges[i]->get_annotations().get_size(); ++j)
-//         assert(edges[i]->get_annotations().inside_probabilities.array[j] == 0
-//                || edges[i]->get_annotations().inside_probabilities.array[j] == LorgConstants::NullProba);
-// #endif
-
-  clean_binary_daughters();
-
-  // for(unsigned i = 0; i < max_size; ++i) {
-  //   if(exists_edge(i)) {
-  //     edges[i]->get_annotations().reset_probabilities();
-  //   }
-  // }
-
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-
-      // if (edges[i]->get_lex())
-      //   edges[i]->compute_inside_probability_lexicals_only();
-
-
-      if (edges[i]->get_lex())
-        edges[i]->compute_inside_probability_lexicals_only();
-
-      edges[i]->compute_inside_probability_binaries_only();
-
-      edges[i]->prepare_inside_probability();
-    }
-  }
-
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      edges[i]->compute_inside_probability_unaries_only();
-    }
-  }
-
-  adjust_inside_probability();
-}
 
 template <class MyEdge>
 void PCKYAllCell<MyEdge>::adjust_inside_probability()
 {
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      edges[i]->adjust_inside_probability();
-    }
-  }
+  apply_on_edges(&Edge::adjust_inside_probability);
 }
 
 
 
+
+template<class MyEdge>
+void PCKYAllCell<MyEdge>::compute_inside_probabilities()
+{
+  apply_on_edges( & Edge::clean_invalidated_binaries);
+  
+  apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
+                      & Edge::LexicalDaughters::update_inside_annotations  ,
+                      & Edge:: BinaryDaughters::update_inside_annotations  ,
+                      & Edge::                  prepare_inside_probability );
+  
+  apply_on_edges(& Edge::  UnaryDaughters::update_inside_annotations);
+  apply_on_edges(& Edge::                  adjust_inside_probability);
+}
 
 
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::compute_outside_probabilities()
 {
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      edges[i]->prepare_outside_probability();
-    }
-  }
-
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      edges[i]->compute_outside_probability_unaries_only();
-    }
-  }
-
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      edges[i]->adjust_outside_probability();
-    }
-  }
-
-
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      // if(edges[i]->get_lex())
-      //   edges[i]->compute_outside_probability_lexicals_only();
-
-        edges[i]->compute_outside_probability_binaries_only();
-    }
-  }
+  apply_on_edges(& Edge::             prepare_outside_probability);
+  apply_on_edges(& Edge::UnaryDaughters::update_outside_annotations);
+  apply_on_edges(& Edge::              adjust_outside_probability);
+  apply_on_edges(& Edge::BinaryDaughters::update_outside_annotations);
 }
 
 

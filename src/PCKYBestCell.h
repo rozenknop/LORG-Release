@@ -18,6 +18,9 @@ class PCKYBestCell {
   Edge ** edges;
   bool closed;
   const Edge * word_edge;
+  unsigned begin;
+  unsigned end;
+  bool top;
 
   static unsigned max_size;
 
@@ -48,8 +51,12 @@ public:
      \brief initialise the cell
      \param cl true is closed
    */
-  void init(bool cl);
-
+  void init(bool cl, unsigned begin, unsigned end, bool top);
+  void reinit(bool cl);
+  inline bool get_top() const { return top; }
+  inline unsigned get_begin() const { return begin; }
+  inline unsigned get_end() const { return end; }
+  
   /**
      \brief insert a candidate edge in the cell
      \param e a pointer to the candidate edge
@@ -199,7 +206,14 @@ const Edge& PCKYBestCell::best_at(int i) const
 
 
 inline
-void PCKYBestCell::init(bool cl)
+void PCKYBestCell::init(bool cl, unsigned int b, unsigned int e, bool t)
+{
+  begin = b; end = e; top = t;
+  reinit(cl);
+}
+
+inline
+void PCKYBestCell::reinit(bool cl)
 {
   if(!(closed = cl)) {
     word_edge = NULL;
