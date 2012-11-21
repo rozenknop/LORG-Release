@@ -720,7 +720,7 @@ void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
           }})
       );
 
-      /* edges[i]->prepare_inside_probability(); */
+      /* edges[i]->compute_inside_probability_unaries_only() */
       cell.apply_on_edges(
         std::function<void(Edge&,typename Edge::UnaryDaughters&)>([](Edge& edge, typename Edge::UnaryDaughters& dtr) {
           const auto * rule = dtr.get_rule();
@@ -728,6 +728,16 @@ void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
           rule->update_inside_annotations(edge.get_annotations().inside_probabilities_unary_temp.array,
                                          dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array);})
       );
+      
+      /* edges[i]->adjust_inside_probability(); */ 
+      cell.apply_on_edges(
+        std::function<void(Edge&)>([](Edge& edge){
+          for (unsigned i = 0; i < edge.get_annotations().inside_probabilities.array.size(); ++i)
+          {
+            if(edge.get_annotations().inside_probabilities.array[i] != LorgConstants::NullProba)
+              edge.get_annotations().inside_probabilities.array[i] += edge.get_annotations().inside_probabilities_unary_temp.array[i];
+          }
+        }));
     }
   );
 }
