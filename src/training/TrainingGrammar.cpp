@@ -294,7 +294,7 @@ namespace helpers {
     {
         std::vector<LexicalRuleTraining>& lr = lex->get_lexical_rules();
         std::vector<LexicalRuleTraining>& ar = lex->get_additional_rules();
-        
+
         std::for_each(lr.begin(),lr.end(),action);
         std::for_each(ar.begin(),ar.end(),action);
     }
@@ -566,7 +566,7 @@ void TrainingGrammar::output_priors(std::ostream* out)
     out->precision(22);
 
 
-    for(boost::unordered_map< int, double >::const_iterator map_iter =  unannotated_node_priors.begin();
+    for(std::unordered_map< int, double >::const_iterator map_iter =  unannotated_node_priors.begin();
             map_iter != unannotated_node_priors.end(); ++map_iter) {
 
         *out << SymbolTable::instance_nt().translate(map_iter->first)

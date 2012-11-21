@@ -1,7 +1,5 @@
 #include "BasicLexicon.h"
 
-#include <boost/thread.hpp>
-
 #ifdef USE_THREADS
 
 #include <tbb/tick_count.h>

@@ -5,18 +5,22 @@
 
 #include "PackedEdgeProbability.h"
 
-#include <boost/unordered_map.hpp>
-
 #include <numeric>
 
 #include "maxrule_functions.h"
 
 
+#include <vector>
+#include <unordered_map>
+
+
+
+
 class MaxRuleProbabilityMultiple
 {
 private:
-  typedef boost::unordered_map<const PackedEdgeDaughters*,double> score_map_type;
-  typedef boost::unordered_map<const PackedEdgeDaughters*,unsigned> occ_map_type;
+  typedef std::unordered_map<const PackedEdgeDaughters*,double> score_map_type;
+  typedef std::unordered_map<const PackedEdgeDaughters*,unsigned> occ_map_type;
   typedef std::vector<packed_edge_probability_with_index> heap_type;
 
   score_map_type scores;

@@ -299,37 +299,6 @@ public:
 
  protected: // attributes
   Chart * chart; // the chart
-
-
-#ifdef USE_THREADS
-  struct ProcessCellBody {
-
-    const ParserCKYAll_Impl<Cell>& parser;
-    double beam_threshold;
-    bool isroot;
-    unsigned span;
-
-    ProcessCellBody(const ParserCKYAll_Impl<Cell>& p,
-                    double beam_threshold_, bool isroot_, unsigned span_)
-        :
-        parser(p), beam_threshold(beam_threshold_), isroot(isroot_), span(span_)
-    {}
-
-    void operator()(const blocked_range<unsigned>& r) const
-    {
-      for(unsigned begin = r.begin(); begin < r.end(); ++begin)
-      {
-        unsigned end = begin + span - 1;
-
-        Cell& result_cell = parser.chart->access(begin, end);
-        if(!result_cell.is_closed()) {
-          parser.process_cell(result_cell, beam_threshold);
-        }
-      }
-    }
-  };
-  friend struct ProcessCellBody;
-#endif
 };
 
 
@@ -535,19 +504,29 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
 
   unsigned sent_size=chart->get_size();
   for (unsigned span = 2; span <= sent_size; ++span) {
-    bool isroot =  span == sent_size;
     unsigned end_of_begin = sent_size - span + 1;
 
 #ifdef USE_THREADS
     parallel_for(blocked_range<unsigned>(0, end_of_begin),
-                 ProcessCellBody(*this, beam_threshold, isroot, span)
+                 [this, span, beam_threshold](const blocked_range<unsigned>& r)
+                 {
+                   for(unsigned begin = r.begin(); begin < r.end(); ++begin)
+                   {
+                     unsigned end = begin + span - 1;
+
+                     Cell& result_cell = this->chart->access(begin, end);
+                     if(!result_cell.is_closed()) {
+                       this->process_cell(result_cell, beam_threshold);
+                     }
+                   }
+                 }
                  );
 #else
     for (unsigned begin = 0; begin < end_of_begin; ++begin) {
       unsigned end = begin + span -1;
-      Cell& result_cell = chart->access(begin,end);
+      Cell& result_cell = this->chart->access(begin,end);
       if(!result_cell.is_closed()) {
-        process_cell(result_cell, beam_threshold, begin, end, isroot);
+        this->process_cell(result_cell, beam_threshold);
       }
     }
 #endif

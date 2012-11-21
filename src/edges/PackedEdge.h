@@ -690,29 +690,29 @@ unsigned decode_path(PtbPsTree& tree,
 }
 
 
-// to prevent a bug on maia
-// it seems that inf and nan are the same on the cluster :(
-bool my_isinvalid(const double& input)
-{
+// // to prevent a bug on maia
+// // it seems that inf and nan are the same on the cluster :(
+// bool my_isinvalid(const double& input)
+// {
 
-    bool b1 = std::isnan(input);
-    bool b2 = input != input;
+//     bool b1 = std::isnan(input);
+//     bool b2 = input != input;
 
-    bool b3 = false;
-    if(- std::numeric_limits<double>::infinity() == input) {
-      //    std::cout << "-inf" << std::endl;
-        b3 = true;
-    }
+//     bool b3 = false;
+//     if(- std::numeric_limits<double>::infinity() == input) {
+//       //    std::cout << "-inf" << std::endl;
+//         b3 = true;
+//     }
 
-    if(std::numeric_limits<double>::infinity() == input) {
-      //        std::cout << "+inf" << std::endl;
-	b3 = false;
-    }
+//     if(std::numeric_limits<double>::infinity() == input) {
+//       //        std::cout << "+inf" << std::endl;
+// 	b3 = false;
+//     }
 
-    return b3 || b1 || b2;
+//     return b3 || b1 || b2;
 
 
-}
+// }
 
 
 template <class PEP>

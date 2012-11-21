@@ -93,11 +93,14 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	edges/PackedEdge.h edges/PackedEdgeDaughters.h edges/PackedEdgeProbability.h \
 	edges/ViterbiProbability.h edges/maxrule_functions.h \
 	edges/MaxRuleProbability.h edges/MaxRuleProbabilityKB.h \
+	edges/BestProbability.h \
 	edges/MaxRuleProbabilityMultiple.h \
 	PCKYAllCell.h parsers/ParserCKYAll.h \
 	parsers/ParserCKYAllViterbi.h parsers/ParserCKYAllMaxVar.h \
 	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
+	parsers/ParserCKYAllMaxVar1B.h \
 	parsers/ParserCKYAllFactory.h \
+	utils/lorg_functional.h utils/tick_count.h \
 	rules/AnnotatedRule.h edges/AnnotationInfo.h edges/AnnotationInfo.cpp\
 	rules/C2f.h \
 	rules/BRule.h rules/BRule.cpp rules/BRuleC2f.h\

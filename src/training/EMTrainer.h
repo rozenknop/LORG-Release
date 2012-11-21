@@ -9,10 +9,10 @@
 #include "grammars/AnnotatedLabelsInfo.h"
 
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 //first int in pair is nt label id, second int in pair is start index of split in annotations
-typedef boost::unordered_map< std::pair<int, int >, double> DeltaMap;
+typedef std::unordered_map< std::pair<int, int >, double> DeltaMap;
 typedef std::multimap<double,std::pair<int,int> > DeltaMultiMap;
 
 /**
