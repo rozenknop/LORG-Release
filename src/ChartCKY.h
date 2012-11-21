@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <Bracketing.h>
+#include <tbb/parallel_for.h>
 
 #include <functional>
 #include <iostream>
@@ -83,14 +84,16 @@ public:
 
   ostream & to_stream(ostream & s) const;
   
-  
-  void opencells_apply_bottom_up( std::function<void(Cell &)> f );
 
+  void opencells_apply_bottom_up( std::function<void(Cell &)> f );
+  void opencells_apply_top_down( std::function<void(Cell &)> f );
+  void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
+  
   std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](TCell & cell){return out << cell << endl; }); return out; }
 };
 
 
-
+#ifndef USE_THREADS
 template<class Cell, class MyWord>
 void
 ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f )
@@ -109,27 +112,105 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
     }
   }
 }
-
-
+#else
 template<class Cell, class MyWord>
-ostream & operator<<(ostream & out, const ChartCKY<Cell,MyWord> & chart) { return chart.to_stream(out) ; }
+void
+ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f )
+{
+  unsigned sent_size = get_size();
+  for (unsigned span = 0; span < sent_size; ++span) {
+    unsigned end_of_begin=sent_size-span;
+    tbb::parallel_for(tbb::blocked_range<unsigned>(0, end_of_begin),
+                      [this,span,&f](const tbb::blocked_range<unsigned>& r){
+                        for (unsigned begin = r.begin(); begin < r.end(); ++begin) {
+                          unsigned end = begin + span ;
+                          Cell& cell = this->access(begin,end);
+                          if(!cell.is_closed()) f(cell);
+                        }
+                      }
+    );
+  }
+}
+#endif
 
+
+
+#ifndef USE_THREADS
 template<class Cell, class MyWord>
-ostream & ChartCKY<Cell, MyWord>::to_stream(ostream & s) const {
+void
+ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f )
+{
   unsigned sent_size=get_size();
   for (signed span = sent_size-1; span >= 0; --span) {
     unsigned end_of_begin=sent_size-span;
-    s << endl;
+    
+    for (unsigned begin=0; begin < end_of_begin; ++begin) {
+      unsigned end = begin + span ;
+      //std::cout << '(' << begin << ',' << end << ')' << std::endl;
+    
+      Cell& cell = access(begin,end);
+      
+      if(!cell.is_closed()) f(cell);
+    }
+  }
+}
+#else
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f )
+{
+  unsigned sent_size=get_size();
+  for (signed span = sent_size-1; span >= 0; --span) {
+    unsigned end_of_begin=sent_size-span;
+    
+    tbb::parallel_for(tbb::blocked_range<unsigned>(0, end_of_begin),
+                      [this,span,&f](const tbb::blocked_range<unsigned>& r){
+                        for (unsigned begin = r.begin(); begin < r.end(); ++begin) {
+                          unsigned end = begin + span ;
+                          //std::cout << '(' << begin << ',' << end << ')' << std::endl;
+      
+                          Cell& cell = this->access(begin,end);
+      
+                          if(!cell.is_closed()) f(cell);
+                        }
+                      }
+         );
+  }
+}
+#endif
+
+
+
+
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_top_down_nothread( std::function<void(Cell &)> f )
+{
+  unsigned sent_size=get_size();
+  for (signed span = sent_size-1; span >= 0; --span) {
+    unsigned end_of_begin=sent_size-span;
+    
     for (unsigned begin=0; begin < end_of_begin; ++begin) {
       unsigned end = begin + span ;
       //std::cout << '(' << begin << ',' << end << ')' << std::endl;
       
       Cell& cell = access(begin,end);
       
-      s << "(span " << span+1 << ", begin " << begin << ")" << std::endl;
-      s << cell << std::endl;
+      if(!cell.is_closed()) f(cell);
     }
   }
+}
+
+template<class Cell, class MyWord>
+ostream & operator<<(ostream & out, const ChartCKY<Cell,MyWord> & chart) { return chart.to_stream(out) ; }
+
+template<class Cell, class MyWord>
+ostream & ChartCKY<Cell, MyWord>::to_stream(ostream & s) const {
+  opencells_apply_top_down_nothread( [&s](Cell & cell){
+      s << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
+      s << cell << std::endl;
+    } );
   return s;
 }
 
@@ -243,7 +324,7 @@ ChartCKY<Cell, MyWord>::ChartCKY(const std::vector< MyWord >& s, unsigned gramma
     for(unsigned j = i; j < size;++j) {
       Cell& cell = access(i,j);
       bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
-      cell.init(close);
+      cell.init(close, i, j, i==0 and j==size-1);
     }
   }
 
@@ -299,13 +380,13 @@ void ChartCKY<Cell, MyWord>::prepare_retry()
   for(unsigned i = 0; i < size; ++i) {
     // j == 0 -> word position
     Cell& cell = chart[i][0];
-    cell.init(false);
+    cell.reinit(false);
     cell.add_word(sentence[i]);
 
     // regular chart cells
     for(unsigned j = 1; j < size-i;++j) {
       bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
-      chart[i][j].init(close);
+      chart[i][j].reinit(close);
     }
   }
 }

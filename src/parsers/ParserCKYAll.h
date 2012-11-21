@@ -208,7 +208,7 @@ public:
      \param beam_threshold the prior beam threshold to prune the base packed forest
   */
   void process_internal_rules(double beam_threshold) const;
-  void process_cell(Cell& cell, double beam_threshold, unsigned begin, unsigned end, bool isroot) const;
+  void process_cell(Cell& cell, double beam_threshold) const;
 
   /**
      \brief fill the result cell with the most probable edges for each lhs,
@@ -299,7 +299,6 @@ public:
 
  protected: // attributes
   Chart * chart; // the chart
-
 };
 
 
@@ -536,8 +535,12 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
 }
 
 template <typename TCell>
-void ParserCKYAll_Impl<TCell>::process_cell(Cell& cell, double beam_threshold, unsigned begin, unsigned end, bool isroot) const
+void ParserCKYAll_Impl<TCell>::process_cell(Cell& cell, double beam_threshold) const
 {
+  const unsigned & begin = cell.get_begin();
+  const unsigned & end   = cell.get_end();
+  const bool & isroot = cell.get_top();
+
   // look for all possible new edges
 
   //application of binary rules
@@ -620,109 +623,19 @@ void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) c
   std::for_each(rules.begin(),rules.end(),processunary<Cell>(cell, L_inside));
 }
 
+
+
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 {
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = sent_size; span > 0; --span) {
-    unsigned end_of_begin=sent_size-span;
-
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-      //std::cout << '(' << begin << ',' << end << ')' << std::endl;
-
-      Cell& cell = chart->access(begin,end);
-      if(!cell.is_closed())
-        cell.compute_outside_probabilities();
-    }
-  }
-  for(unsigned i = 0; i < sent_size; ++i) {
-    //    std::cout << i << std::endl;
-    // assert(!chart->access(i,i).is_closed());
-    if(!chart->access(i,i).is_closed())
-      chart->access(i,i).compute_outside_probabilities();
-  }
+  this->chart->opencells_apply_top_down( toFunc(& Cell::compute_outside_probabilities) );
 }
 
-// template <typename TCell>
-// void ParserCKYAll_Impl<TCell>::compute_inside_probabilities() const
-// {
-//     unsigned sent_size=chart->get_size();
-//
-//     for (unsigned span = 0; span < sent_size; ++span) {
-//         unsigned end_of_begin=sent_size-span;
-//         for (unsigned begin=0; begin < end_of_begin; ++begin) {
-//             unsigned end = begin + span ;
-//
-//             Cell& cell = chart->access(begin,end);
-//             if(!cell.is_closed()) {
-//                 cell.compute_inside_probabilities();
-//             }
-//
-//         }
-//     }
-// }
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
 {
-  this->chart->opencells_apply_bottom_up (
-    [](Cell & cell)
-    {
-      //      cell.apply_on_edges( toFunc(& Edge::clean_invalidated_binaries) );
-
-      cell.apply_on_edges(
-        /* reset annotation probabilities on lexical edge */
-        std::function<void(Edge&)>([](Edge& edge){
-          if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
-
-        /* edges[i]->compute_inside_probability_lexicals_only() */
-        std::function<void(Edge&,typename Edge::LexicalDaughters&)>([](Edge& edge, typename Edge::LexicalDaughters& dtr) {
-          const auto * rule = dtr.get_rule();
-          assert(rule != NULL);
-          rule->update_inside_annotations(edge.get_annotations().inside_probabilities.array); }),
-
-        /* edges[i]->compute_inside_probability_binaries_only(); */
-        std::function<void(Edge&,typename Edge::BinaryDaughters&)>([](Edge& edge, typename Edge::BinaryDaughters& dtr) {
-          const auto * rule = dtr.get_rule();
-          assert(rule != NULL);
-          rule->update_inside_annotations(edge.get_annotations().inside_probabilities.array,
-                                          dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array,
-                                          dtr.right_daughter()->get_edge(rule->get_rhs1()).get_annotations().inside_probabilities.array); }),
-
-        /* edges[i]->prepare_inside_probability */
-        std::function<void(Edge&)>([](Edge& edge){
-          edge.get_annotations().inside_probabilities_unary_temp.resize(edge.get_annotations().inside_probabilities.array.size());
-          for (unsigned i = 0; i < edge.get_annotations().inside_probabilities.array.size(); ++i)
-          {
-            if(edge.get_annotations().inside_probabilities.array[i] == LorgConstants::NullProba)
-              edge.get_annotations().inside_probabilities_unary_temp.array[i] = LorgConstants::NullProba;
-            else
-              edge.get_annotations().inside_probabilities_unary_temp.array[i] = 0;
-          }})
-      );
-
-      /* edges[i]->compute_inside_probability_unaries_only() */
-      cell.apply_on_edges(
-        std::function<void(Edge&,typename Edge::UnaryDaughters&)>([](Edge& edge, typename Edge::UnaryDaughters& dtr) {
-          const auto * rule = dtr.get_rule();
-          assert(rule != NULL);
-          rule->update_inside_annotations(edge.get_annotations().inside_probabilities_unary_temp.array,
-                                         dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array);})
-      );
-
-      /* edges[i]->adjust_inside_probability(); */
-      cell.apply_on_edges(
-        std::function<void(Edge&)>([](Edge& edge){
-          for (unsigned i = 0; i < edge.get_annotations().inside_probabilities.array.size(); ++i)
-          {
-            if(edge.get_annotations().inside_probabilities.array[i] != LorgConstants::NullProba)
-              edge.get_annotations().inside_probabilities.array[i] += edge.get_annotations().inside_probabilities_unary_temp.array[i];
-          }
-        }));
-    }
-  );
-}
-
+  this->chart->opencells_apply_bottom_up ( & Cell::compute_inside_probabilities );
+ }
 
 
 template <typename TCell>

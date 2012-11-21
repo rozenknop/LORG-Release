@@ -205,9 +205,6 @@ public:
   /**
      \brief computes the inside probability of a packed forest
   */
-  void compute_inside_probability_binaries_only();
-  void compute_inside_probability_unaries_only();
-  void compute_inside_probability_lexicals_only();
   void prepare_inside_probability();
   void adjust_inside_probability();
 
@@ -215,9 +212,6 @@ public:
   /**
      \brief computes the outside probability of a packed forest
   */
-  void compute_outside_probability_binaries_only();
-  void compute_outside_probability_unaries_only();
-  void compute_outside_probability_lexicals_only();
   void prepare_outside_probability();
   void adjust_outside_probability();
 
@@ -306,13 +300,20 @@ public:
   void process(function<void(Edge &, BinaryDaughters &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
   void process(function<void(Edge &, UnaryDaughters &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
   void process(function<void(Edge &, LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
+
+  void process(function<void(BinaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
+  void process(function<void(UnaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
+  void process(function<void(LexicalDaughters &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
+  
   void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
   void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
   void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
   void process(function<void(PEP &)> f) {f(get_prob_model());}
+
   void process(function<void(Edge &)> f) { f(*this); }
+
   template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) {process(f);apply(o...);}
+  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
   void apply() {}
 };
 
@@ -437,65 +438,15 @@ void PackedEdge<PEP>::reset_probabilities(const double& value)
   annotations.reset_outside_probabilities(value);
 }
 
-template <class PEP>
-void PackedEdge<PEP>::compute_inside_probability_binaries_only()
-{
-  // for all possible daughters
-  for(const_biterator it(binary_daughters.begin()); it != binary_daughters.end(); ++it){
-    const BRuleC2f * rule = it->get_rule();
-    assert(rule != NULL);
-
-
-    rule->update_inside_annotations(this->get_annotations().inside_probabilities.array,
-				    it->left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array,
-                                    it->right_daughter()->get_edge(rule->get_rhs1()).get_annotations().inside_probabilities.array);
-  }
-};
 
 
 
 template <class PEP>
 void PackedEdge<PEP>::prepare_inside_probability()
 {
-  this->get_annotations().inside_probabilities_unary_temp.resize(this->get_annotations().inside_probabilities.array.size());
-  for (unsigned i = 0; i < this->get_annotations().inside_probabilities.array.size(); ++i)
-    {
-      if(this->get_annotations().inside_probabilities.array[i] == LorgConstants::NullProba)
-        this->get_annotations().inside_probabilities_unary_temp.array[i] = LorgConstants::NullProba;
-      else
-        this->get_annotations().inside_probabilities_unary_temp.array[i] = 0;
-    }
-}
-
-
-template <class PEP>
-void PackedEdge<PEP>::compute_inside_probability_unaries_only()
-{
-  // std::cout << "before: " << annotations.get_inside(0)
-  //           << std::endl;
-  for(const_uiterator it(unary_daughters.begin()); it != unary_daughters.end(); ++it){
-    const URuleC2f * rule = it->get_rule();
-
-    //    std::cout << *rule << std::endl;
-
-    assert(rule != NULL);
-    rule->update_inside_annotations(this->get_annotations().inside_probabilities_unary_temp.array,
-				    it->left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array);
-  }
-  //  std::cout << "after" << std::endl;
-}
-
-template <class PEP>
-void PackedEdge<PEP>::compute_inside_probability_lexicals_only()
-{
-  this->get_annotations().reset_probabilities();
-  for(const_literator it(lexical_daughters.begin()); it != lexical_daughters.end(); ++it){
-    const LexicalRuleC2f * rule = it->get_rule();
-
-    //    std::cout << *rule << std::endl;
-
-    assert(rule != NULL);
-    rule->update_inside_annotations(this->get_annotations().inside_probabilities.array);
+  this->get_annotations().inside_probabilities_unary_temp.array = this->get_annotations().inside_probabilities.array ;
+  for(auto & prob: this->get_annotations().inside_probabilities_unary_temp.array) {
+    if (prob != LorgConstants::NullProba) prob = 0;
   }
 }
 
@@ -511,6 +462,15 @@ void PackedEdge<PEP>::adjust_inside_probability()
 
 
 template <class PEP>
+void PackedEdge<PEP>::prepare_outside_probability()
+{
+  this->get_annotations().outside_probabilities_unary_temp.array = this->get_annotations().outside_probabilities.array ;
+  for(auto & prob: this->get_annotations().outside_probabilities_unary_temp.array) {
+    if (prob != LorgConstants::NullProba) prob = 0;
+  }
+}
+
+template <class PEP>
 void PackedEdge<PEP>::adjust_outside_probability()
 {
   for (unsigned i = 0; i < this->get_annotations().outside_probabilities.array.size(); ++i)
@@ -520,72 +480,8 @@ void PackedEdge<PEP>::adjust_outside_probability()
     }
 }
 
-template <class PEP>
-void PackedEdge<PEP>::prepare_outside_probability()
-{
-  this->get_annotations().outside_probabilities_unary_temp.array.resize(this->get_annotations().outside_probabilities.array.size());
-
-  for (unsigned i = 0; i < this->get_annotations().outside_probabilities.array.size(); ++i)
-    {
-      if(this->get_annotations().outside_probabilities.array[i] == LorgConstants::NullProba)
-        this->get_annotations().outside_probabilities_unary_temp.array[i] = LorgConstants::NullProba;
-      else
-        this->get_annotations().outside_probabilities_unary_temp.array[i] = 0;
-    }
-}
 
 
-template <class PEP>
-void PackedEdge<PEP>::compute_outside_probability_binaries_only()
-{
-  // for all possible daughters
-
-  //  std::cout << "begin" << std::endl;
-
-  for(const_biterator it(binary_daughters.begin()); it != binary_daughters.end(); ++it){
-
-    const BRuleC2f * rule = it->get_rule();
-    PackedEdge * left = it->left_daughter()->get_edge_ptr(rule->get_rhs0());
-    PackedEdge * right= it->right_daughter()->get_edge_ptr(rule->get_rhs1());
-
-
-    // std::cout << "\t" << rule->get_lhs() << " -> " << rule->get_rhs0() << " " << rule->get_rhs1()
-    //           << " : " << left << " " << right
-    //           << std::endl;
-
-    rule->update_outside_annotations(this->get_annotations().outside_probabilities.array,
-				     left->get_annotations().inside_probabilities.array,
-				     right->get_annotations().inside_probabilities.array,
-				     left->get_annotations().outside_probabilities.array,
-				     right->get_annotations().outside_probabilities.array);
-  }
-
-  //  std::cout << "end" << std::endl;
-}
-
-template <class PEP>
-void PackedEdge<PEP>::compute_outside_probability_unaries_only()
-{
-  for(const_uiterator it(unary_daughters.begin()); it != unary_daughters.end(); ++it){
-    const URuleC2f * rule = it->get_rule();
-    rule->update_outside_annotations(this->get_annotations().outside_probabilities.array,
-				     it->left_daughter()->get_edge(rule->get_rhs0()).get_annotations().outside_probabilities_unary_temp.array);
-
-  }
-
-}
-
-// does nothing !
-template <class PEP>
-void PackedEdge<PEP>::compute_outside_probability_lexicals_only()
-{
-  // for(const_literator it(lexical_daughters.begin()); it != lexical_daughters.end(); ++it){
-  //   const LexicalRuleC2f * rule = it->get_rule();
-  //   rule->update_outside_annotations(this->get_annotations().outside_probabilities.array,
-  //       			     it->left_daughter()->get_edge(rule->get_rhs0()).get_annotations());
-
-  // }
-}
 
 
 // should be renamed (Why Viterbi?) and moved
