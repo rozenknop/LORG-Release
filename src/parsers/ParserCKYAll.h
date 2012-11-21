@@ -668,19 +668,19 @@ void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
   this->chart->opencells_apply_bottom_up (
     [](Cell & cell)
     {
-      cell.apply_on_edges( toFunc(& Edge::clean_invalidated_binaries) );
+      //      cell.apply_on_edges( toFunc(& Edge::clean_invalidated_binaries) );
 
       cell.apply_on_edges(
         /* reset annotation probabilities on lexical edge */
         std::function<void(Edge&)>([](Edge& edge){
           if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
-            
+
         /* edges[i]->compute_inside_probability_lexicals_only() */
         std::function<void(Edge&,typename Edge::LexicalDaughters&)>([](Edge& edge, typename Edge::LexicalDaughters& dtr) {
           const auto * rule = dtr.get_rule();
           assert(rule != NULL);
           rule->update_inside_annotations(edge.get_annotations().inside_probabilities.array); }),
-                          
+
         /* edges[i]->compute_inside_probability_binaries_only(); */
         std::function<void(Edge&,typename Edge::BinaryDaughters&)>([](Edge& edge, typename Edge::BinaryDaughters& dtr) {
           const auto * rule = dtr.get_rule();
@@ -688,7 +688,7 @@ void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
           rule->update_inside_annotations(edge.get_annotations().inside_probabilities.array,
                                           dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array,
                                           dtr.right_daughter()->get_edge(rule->get_rhs1()).get_annotations().inside_probabilities.array); }),
-                           
+
         /* edges[i]->prepare_inside_probability */
         std::function<void(Edge&)>([](Edge& edge){
           edge.get_annotations().inside_probabilities_unary_temp.resize(edge.get_annotations().inside_probabilities.array.size());
@@ -709,8 +709,8 @@ void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
           rule->update_inside_annotations(edge.get_annotations().inside_probabilities_unary_temp.array,
                                          dtr.left_daughter()->get_edge(rule->get_rhs0()).get_annotations().inside_probabilities.array);})
       );
-      
-      /* edges[i]->adjust_inside_probability(); */ 
+
+      /* edges[i]->adjust_inside_probability(); */
       cell.apply_on_edges(
         std::function<void(Edge&)>([](Edge& edge){
           for (unsigned i = 0; i < edge.get_annotations().inside_probabilities.array.size(); ++i)
