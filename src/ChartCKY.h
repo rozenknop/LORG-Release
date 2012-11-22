@@ -265,7 +265,7 @@ PtbPsTree* ChartCKY<Cell, MyWord>::get_best_tree(int start_symbol, unsigned k, b
   const Cell & root_cell = this->get_root();
 
   if (!root_cell.is_closed() && root_cell.exists_edge(start_symbol)) {
-    tree = root_cell.best_at(start_symbol).to_ptbpstree(start_symbol, k, output_annotations, output_forms);
+    tree = root_cell.get_edge(start_symbol).to_ptbpstree(start_symbol, k, output_annotations, output_forms);
   }
 
   return tree;
