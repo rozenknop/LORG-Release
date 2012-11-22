@@ -95,6 +95,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
 : ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn, cell_threads),
     fine_grammars(fgs), all_annot_descendants(all_annot_descendants_), nb_grammars(fgs.size() + 1), k(k_)
 {
+
   // create a mapping of all grammars
   std::vector<AGrammar*> all_grammars(grammars);
 
@@ -131,22 +132,14 @@ ParserCKYAllMaxRuleMultiple::~ParserCKYAllMaxRuleMultiple()
 
 void ParserCKYAllMaxRuleMultiple::change_rules_reset() const
 {
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 1; span <= sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin <= end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
-
-      Cell& cell = chart->access(begin,end);
-      //std::cout << "crr: (" << begin << "," << end << ")" << std::endl;
-
-      if(!cell.is_closed()) {
+  this->chart->opencells_apply_bottom_up(
+      [](Cell& cell)
+      {
         // 0 means c2f
         // 1 means multiple grammar decoding
-	cell.change_rules_resize(1,0);
+        cell.change_rules_resize(1,0);
       }
-    }
-  }
+                                         );
 }
 
 

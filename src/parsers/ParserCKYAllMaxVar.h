@@ -26,12 +26,7 @@ public:
                                beam_threshold,
                                annot_descendants_,
                                accurate_, min_beam_length, stubborn, cell_threads)
-    {
-      //create the coarse-to-fine map
-      this->create_coarse_to_fine_mapping(this->grammars);
-
-      Edge::set_viterbi_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
-    }
+    {}
 
 
 

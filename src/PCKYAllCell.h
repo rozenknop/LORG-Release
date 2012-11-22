@@ -382,7 +382,7 @@ void PCKYAllCell<MyEdge>::adjust_inside_probability()
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::compute_inside_probabilities()
 {
-//   apply_on_edges( & Edge::clean_invalidated_binaries);
+  //   apply_on_edges( & Edge::clean_invalidated_binaries);
   
   apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
                       & Edge::LexicalDaughters::update_inside_annotations  ,
