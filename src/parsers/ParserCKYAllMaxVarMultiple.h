@@ -153,40 +153,23 @@ void ParserCKYAllMaxRuleMultiple::change_rules_reset() const
 void ParserCKYAllMaxRuleMultiple::change_rules_load_backup(unsigned backup_idx, unsigned size) const
 {
   //  std::cout << "change_rules_load_backup" << std::endl;
-
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 1; span <= sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin <= end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
-
-      Cell& cell = chart->access(begin,end);
-      //std::cout << "crr: (" << begin << "," << end << ")" << std::endl;
-
-      if(!cell.is_closed()) {
-        //        std::cout << backup_idx << " " << size << std::endl;
-	cell.change_rules_backup(backup_idx, size);
-      }
+  function<void(Edge&)> replace_rules = std::bind(&Edge::replace_rule_probabilities, std::placeholders::_1, size);
+  function<void(Edge&)> replace_annotations = [backup_idx](Edge& e){e.get_annotations() = e.get_prob_model().get_annotations_backup()[backup_idx];};
+  
+  chart->opencells_apply_bottom_up(
+    [backup_idx,size,&replace_rules, &replace_annotations](Cell&cell){
+      cell.apply_on_edges(
+        replace_rules, 
+        replace_annotations
+      );
     }
-  }
+  );
 }
 
 void ParserCKYAllMaxRuleMultiple::modify_backup(unsigned backup_idx) const
 {
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 1; span <= sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin <= end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
-
-      Cell& cell = chart->access(begin,end);
-      //std::cout << "crr: (" << begin << "," << end << ")" << std::endl;
-
-      if(!cell.is_closed()) {
-	cell.modify_backup(backup_idx);
-      }
-    }
-  }
+  function<void(Edge&)> modify = [backup_idx](Edge& e){e.get_prob_model().get_annotations_backup()[backup_idx] = e.get_annotations();};
+  chart->opencells_apply_bottom_up([&modify](Cell&cell){cell.apply_on_edges(modify);});  
 }
 
 
@@ -289,50 +272,20 @@ void ParserCKYAllMaxRuleMultiple::calculate_maxrule_probabilities()
 
 void ParserCKYAllMaxRuleMultiple::calculate_best_edge()
 {
-
-  unsigned sent_size = chart->get_size();
-
-  for (unsigned i=0; i < sent_size; ++i) {
-    //std::cout << "(" << i << "," << i << ")" << std::endl;
-
-    Cell& cell = chart->access(i,i);
-    if(!cell.is_closed())
-      cell.calculate_best_edge_multiple_grammars();
+  chart->opencells_apply_bottom_up( [](Cell&cell)
+  {
+    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_lexical, 
+                         &MaxRuleProbabilityMultiple::pick_best_binary );
+    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_unary, 
+                         &MaxRuleProbabilityMultiple::pick_best );
   }
-
-  for (unsigned span = 1; span < sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-
-      //std::cout << "(" << begin << "," << end << ")" << std::endl;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed())
-      	cell.calculate_best_edge_multiple_grammars();
-    }
-  }
+  );
 }
 
 void ParserCKYAllMaxRuleMultiple::backup_annotations() const
 {
-  unsigned sent_size = chart->get_size();
-
-  for (unsigned span = 0; span < sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed()) {
-	//	std::cout << "span(" << begin << "," << end << ")" << std::endl;
-      	cell.backup_annotations();
-      }
-
-    }
-  }
+  chart->opencells_apply_bottom_up([](Cell&cell){
+    cell.apply_on_edges(&MaxRuleProbabilityMultiple::backup_annotations);});
 }
 
 

@@ -16,6 +16,12 @@ auto toFunc( Return(Class::*f)(Args&... args) const) -> std::function<Return(con
   return std::function<Return(const Class&, Args&... args)> (f);
 }
 
+// // transform a const method into a function
+// template<class Class, class Return, class... Args>
+// auto toFunc( Return(Class::*f)(const Args... args) const) -> std::function<Return(const Class&, const Args... args)> {
+//   return std::function<Return(const Class&, const Args... args)> (f);
+// }
+
 // do nothing
 template<class Return, class... Args>
 auto toFunc( std::function<Return(Args&... args)> & f) -> std::function<Return(Args&... args)> & {

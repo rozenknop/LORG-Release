@@ -172,15 +172,6 @@ public:
 
 
   /**
-     \brief store annotions for later use (maxn parsing)
-   */
-  void backup_annotations()
-  {
-    best.backup_annotations(annotations);
-  };
-
-
-  /**
      \brief reset annotation probabilities at the current node
      \param value the value to reset annotations to
   */
@@ -256,11 +247,6 @@ public:
   void create_maxrule_kb();
   void create_maxrule_mult();
 
-  void find_best_multiple_grammars();
-  void find_best_multiple_grammars_lexical();
-  void find_best_multiple_grammars_binary();
-  void find_best_multiple_grammars_unary();
-
   void compute_best_lexical();
   void compute_best_unary();
   void compute_best_binary();
@@ -297,17 +283,24 @@ private:
 		    bool append_annot, bool outpu_forms) const;
 
 public:
-  void process(function<void(Edge &, BinaryDaughters &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
-  void process(function<void(Edge &, UnaryDaughters &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
   void process(function<void(Edge &, LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
-
-  void process(function<void(BinaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
-  void process(function<void(UnaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
+  void process(function<void(Edge &, UnaryDaughters &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
+  void process(function<void(Edge &, BinaryDaughters &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
+  
   void process(function<void(LexicalDaughters &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
+  void process(function<void(UnaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
+  void process(function<void(BinaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
+  
+  void process(function<void(PEP &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
   
   void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
   void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
+  
+  void process(function<void(PEP &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
+  void process(function<void(PEP &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(PEP &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), d);}
+  
   void process(function<void(PEP &)> f) {f(get_prob_model());}
 
   void process(function<void(Edge &)> f) { f(*this); }
@@ -539,43 +532,6 @@ void PackedEdge<PEP>::create_maxrule_kb()
 template <class PEP>
 void PackedEdge<PEP>::create_maxrule_mult()
 {}
-
-template <class PEP>
-void PackedEdge<PEP>::find_best_multiple_grammars()
-{
-  best.pick_best(this);
-}
-
-template <class PEP>
-void PackedEdge<PEP>::find_best_multiple_grammars_lexical()
-{
-  for(literator it(lexical_daughters.begin()); it != lexical_daughters.end(); ++it) {
-    best.pick_best_lexical(this, *it);
-  }
-}
-
-template <class PEP>
-void PackedEdge<PEP>::find_best_multiple_grammars_binary()
-{
-  for(biterator it(binary_daughters.begin()); it != binary_daughters.end(); ++it) {
-    // calculate the probability for each edge in this packed edge
-    // if it's the best probability so far, update the best edge info
-    best.pick_best_binary(this,*it);
-  }
-}
-
-template <class PEP>
-void PackedEdge<PEP>::find_best_multiple_grammars_unary()
-{
-  //  std::cout << "before updates" << std::endl;
-  //  std::cout << "best: " << best << std::endl;
-
-  for(uiterator it(unary_daughters.begin()); it != unary_daughters.end(); ++it) {
-    best.pick_best_unary(this,*it);
-  }
-
-  best.pick_best();
-}
 
 
 

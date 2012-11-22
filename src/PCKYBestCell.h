@@ -103,7 +103,7 @@ public:
      \param i the label of the edge
      \return the best edge with i as lhs
   */
-  const Edge& best_at(int i) const;
+  const Edge& get_edge(int i) const;
 
 
   /**
@@ -199,7 +199,7 @@ const Edge& PCKYBestCell::at(int i) const
 }
 
 inline
-const Edge& PCKYBestCell::best_at(int i) const
+const Edge& PCKYBestCell::get_edge(int i) const
 {
   return at(i);
 }

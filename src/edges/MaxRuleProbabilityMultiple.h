@@ -71,9 +71,9 @@ public:
   void update_binary(Edge& e, const BinaryDaughters& dtr);
   void finalize();
 
-  void pick_best_lexical(const Edge* up_edge, const LexicalPackedEdgeDaughters& dtr);
-  void pick_best_binary(const Edge* up_edge, const BinaryPackedEdgeDaughters<Cell>& dtr);
-  void pick_best_unary(const Edge* up_edge, const UnaryPackedEdgeDaughters<Cell>& dtr);
+  void pick_best_lexical(const LexicalDaughters& dtr);
+  void pick_best_binary(const BinaryDaughters& dtr);
+  void pick_best_unary(const UnaryDaughters& dtr);
   void pick_best();
 
   void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
@@ -232,13 +232,13 @@ void MaxRuleProbabilityMultiple::finalize()
 }
 
 
-void MaxRuleProbabilityMultiple::pick_best_lexical(const Edge* up_edge, const LexicalPackedEdgeDaughters& dtr)
+void MaxRuleProbabilityMultiple::pick_best_lexical(const LexicalPackedEdgeDaughters& dtr)
 {
   if(occ[&dtr] == nb_grammars) {
     packed_edge_probability_with_index p;
     p.dtrs = &dtr;
 
-    const std::vector<AnnotationInfo>& upannots = up_edge->get_annotations_backup();
+    const std::vector<AnnotationInfo>& upannots = get_annotations_backup();
 
 
     //    std::cout << "size annots: " << upannots.size() << std::endl;
@@ -301,7 +301,7 @@ void MaxRuleProbabilityMultiple::pick_best_lexical(const Edge* up_edge, const Le
 }
 
 
-void MaxRuleProbabilityMultiple::pick_best_binary(const Edge* up_edge, const BinaryPackedEdgeDaughters<Cell>& dtr)
+void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryPackedEdgeDaughters<Cell>& dtr)
 {
 
   if(occ[&dtr] == nb_grammars) {
@@ -309,7 +309,7 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const Edge* up_edge, const Bin
     packed_edge_probability_with_index p;
     p.dtrs = &dtr;
 
-    const std::vector<AnnotationInfo>& upannots = up_edge->get_annotations_backup();
+    const std::vector<AnnotationInfo>& upannots = get_annotations_backup();
 
 
 
@@ -363,14 +363,14 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const Edge* up_edge, const Bin
 }
 
 
-void MaxRuleProbabilityMultiple::pick_best_unary(const Edge* up_edge, const UnaryPackedEdgeDaughters<Cell>& dtr)
+void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryPackedEdgeDaughters<Cell>& dtr)
 {
   if(occ[&dtr] == nb_grammars) {
 
     packed_edge_probability_with_index p;
     p.dtrs = &dtr;
 
-    const std::vector<AnnotationInfo>& upannots = up_edge->get_annotations_backup();
+    const std::vector<AnnotationInfo>& upannots = get_annotations_backup();
 
 
     const Edge::UnaryDaughters* d = static_cast<const Edge::UnaryDaughters*>(p.dtrs);
