@@ -470,7 +470,7 @@ void ParserCKYAll_Impl<TCell>::get_candidates(Cell& left_cell,
   for(std::vector<vector_rhs0>::const_iterator same_rhs0_itr(brules_begin);
       same_rhs0_itr != brules_end; ++same_rhs0_itr) {
 
-    // is L present in the left_cell ?
+    // is L present in left_cell ?
     if(left_cell.exists_edge(same_rhs0_itr->rhs0)) {
 
       double LR1 = left_cell.get_edge(same_rhs0_itr->rhs0).get_annotations().inside_probabilities.array[0];
@@ -478,7 +478,7 @@ void ParserCKYAll_Impl<TCell>::get_candidates(Cell& left_cell,
       for (std::vector<vector_rhs1>::const_iterator same_rhs1_itr(same_rhs0_itr->_begin);
            same_rhs1_itr != same_rhs0_itr->_end; ++same_rhs1_itr) {
 
-        // is R present in the left_cell ?
+        // is R present in right_cell ?
         if(right_cell.exists_edge(same_rhs1_itr->rhs1)) {
 
 
@@ -682,16 +682,10 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
   chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
   compute_outside_probabilities();
 
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 1; span <= sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-
-    for (unsigned begin=0; begin <= end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed()) {
+  this->chart->opencells_apply_bottom_up(
+      [log_sent_prob, log_threshold, huang, start_symbol]
+      (Cell& cell)
+      {
         cell.clean_binary_daughters();
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
@@ -702,8 +696,7 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
           cell.clean();
         }
       }
-    }
-  }
+                                         );
 }
 
 
@@ -868,19 +861,14 @@ void ParserCKYAll_Impl<TCell>::change_rules_resize(unsigned step,
   const AnnotatedLabelsInfo& next_annotations = current_grammars[step+1]->get_annotations_info();
   const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current =  annot_descendants[step];
 
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 1; span <= sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin <= end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
 
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed()) {
+  this->chart->opencells_apply_bottom_up(
+      [next_annotations, annot_descendants_current]
+      (Cell& cell)
+      {
         cell.change_rules_resize(next_annotations, annot_descendants_current);
       }
-    }
-  }
+                                         );
 }
 
 template <typename TCell>
