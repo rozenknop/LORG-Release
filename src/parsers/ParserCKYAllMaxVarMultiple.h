@@ -118,7 +118,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
   create_coarse_to_fine_mapping(maxn_mapping);
 
   //TODO calculate this properly for multiple grammars
-  Edge::set_viterbi_unary_chains(grammars.back()->get_unary_decoding_paths());
+  Edge::set_unary_chains(grammars.back()->get_unary_decoding_paths());
 }
 
 

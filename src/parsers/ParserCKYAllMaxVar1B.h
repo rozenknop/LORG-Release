@@ -22,7 +22,7 @@ public:
     //create the coarse-to-fine map
     this->create_coarse_to_fine_mapping(this->grammars);
 
-    Edge::set_viterbi_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
+    Edge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
   }
 
   ~ParserCKYAllMaxRule1B() {};

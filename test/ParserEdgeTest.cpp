@@ -281,7 +281,7 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
 
     //Backup is only in use for MaxRuleProbabilityMultiple
     PackedEdge<MaxRuleProbabilityMultiple> *ped_maxrulem = new PackedEdge<MaxRuleProbabilityMultiple>();
-    std::vector<AnnotationInfo>& backup = ped_maxrulem->get_annotations_backup();
+    std::vector<AnnotationInfo>& backup = ped_maxrulem->get_prob_model().get_annotations_backup();
     BOOST_CHECK_EQUAL(backup.size(), 0U);
 }
 

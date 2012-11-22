@@ -164,45 +164,18 @@ public:
   AnnotationInfo& get_annotations();
   const AnnotationInfo& get_annotations() const;
 
+
+
   /**
-     \brief get previously calculated annotations (maxn parsing)
+   *  \brief before and after computing the inside probability of a packed edge
    */
-  std::vector<AnnotationInfo>& get_annotations_backup();
-  const std::vector<AnnotationInfo>& get_annotations_backup() const;
-
-
-  /**
-     \brief reset annotation probabilities at the current node
-     \param value the value to reset annotations to
-  */
-  void reset_probabilities(const double& value);
-
-  /**
-     \brief reset annotation probabilities at the current node
-     \param value the value to reset annotations to
-   */
-  void reset_inside_probabilities(const double& value);
-
-  /**
-     \brief reset annotation probabilities at the current node
-     \param value the value to reset annotations to
-  */
-  void reset_outside_probabilities(const double& value);
-
-
-
-
-
-  /**
-     \brief computes the inside probability of a packed forest
-  */
   void prepare_inside_probability();
   void adjust_inside_probability();
 
 
   /**
-     \brief computes the outside probability of a packed forest
-  */
+   * \brief before and after computing the outside probability of a packed edge
+   */
   void prepare_outside_probability();
   void adjust_outside_probability();
 
@@ -234,22 +207,12 @@ public:
 
   /**
      \brief set unary chains
-     \note TODO remove "viterbi" from name
    */
-  static void set_viterbi_unary_chains(const PathMatrix& pathmatrix);
-  static const PathMatrix& get_viterbi_unary_chains();
+  static void set_unary_chains(const PathMatrix& pathmatrix);
+  static const PathMatrix& get_unary_chains();
 
 
   void replace_rule_probabilities(unsigned i);
-
-  void create_viterbi(unsigned size);
-  void create_maxrule();
-  void create_maxrule_kb();
-  void create_maxrule_mult();
-
-  void compute_best_lexical();
-  void compute_best_unary();
-  void compute_best_binary();
 
 
   void extend_derivation(unsigned i, bool licence_unaries)
@@ -268,19 +231,18 @@ public:
 
 protected :
   bvector binary_daughters;    ///< set of possible daughters
-
   uvector unary_daughters;     ///< set of possible daughters
   lvector lexical_daughters;   ///< a possible lexical daughter
   AnnotationInfo annotations;  ///< probabilities
 
-  static PathMatrix viterbi_unary_chains;
+  static PathMatrix unary_chains;
 
 
 private:
   PEP best;
 
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
-		    bool append_annot, bool outpu_forms) const;
+                    bool append_annot, bool outpu_forms) const;
 
 public:
   void process(function<void(Edge &, LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
@@ -304,7 +266,7 @@ public:
   void process(function<void(PEP &)> f) {f(get_prob_model());}
 
   void process(function<void(Edge &)> f) { f(*this); }
-
+  
   template<typename Function, typename... OtherFunctions>
   void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
   void apply() {}
@@ -321,13 +283,13 @@ template<class PEP>
 inline
 const AnnotationInfo& PackedEdge<PEP>::get_annotations() const {return annotations;}
 
-template<class PEP>
-inline
-std::vector<AnnotationInfo>& PackedEdge<PEP>::get_annotations_backup() {return best.get_annotations_backup();}
+// template<class PEP>
+// inline
+// std::vector<AnnotationInfo>& PackedEdge<PEP>::get_annotations_backup() {return best.get_annotations_backup();}
 
-template<class PEP>
-inline
-const std::vector<AnnotationInfo>& PackedEdge<PEP>::get_annotations_backup() const {return best.get_annotations_backup();}
+// template<class PEP>
+// inline
+// const std::vector<AnnotationInfo>& PackedEdge<PEP>::get_annotations_backup() const {return best.get_annotations_backup();}
 
 template<class PEP>
 inline
@@ -410,26 +372,8 @@ bool PackedEdge<PEP>::valid_prob_at(unsigned i) const
 //////////
 
 template <class PEP>
-PathMatrix PackedEdge<PEP>::viterbi_unary_chains = PathMatrix();
+PathMatrix PackedEdge<PEP>::unary_chains = PathMatrix();
 
-template <class PEP>
-void PackedEdge<PEP>::reset_inside_probabilities(const double& value)
-{
-  annotations.reset_inside_probabilities(value);
-}
-
-template <class PEP>
-void PackedEdge<PEP>::reset_outside_probabilities(const double& value)
-{
-  annotations.reset_outside_probabilities(value);
-}
-
-template <class PEP>
-void PackedEdge<PEP>::reset_probabilities(const double& value)
-{
-  annotations.reset_inside_probabilities(value);
-  annotations.reset_outside_probabilities(value);
-}
 
 
 
@@ -479,15 +423,15 @@ void PackedEdge<PEP>::adjust_outside_probability()
 
 // should be renamed (Why Viterbi?) and moved
 template <class PEP>
-void PackedEdge<PEP>::set_viterbi_unary_chains(const PathMatrix& pathmatrix)
+void PackedEdge<PEP>::set_unary_chains(const PathMatrix& pathmatrix)
 {
-  viterbi_unary_chains = pathmatrix;
+  unary_chains = pathmatrix;
 }
 
 template <class PEP>
-const PathMatrix& PackedEdge<PEP>::get_viterbi_unary_chains()
+const PathMatrix& PackedEdge<PEP>::get_unary_chains()
 {
-  return viterbi_unary_chains;
+  return unary_chains;
 }
 
 
@@ -515,59 +459,8 @@ void PackedEdge<PEP>::replace_rule_probabilities(unsigned i)
   std::for_each(lexical_daughters.begin(), lexical_daughters.end(),   c2f_replacer);
 }
 
-template <class PEP>
-void PackedEdge<PEP>::create_viterbi(unsigned size)
-{
-  best.set_size(size);
-}
-
-template <class PEP>
-void PackedEdge<PEP>::create_maxrule()
-{}
-
-template <class PEP>
-void PackedEdge<PEP>::create_maxrule_kb()
-{}
-
-template <class PEP>
-void PackedEdge<PEP>::create_maxrule_mult()
-{}
 
 
-
-
-template <class PEP>
-void PackedEdge<PEP>::compute_best_lexical()
-{
-  for(literator it(lexical_daughters.begin()); it != lexical_daughters.end(); ++it) {
-    best.update(this->get_annotations(), *it);
-  }
-}
-
-template <class PEP>
-void PackedEdge<PEP>::compute_best_unary()
-{
-  //  std::cout << "before updates" << std::endl;
-  //  std::cout << "best: " << best << std::endl;
-
-  for(uiterator it(unary_daughters.begin()); it != unary_daughters.end(); ++it) {
-    best.update(this->get_annotations(),*it);
-  }
-  //  std::cout << "before finalize" << std::endl;
-  //  if(best)
-  //best.finalize(this);
-  best.finalize();
-}
-
-template <class PEP>
-void PackedEdge<PEP>::compute_best_binary()
-{
-  for(biterator it(binary_daughters.begin()); it != binary_daughters.end(); ++it) {
-    // calculate the probability for each edge in this packed edge
-    // if it's the best probability so far, update the best edge info
-    best.update(this->get_annotations(),*it);
-  }
-}
 
 /////////////
 /// clean
@@ -602,12 +495,12 @@ void PackedEdge<PEP>::clean_invalidated_binaries()
 // (because matrix for max-rule has a different type)
 inline
 unsigned decode_path(PtbPsTree& tree,
-		     PtbPsTree::depth_first_iterator& pos,
-		     const PathMatrix& paths,
-		     const asymb& start,
-		     const asymb& end,
-		     bool append_annot
-		     )
+                     PtbPsTree::depth_first_iterator& pos,
+                     const PathMatrix& paths,
+                     const asymb& start,
+                     const asymb& end,
+                     bool append_annot
+)
 {
   bool final = false;
   asymb candidate = start;
@@ -626,17 +519,17 @@ unsigned decode_path(PtbPsTree& tree,
       boost::unordered_map< asymb, asymb>::const_iterator it2 = it1->second.find(end);
 
       if(it2 == it1->second.end())
-	final = true;
+        final = true;
       else {
-	//	std::cout << "adding node " << SymbolTable::instance_nt()->translate(it2->second.first) << std::endl;
-
-	std::ostringstream node_content;
-	node_content << SymbolTable::instance_nt().translate(it2->second.first);
-	if(append_annot) node_content << "_" << it2->second.second;
-
-	pos=tree.add_last_daughter(pos,node_content.str());
-	candidate = it2->second;
-	++path_length;
+        //	std::cout << "adding node " << SymbolTable::instance_nt()->translate(it2->second.first) << std::endl;
+        
+        std::ostringstream node_content;
+        node_content << SymbolTable::instance_nt().translate(it2->second.first);
+        if(append_annot) node_content << "_" << it2->second.second;
+        
+        pos=tree.add_last_daughter(pos,node_content.str());
+        candidate = it2->second;
+        ++path_length;
       }
     }
   }
@@ -733,7 +626,7 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
 
       const UnaryDaughters * daughters =  static_cast<const UnaryDaughters*>(best.get(ith_deriv).dtrs);
       decode_path(*tree,pos,
-                  get_viterbi_unary_chains(),
+                  get_unary_chains(),
                   std::make_pair(lhs,0),
                   std::make_pair(daughters->get_rule()->get_rhs0(), best.get(ith_deriv).get_left_index()),
                   append_annot);
@@ -746,8 +639,8 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
 
 template <class PEP>
 void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
-			      PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
-			      bool append_annot, bool output_forms) const
+                                   PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
+                                   bool append_annot, bool output_forms) const
 {
   std::ostringstream node_content;
 
@@ -811,7 +704,7 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
 
       int rhs0 = daughters->get_rule()->get_rhs0();
       daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(tree, pos, rhs0,
-							best.get(index).get_left_index(), append_annot, output_forms);
+                                                              best.get(index).get_left_index(), append_annot, output_forms);
       int rhs1 = daughters->get_rule()->get_rhs1();
       daughters->right_daughter()->get_edge(rhs1).to_ptbpstree(tree, pos, rhs1,
                                                          best.get(index).get_right_index(), append_annot, output_forms);
@@ -827,13 +720,13 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
 
       std::pair<int,int> fro = std::make_pair(lhs, index);
       std::pair<int,int> to =  std::make_pair(daughters->get_rule()->get_rhs0(),
-					      best.get(index).get_left_index());
+                                              best.get(index).get_left_index());
 
       added_height += decode_path(tree,pos,
-      				  get_viterbi_unary_chains(),
-      				  fro,
-      				  to,
-        			  append_annot);
+                                  get_unary_chains(),
+                                  fro,
+                                  to,
+                                  append_annot);
 
       // std::cout << index << "\t" << best_left_indices.size() << std::endl;
       // std::cout << best_left_indices[index] << std::endl;
@@ -841,7 +734,7 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
       int rhs0 = daughters->get_rule()->get_rhs0();
       //      std::cout << *daughters->get_rule() << std::endl;
       daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(tree, pos, rhs0,
-							best.get(index).get_left_index(), append_annot, output_forms);
+                                                              best.get(index).get_left_index(), append_annot, output_forms);
     }
 
   }

@@ -134,11 +134,6 @@ public:
   void compute_outside_probabilities();
   void adjust_inside_probability();
 
-  /**
-     \brief compute the best viterbi derivations for a cell
-  */
-  void compute_best_viterbi_derivation(const AnnotatedLabelsInfo& symbol_map);
-
   void add_word(const Word & word);
 
   void beam(const std::vector<double>& priors, double threshold);
@@ -149,7 +144,6 @@ public:
   static void set_max_size(unsigned size);
 
   void clean();
-  void clean_binary_daughters();
 
   void clear();
 
@@ -362,11 +356,7 @@ void PCKYAllCell<MyEdge>::process_candidate(const URuleC2f* rule, double L_insid
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::reset_probabilities()
 {
-  //  std::cout << max_size << std::endl;
-  for(unsigned i = 0; i < max_size; ++i)
-    if(edges[i]) {
-      edges[i]->reset_probabilities(0.0);
-    }
+  apply_on_edges(function<void(Edge&)>([](Edge&e){e.get_annotations().reset_probabilities(0.0);}));
 }
 
 
@@ -409,89 +399,36 @@ void PCKYAllCell<MyEdge>::compute_outside_probabilities()
 
 
 template<class MyEdge>
-void PCKYAllCell<MyEdge>::compute_best_viterbi_derivation(const AnnotatedLabelsInfo& symbol_map)
-{
-  //iterate through all the packed edges in this cell, processing the lexical daughters first
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i))  {
-      edges[i]->create_viterbi(symbol_map.get_number_of_annotations(i));
-      edges[i]->replace_rule_probabilities(0);
-      edges[i]->compute_best_lexical();
-      edges[i]->compute_best_binary();
-    }
-  }
-  //now process the unary daughters
-  for(unsigned i = 0; i < max_size; ++i) {
-    if(exists_edge(i)) {
-      edges[i]->compute_best_unary();
-    }
-  }
-}
-
-// these 2 predicates returns true if the daughter(s) can be removed
-// ie, if it's pointing to invalid edges
-template <typename Cell>
-struct pred_beam_clean_bin : public std::unary_function<typename Cell::Edge::BinaryDaughters, bool>
-{
-  bool operator()(const typename Cell::Edge::BinaryDaughters& packededgedaughter) const
-  {
-
-    Cell * cell0 = packededgedaughter.left_daughter();
-    if(cell0->is_closed()) return true;
-    typename Cell::Edge * lefty = cell0->get_edge_ptr(packededgedaughter.get_rule()->get_rhs0());
-    if (lefty == NULL) return true;
-
-
-    Cell * cell1 = packededgedaughter.right_daughter();
-    if(cell1->is_closed()) return true;
-    typename Cell::Edge * righty = cell1->get_edge_ptr(packededgedaughter.get_rule()->get_rhs1());
-    return righty == NULL;
-  }
-};
-
-
-template <typename Cell>
-struct pred_beam_clean_un : public std::unary_function<typename Cell::Edge::UnaryDaughters, bool>
-{
-  bool operator()(const typename Cell::Edge::UnaryDaughters& packededgedaughter) const
-  {
-    Cell * cell = packededgedaughter.left_daughter();
-    // cell should be equal to the current cell so this test is useless
-    //    if(cell->is_closed()) return true;
-    return cell->get_edge_ptr(packededgedaughter.get_rule()->get_rhs0()) == NULL;
-  }
-};
-
-template<class MyEdge>
 void PCKYAllCell<MyEdge>::clean()
 {
-
+  
   bool changed;
   do {
     changed =  false;
-
+    
     // go through all the lists of unary daughters and remove the ones pointing on removed edges
     for(unsigned i = 0; i < max_size; ++i)
       if(edges[i]) {
-	std::vector<typename MyEdge::UnaryDaughters >& udaughters = edges[i]->get_unary_daughters();
-	udaughters.erase(std::remove_if(udaughters.begin(), udaughters.end(),
-                                        pred_beam_clean_un<PCKYAllCell<MyEdge> >()),
-			 udaughters.end());
-
-	if(edges[i]->get_binary_daughters().empty() &&
-           edges[i]->get_lexical_daughters().empty() &&
-           edges[i]->get_unary_daughters().empty()) {
-	  //	std::cout << "I shall be removed!" << std::endl;
-	  delete edges[i];
-	  edges[i]=NULL;
-	  changed =  true;
-	}
+        auto & udaughters = edges[i]->get_unary_daughters();
+        udaughters.erase(std::remove_if(udaughters.begin(), udaughters.end(),
+                                        toFunc(& Edge::UnaryDaughters::points_towards_invalid_cells)),
+                         udaughters.end());
+        
+        if (edges[i]->get_binary_daughters().empty()
+            && edges[i]->get_lexical_daughters().empty()
+            && edges[i]->get_unary_daughters().empty())
+        {
+          //std::cout << "I shall be removed!" << std::endl;
+          delete edges[i];
+          edges[i]=NULL;
+          changed =  true;
+        }
       }
-  }
-  while(changed);
-
+  } while(changed);
+  
   // final memory reclaim
   // TODO: benchmark this carefully
+  bool all_null = true;
   for(unsigned i = 0; i < max_size; ++i)
     if(edges[i]) {
       std::vector<typename MyEdge::UnaryDaughters >& udaughters = edges[i]->get_unary_daughters();
@@ -500,31 +437,16 @@ void PCKYAllCell<MyEdge>::clean()
         tmp.swap(udaughters);
         udaughters.insert(udaughters.begin(), tmp.begin(), tmp.end());
       }
+      all_null = false ;
     }
-
-  // //should be a proper method
+    
   // //if all edge pointers are NULL, close the cell
-  //an overcomplicated way to do the same as below
-  if(std::find_if(edges,edges+max_size,std::bind2nd(std::not_equal_to<MyEdge*>(), (MyEdge*)NULL)) == edges+max_size)
+  if(all_null)
     {
       closed = true;
       delete[] edges;
       edges = NULL;
     }
-
-  // bool all_null = true;
-  // for(unsigned i = 0; i < max_size; ++i) {
-  //   if (edges[i]) {
-  //     all_null = false;
-  //     break;
-  //   }
-  // }
-  // if(all_null) {
-  //   //  std::cout << "ALL NULL" << std::endl;
-  //   closed = true;
-  //   delete edges;
-  //   edges = NULL;
-  // }
 }
 
 
@@ -606,29 +528,6 @@ void PCKYAllCell<MyEdge>::beam(double threshold)
 
   //  clean the cell
   clean();
-}
-
-
-template<class MyEdge>
-void PCKYAllCell<MyEdge>::clean_binary_daughters()
-{
-  for(unsigned i = 0; i < max_size; ++i)
-    if(edges[i]) {
-      MyEdge * edge = edges[i];
-
-      // go through all the lists of binary daughters and remove the ones pointing on removed edges
-      std::vector<typename MyEdge::BinaryDaughters >& bdaughters = edge->get_binary_daughters();
-
-      bdaughters.erase(std::remove_if(bdaughters.begin(), bdaughters.end(), pred_beam_clean_bin<PCKYAllCell<MyEdge> >()), bdaughters.end());
-
-
-      // Reclaim memory !
-      if(bdaughters.capacity() != bdaughters.size()) {
-        std::vector<typename MyEdge::BinaryDaughters > tmp;
-        tmp.swap(bdaughters);
-        bdaughters.insert(bdaughters.begin(), tmp.begin(), tmp.end());
-      }
-    }
 }
 
 
@@ -854,20 +753,20 @@ template<class MyEdge>
 void PCKYAllCell<MyEdge>::clear()
 {
   closed = false;
-
+  
   if(!edges)
-    {
-      edges =  new MyEdge * [max_size];
-      memset(edges, 0, max_size * sizeof(MyEdge*));
-    }
+  {
+    edges =  new MyEdge * [max_size];
+    memset(edges, 0, max_size * sizeof(MyEdge*));
+  }
   else
     for(unsigned i = 0; i < max_size; ++i)
-      {
-        if(edges[i]) {
-          delete edges[i];
-          edges[i] = 0;
-        }
+    {
+      if(edges[i]) {
+        delete edges[i];
+        edges[i] = nullptr;
       }
+    }
 }
 
 

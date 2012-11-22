@@ -502,35 +502,11 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
   task_scheduler_init init(num_cell_threads);
 #endif
 
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 2; span <= sent_size; ++span) {
-    unsigned end_of_begin = sent_size - span + 1;
-
-#ifdef USE_THREADS
-    parallel_for(blocked_range<unsigned>(0, end_of_begin),
-                 [this, span, beam_threshold](const blocked_range<unsigned>& r)
-                 {
-                   for(unsigned begin = r.begin(); begin < r.end(); ++begin)
-                   {
-                     unsigned end = begin + span - 1;
-
-                     Cell& result_cell = this->chart->access(begin, end);
-                     if(!result_cell.is_closed()) {
-                       this->process_cell(result_cell, beam_threshold);
-                     }
-                   }
-                 }
-                 );
-#else
-    for (unsigned begin = 0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
-      Cell& result_cell = this->chart->access(begin,end);
-      if(!result_cell.is_closed()) {
-        this->process_cell(result_cell, beam_threshold);
-      }
+  chart->opencells_apply_bottom_up_span_2(
+    [this,&beam_threshold](Cell&cell){
+      this->process_cell(cell, beam_threshold);
     }
-#endif
-  }
+  );
 }
 
 template <typename TCell>
@@ -627,7 +603,7 @@ void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) c
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 {
-  this->chart->opencells_apply_top_down( toFunc(& Cell::compute_outside_probabilities) );
+  this->chart->opencells_apply_top_down( & Cell::compute_outside_probabilities) ;
 }
 
 template <typename TCell>
@@ -685,12 +661,12 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
       [log_sent_prob, log_threshold, huang, start_symbol]
       (Cell& cell)
       {
-        cell.clean_binary_daughters();
+        cell.apply_on_edges(&Edge::clean_invalidated_binaries);
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
 
         if(!cell.is_closed() && huang) {
-          cell.clean_binary_daughters();
+          cell.apply_on_edges(&Edge::clean_invalidated_binaries);
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
         }
@@ -862,12 +838,12 @@ void ParserCKYAll_Impl<TCell>::change_rules_resize(unsigned step,
 
 
   this->chart->opencells_apply_bottom_up(
-      [next_annotations, annot_descendants_current]
-      (Cell& cell)
-      {
-        cell.change_rules_resize(next_annotations, annot_descendants_current);
-      }
-                                         );
+    [next_annotations, annot_descendants_current]
+    (Cell& cell)
+    {
+      cell.change_rules_resize(next_annotations, annot_descendants_current);
+    }
+  );
 }
 
 template <typename TCell>
@@ -906,7 +882,7 @@ void ParserCKYAll_Impl<TCell>::compute_inside_outside_probabilities()
 {
   compute_inside_probabilities();
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-  chart->get_root().get_edge(start_symbol).reset_outside_probabilities(1.0);
+  chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
   compute_outside_probabilities();
 }
 
