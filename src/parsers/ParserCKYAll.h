@@ -504,12 +504,11 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
 
   unsigned sent_size=chart->get_size();
   for (unsigned span = 2; span <= sent_size; ++span) {
-    bool isroot =  span == sent_size;
     unsigned end_of_begin = sent_size - span + 1;
 
 #ifdef USE_THREADS
     parallel_for(blocked_range<unsigned>(0, end_of_begin),
-                 [this, span, beam_threshold, isroot](const blocked_range<unsigned>& r)
+                 [this, span, beam_threshold](const blocked_range<unsigned>& r)
                  {
                    for(unsigned begin = r.begin(); begin < r.end(); ++begin)
                    {
@@ -517,7 +516,7 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
 
                      Cell& result_cell = this->chart->access(begin, end);
                      if(!result_cell.is_closed()) {
-                       this->process_cell(result_cell, beam_threshold, begin, end, isroot);
+                       this->process_cell(result_cell, beam_threshold);
                      }
                    }
                  }
@@ -527,7 +526,7 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
       unsigned end = begin + span -1;
       Cell& result_cell = this->chart->access(begin,end);
       if(!result_cell.is_closed()) {
-        this->process_cell(result_cell, beam_threshold, begin, end, isroot);
+        this->process_cell(result_cell, beam_threshold);
       }
     }
 #endif
@@ -683,7 +682,7 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
   compute_outside_probabilities();
 
   this->chart->opencells_apply_bottom_up(
-      [log_sent_prob, log_threshold, huang, start_symbol]
+      [log_sent_prob, log_threshold, huang]
       (Cell& cell)
       {
         cell.clean_binary_daughters();
@@ -746,7 +745,7 @@ void process_internal(typename rulevect2mapvect<Key,MyRule>::map_type& map, std:
 }
 
 
-#define MAP boost::unordered_map
+#define MAP std::unordered_map
 //#define MAP std::map
 
 template <typename TCell>

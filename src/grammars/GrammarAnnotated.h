@@ -5,7 +5,7 @@
 #include "Grammar.h"
 
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "AnnotatedLabelsInfo.h"
 #include "utils/SymbolTable.h"
 
@@ -18,8 +18,10 @@
 
 
 #include "utils/Tree.h"
+#include "utils/hash_impl.h"
 
-#define uomap boost::unordered_map
+
+#define uomap std::unordered_map
 
 
 typedef std::pair< int, unsigned> asymb;

@@ -97,8 +97,6 @@ void BasicLexicon::update_annotated_rule_counts(LexicalRuleTraining& rule, const
 //might be quicker to do in one step, merge the code for update_node_counts with this function
 void BasicLexicon::add_lexicon_annotated_node_counts(std::vector< std::vector<double> >& GrammarNodeCountMap)
 {
-  //typedef boost::unordered_map< std::pair<int, int >, double> AnnotatedNodeCountMap;
-
   //first get the latest node counts
   update_node_counts();
 
@@ -113,9 +111,6 @@ void BasicLexicon::add_lexicon_annotated_node_counts(std::vector< std::vector<do
     //assert(GrammarNodeCountMap.find(itr->first) == GrammarNodeCountMap.end());
 
     //assert(GrammarNodeCountMap[itr->first.first].size() == 0);
-    //boost::unordered_map<unsigned, double> annotation_to_prob;
-    //annotation_to_prob[itr->first.second] = itr->second;
-    //GrammarNodeCountMap[itr->first.first] =annotation_to_prob;
 
     std::vector<double>& current_label_counts = GrammarNodeCountMap[itr->first];
     //    std::cout << itr->first.first << " "<<  itr->first.second << " " << itr->second << std::endl;
@@ -134,7 +129,6 @@ void BasicLexicon::add_lexicon_annotated_node_counts(std::vector< std::vector<do
 
 //getting denominator counts
 void BasicLexicon::update_node_counts(){
-  //  typedef boost::unordered_map< std::pair<int, int >, double> AnnotatedNodeCountMap;
   annotated_node_counts.clear();
 
   //for each lexical rule
@@ -213,46 +207,6 @@ struct basic_lexicon_update_thread_tbb
 };
 #endif
 
-
-// struct basic_lexicon_update_thread
-// {
-//   const BasicLexicon & lexicon;
-//   std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences;
-//   unsigned begin;
-//   unsigned end;
-
-//   basic_lexicon_update_thread(const BasicLexicon& lexicon_,
-//       std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences_,
-//       unsigned begin_,
-//       unsigned end_)
-//       : lexicon(lexicon_), lex_occurrences(lex_occurrences_), begin(begin_), end(end_) {};
-
-//   void operator()()
-//   {
-//     for(unsigned i = begin; i < end; ++i) {
-
-
-//       LexicalRuleTraining * rule = lex_occurrences[i].first;
-
-
-//       for(std::vector<lrule_occurrence>::iterator iter(lex_occurrences[i].second.begin());
-//           iter != lex_occurrences[i].second.end(); ++iter) {
-
-//         const TrainingNode * root = iter->root;
-//         const TrainingNode * node = iter->up;
-
-//         const scaled_array& tree_prob = root->get_annotations().inside_probabilities;
-
-//         lexicon.update_annotated_rule_counts(*rule, node->get_annotations(), tree_prob);
-
-
-//       }
-//     }
-//   }
-
-// };
-
-
 #ifdef USE_THREADS
 void BasicLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & /*trees ignored*/,
 						      bool /*ignored*/,
@@ -263,24 +217,10 @@ void BasicLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTr
 
 
 
-
-  // boost::thread_group mygroup;
-
-  // for(unsigned i = 0; i < nbthreads; ++i) {
-  //   mygroup.create_thread(basic_lexicon_update_thread(*this, lex_occurrences, i * lex_occurrences.size() / nbthreads, (i+1) * lex_occurrences.size() / nbthreads));
-  // }
-
-  //   mygroup.join_all();
-
   basic_lexicon_update_thread_tbb blut(*this);
   parallel_for(tbb::blocked_range<typename basic_lexicon_update_thread_tbb::vector_type::iterator>(lex_occurrences.begin(),
                                                                                                    lex_occurrences.end()),
                blut);
-
-
-
-  // for(std::vector<BinaryTrainingTree>::const_iterator tree_iter(trees.begin()); tree_iter != trees.end(); ++tree_iter)
-  //   traverse_leaf_nodes(*tree_iter);
 }
 #endif
 
@@ -402,17 +342,6 @@ void BasicLexicon::output_counts(const std::map< int, int>& LHS_counts, const st
       //l_itr->first.first,l_itr->first.second
       std::cout << sym_tab_nt.translate(itr->first.label) << " " << sym_tab_word.translate(itr->first.word) << " " << itr->second << std::endl;
     }
-  //	typedef boost::unordered_map< std::pair<int, int >, URule> production_2_urule_map;
-  // //URule(lhs,rhs0,probability,lex)
-  //	  production_2_urule_map lexical_rules;
-
-  //std::cout << "***************************************************" << std::endl;
-  //std::cout << "probs " << std::endl;
-  //for(std::vector<URule>::const_iterator itr = lexical_rules.begin(); itr!= lexical_rules.end(); itr++)
-  //{
-  //l_itr->first.first,l_itr->first.second
-  //		std::cout << sym_tab_nt->translate(itr->first.first) << " " << sym_tab_word->translate(itr->first.second) << " " << itr->second.get_probability(0,0) << std::endl;
-  //}
 
 }
 

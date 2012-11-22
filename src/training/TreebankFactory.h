@@ -64,7 +64,7 @@ Treebank<Tree> * TreebankFactory::BuildEmptyTreebank(ConfigTable& conf)
   }
 
   //reading labels to remove from trees
-  boost::unordered_set<std::string> labels_to_remove;
+  std::unordered_set<std::string> labels_to_remove;
   std::string labels = conf.get_value<std::string>("nodes-to-remove");
   boost::tokenizer<boost::char_separator<char> > tokeniser(labels,boost::char_separator<char>(" "));
   for(boost::tokenizer<boost::char_separator<char> >::const_iterator i=tokeniser.begin(); i != tokeniser.end(); ++i) {

@@ -6,7 +6,8 @@
 #include "rules/URule.h"
 #include "rules/LexicalRule.h"
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
+
 
 
 struct common

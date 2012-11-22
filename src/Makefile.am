@@ -100,7 +100,7 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
 	parsers/ParserCKYAllMaxVar1B.h \
 	parsers/ParserCKYAllFactory.h \
-	utils/lorg_functional.h utils/tick_count.h \
+	utils/lorg_functional.h utils/tick_count.h utils/hash_impl.h \
 	rules/AnnotatedRule.h edges/AnnotationInfo.h edges/AnnotationInfo.cpp\
 	rules/C2f.h \
 	rules/BRule.h rules/BRule.cpp rules/BRuleC2f.h\
@@ -136,7 +136,7 @@ twostage_lorgparser_LDADD = $(BOOST_LDFLAGS)  $(BOOST_REGEX_LIB) $(BOOST_PROGRAM
 # # gram2clmodel_LDADD = $(BOOST_LDFLAGS) $(BOOST_REGEX_LIB) -lprofiler -ltcmalloc
 
 
-feature_extractor_CXXFLAGS= -O3 -Wall -Wextra -pipe
+feature_extractor_CXXFLAGS= -O3 -Wall -Wextra -pipe -std=c++11
 feature_extractor_SOURCES = feature_extract/ExtractApp.h \
 	feature_extract/ExtractApp.cpp \
 	LorgApp.h LorgApp.cpp \

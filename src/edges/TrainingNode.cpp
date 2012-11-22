@@ -2,6 +2,10 @@
 
 #include "utils/SymbolTable.h"
 
+#include "utils/hash_impl.h"
+
+
+
 /////// resize_annotations
 void TrainingNode::resize_annotations(unsigned size)
 {

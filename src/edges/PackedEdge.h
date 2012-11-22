@@ -11,6 +11,8 @@
 #include <numeric>
 #include <cassert>
 
+#include <unordered_map>
+
 #include "AnnotationInfo.h"
 
 #include "rules/BRuleC2f.h"
@@ -22,14 +24,15 @@
 #include "PCKYAllCell.h"
 
 
-
 #include "utils/SymbolTable.h"
 #include "PackedEdgeProbability.h"
 
 #include "utils/lorg_functional.h"
+#include "utils/hash_impl.h"
+
 
 typedef std::pair< int, unsigned> asymb;
-typedef boost::unordered_map<asymb, boost::unordered_map< asymb, asymb> > PathMatrix;
+typedef std::unordered_map<asymb, std::unordered_map< asymb, asymb> > PathMatrix;
 
 
 /**
@@ -274,7 +277,7 @@ public:
   bool valid_prob_at(unsigned i) const;
 
   void clean_invalidated_binaries();
-  
+
   PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
 
   bool has_solution(unsigned i) const ;
@@ -304,7 +307,7 @@ public:
   void process(function<void(BinaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
   void process(function<void(UnaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
   void process(function<void(LexicalDaughters &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
-  
+
   void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
   void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
   void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
@@ -621,8 +624,8 @@ template <class PEP>
 void PackedEdge<PEP>::clean_invalidated_binaries()
 {
   binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughters::points_towards_invalid_cells)), binary_daughters.end());
-  
-  
+
+
   // Reclaim memory !
   if(binary_daughters.capacity() != binary_daughters.size()) {
     decltype(binary_daughters) tmp;
@@ -660,14 +663,14 @@ unsigned decode_path(PtbPsTree& tree,
 
   while(!final) {
 
-    boost::unordered_map<asymb, boost::unordered_map< asymb, asymb> >::const_iterator it1 =
+    std::unordered_map<asymb, std::unordered_map< asymb, asymb> >::const_iterator it1 =
       paths.find(candidate);
 
     if(it1 == paths.end())
       final = true;
 
     else {
-      boost::unordered_map< asymb, asymb>::const_iterator it2 = it1->second.find(end);
+      std::unordered_map< asymb, asymb>::const_iterator it2 = it1->second.find(end);
 
       if(it2 == it1->second.end())
 	final = true;

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "utils/hash_impl.h"
 
 #include <tbb/tick_count.h>
 #include <tbb/parallel_reduce.h>
