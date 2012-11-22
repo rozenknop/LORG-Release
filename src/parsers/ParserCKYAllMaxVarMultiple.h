@@ -157,7 +157,7 @@ void ParserCKYAllMaxRuleMultiple::change_rules_load_backup(unsigned backup_idx, 
   function<void(Edge&)> replace_annotations = [backup_idx](Edge& e){e.get_annotations() = e.get_prob_model().get_annotations_backup()[backup_idx];};
   
   chart->opencells_apply_bottom_up(
-    [backup_idx,size,&replace_rules, &replace_annotations](Cell&cell){
+    [&replace_rules, &replace_annotations](Cell&cell){
       cell.apply_on_edges(
         replace_rules, 
         replace_annotations
