@@ -684,14 +684,23 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
   compute_outside_probabilities();
 
   this->chart->opencells_apply_bottom_up(
-      [log_sent_prob, log_threshold, huang]
+      [log_sent_prob, log_threshold]
       (Cell& cell)
       {
         cell.clean_binary_daughters();
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
-
-        if(!cell.is_closed() && huang) {
+      },
+      num_cell_threads
+                                         );
+  // weird !!!
+  // threaded version has side effects
+  // even though huang is always false
+  this->chart->opencells_apply_bottom_up_nothread(
+      [log_sent_prob, huang]
+      (Cell& cell)
+      {
+        if(huang) {
           cell.clean_binary_daughters();
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
