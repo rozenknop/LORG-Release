@@ -4,6 +4,10 @@
 
 #include "utils/ConfigTable.h"
 
+#ifdef USE_THREADS
+#include <tbb/task_scheduler_init.h>
+#endif
+
 class LorgApp
 {
 public:
@@ -16,6 +20,9 @@ public:
 
 private:
   ConfigTable *  parse_config(int argc, char **argv);
+#ifdef USE_THREADS
+  tbb::task_scheduler_init tbb_task_scheduler;
+#endif
 
 protected:
   virtual bool read_config(ConfigTable& configuration);

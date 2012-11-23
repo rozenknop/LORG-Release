@@ -6,7 +6,6 @@
 using tbb::tick_count;
 #include <tbb/parallel_reduce.h>
 #include <tbb/parallel_for.h>
-#include <tbb/task_scheduler_init.h>
 #include <tbb/blocked_range.h>
 
 #else
@@ -255,9 +254,8 @@ struct basic_lexicon_update_thread_tbb
 
 #ifdef USE_THREADS
 void BasicLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & /*trees ignored*/,
-						      bool /*ignored*/,
-                                                      std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-                                                      unsigned /*nbthreads*/
+                                                      bool /*ignored*/,
+                                                      std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences
                                                       )
 {
 

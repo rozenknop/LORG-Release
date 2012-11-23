@@ -24,9 +24,9 @@ class EMTrainer
 {
 
 public:
-  EMTrainer(int split_number_, double threshold_, bool verbose_, unsigned threads_) :
+  EMTrainer(int split_number_, double threshold_, bool verbose_) :
     verbose(verbose_), split_number(split_number_), log_likelihood(-1000000000),
-    threshold(threshold_), annotated_node_counts(), threads(threads_)
+    threshold(threshold_), annotated_node_counts()
   {};
 
   /**
@@ -39,9 +39,9 @@ public:
      \param type the type of smoothing algorithm
   */
   void  do_em(std::vector<BinaryTrainingTree> & trees,
-	      TrainingGrammar& em_grammar, unsigned num_iterations,
-	      double smooth_grammar, double smooth_lexicon,
-	      bool remove_unlikes, TrainingGrammar::SmoothType type);
+              TrainingGrammar& em_grammar, unsigned num_iterations,
+              double smooth_grammar, double smooth_lexicon,
+              bool remove_unlikes, TrainingGrammar::SmoothType type);
 
 
   /**
@@ -62,8 +62,8 @@ public:
    \param final_lex_em do an EM iteration on the lexicon afterwards
   */
   void  merge(std::vector<BinaryTrainingTree> & trees,
-	      TrainingGrammar& em_grammar, int merge_percentage,
-	      bool final_lex_em);
+              TrainingGrammar& em_grammar, int merge_percentage,
+              bool final_lex_em);
   /**
    * 	\brief the smoothing set step
    \param em_grammar The grammar whose binary, unary and lexical rules will be smoothed.
@@ -71,7 +71,7 @@ public:
    \param smooth_lexicon smooth parameter for lexical rules
   */
   void smooth_grammar_rules(TrainingGrammar& em_grammar, double smooth_grammar, double smooth_lexicon,
-			    TrainingGrammar::SmoothType type);
+                            TrainingGrammar::SmoothType type);
 
   /**
    * 	\brief the split step.  Before splitting the rules in the grammar, the (new) number of annotations per non-terminal label is
@@ -92,8 +92,6 @@ private:
   //needed for merge
   AnnotatedNodeCountMap annotated_node_counts;
 
-  unsigned threads;
-
 
   /**
      \brief The Expectation Step of the EM algorithm - obtain new rule frequencies
@@ -102,11 +100,11 @@ private:
      \param last_iteration true if this is the last iteration
   */
   void expectation(std::vector<BinaryTrainingTree> & trees, TrainingGrammar& em_grammar,
-		   bool last_iteration,
-		   std::vector< std::pair<BRuleTraining*, std::vector<brule_occurrence> > >& vbrule,
-		   std::vector< std::pair<URuleTraining*, std::vector<urule_occurrence> > >& vurule,
+                   bool last_iteration,
+                   std::vector< std::pair<BRuleTraining*, std::vector<brule_occurrence> > >& vbrule,
+                   std::vector< std::pair<URuleTraining*, std::vector<urule_occurrence> > >& vurule,
                    std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& vlrule
-		   );
+  );
 
   /**
      \brief The Maximisation Step of the EM algorithm - calculate new rule probabilities using the new rule counts
@@ -143,8 +141,8 @@ private:
      \param trees the treebank
   */
   void calculate_delta_scores(const std::vector<BinaryTrainingTree> & trees,
-			      DeltaMap& delta_scores,
-			      const AnnotatedNodeCountMap& proportions);
+                              DeltaMap& delta_scores,
+                              const AnnotatedNodeCountMap& proportions);
 
   /**
      \brief resizes the number of annotations for each node in each tree in the treebank.  Called before grammar split and again before grammar merge

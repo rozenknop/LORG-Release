@@ -10,7 +10,9 @@
 #include "ParserCKYAllMaxVarMultiple.h"
 
 #include "utils/data_parsers/AnnotHistoriesParser.h"
-
+#ifdef USE_THREADS
+#include <tbb/task_scheduler_init.h>
+#endif
 
 namespace ParserCKYAllFactory {
     enum Parsing_Algorithm {MaxRule, Viterbi, MaxN, KMaxRule};
@@ -165,21 +167,21 @@ ParserCKYAll * create_parser(std::vector<ParserCKYAll::AGrammar*> cgs, ParserCKY
                              const std::vector< std::vector<ParserCKYAll::AGrammar*> >& fgs,
                              const std::vector< annot_descendants_type >& all_annot_descendants,
                              bool accurate, unsigned min_beam, int stubborn,
-                             unsigned k, unsigned cell_threads)
+                             unsigned k)
 {
     using namespace ParserCKYAllFactory;
     switch(pt) {
         case Viterbi :
-            return new ParserCKYAllViterbi(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, cell_threads);
+            return new ParserCKYAllViterbi(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn);
             break;
         case MaxRule :
-            return new ParserCKYAllMaxRule1B(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, cell_threads);
+            return new ParserCKYAllMaxRule1B(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn);
             break;
         case MaxN :
-            return new ParserCKYAllMaxRuleMultiple(cgs, p, b_t, fgs, all_annot_descendants, accurate, min_beam, stubborn, k, cell_threads);
+            return new ParserCKYAllMaxRuleMultiple(cgs, p, b_t, fgs, all_annot_descendants, accurate, min_beam, stubborn, k);
             break;
         case KMaxRule :
-            return new ParserCKYAllMaxRuleKB(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, k, cell_threads);
+            return new ParserCKYAllMaxRuleKB(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, k);
             break;
         default :
             return NULL;
@@ -307,7 +309,13 @@ ParserCKYAll * ParserCKYAllFactory::create_parser(ConfigTable& config)
 
     unsigned nbthreads = config.get_value<unsigned>("nbthreads");
     if(verbose){
-        std::clog << "using " << nbthreads << " threads to parse" << std::endl;
+        std::clog << "using " <<
+        #ifndef USE_THREADS
+        1
+        #else
+        (nbthreads == 0 ? tbb::task_scheduler_init::default_num_threads() : nbthreads)
+        #endif
+        << " threads to parse" << std::endl;
     }
 
     return create_parser(grammars,
@@ -315,7 +323,7 @@ ParserCKYAll * ParserCKYAllFactory::create_parser(ConfigTable& config)
                          priors, beam_threshold,
                          alt_gs, all_annot_descendants, accurate, min,
                          config.get_value<int>("stubbornness"),
-                         config.get_value<unsigned>("kbest"), nbthreads);
+                         config.get_value<unsigned>("kbest"));
 
 }
 

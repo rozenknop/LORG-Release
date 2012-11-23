@@ -26,7 +26,6 @@
 #include <tbb/parallel_for.h>
 #include <tbb/tick_count.h>
 #include <tbb/blocked_range.h>
-#include <tbb/task_scheduler_init.h>
 using namespace tbb;
 #endif
 
@@ -57,7 +56,7 @@ class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, Lexic
   */
   ParserCKYAll(std::vector<AGrammar*>& cgs, const std::vector<double>& prior_map, double beam_threshold,
                const annot_descendants_type& annot_descendants,
-               bool accurate, unsigned min_beam, int stubborn, unsigned nbCellThreads);
+               bool accurate, unsigned min_beam, int stubborn);
 
   /**
      \brief parses the sentence using the grammar
@@ -139,7 +138,7 @@ public:
   */
   ParserCKYAll_Impl(std::vector<AGrammar*>& cgs, const std::vector<double>& prior_map, double beam_threshold,
                     const annot_descendants_type& annot_descendants,
-                    bool accurate, unsigned min_beam, int stubborn, unsigned nbCellThreads);
+                    bool accurate, unsigned min_beam, int stubborn);
 
   /**
      \brief parses the sentence using the grammar
@@ -347,7 +346,7 @@ ParserCKYAll::ParserCKYAll(std::vector<AGrammar*>& cgs,
                            double prior_threshold,
                            const annot_descendants_type& annot_descendants_,
                            bool accurate_,
-                           unsigned min_beam, int stubborn, unsigned nbCellThreads)
+                           unsigned min_beam, int stubborn)
     :
     Parser(cgs[0]),
     grammars(cgs),
@@ -355,8 +354,7 @@ ParserCKYAll::ParserCKYAll(std::vector<AGrammar*>& cgs,
     annot_descendants(annot_descendants_),
     accurate(accurate_),
     min_length_beam(min_beam),
-    stubbornness(stubborn),
-    num_cell_threads(nbCellThreads)
+    stubbornness(stubborn)
 {
   // these thresholds look familiar ;)
   if(accurate) {
@@ -382,8 +380,8 @@ ParserCKYAll_Impl<TCell>::ParserCKYAll_Impl(std::vector<AGrammar*>& cgs,
                                             double prior_threshold,
                                             const annot_descendants_type& annot_descendants_,
                                             bool accurate_,
-                                            unsigned min_beam, int stubborn, unsigned nbCellThreads) :
-    ParserCKYAll(cgs, p, prior_threshold, annot_descendants_, accurate_, min_beam, stubborn, nbCellThreads),
+                                            unsigned min_beam, int stubborn) :
+    ParserCKYAll(cgs, p, prior_threshold, annot_descendants_, accurate_, min_beam, stubborn),
   chart(NULL)
 {};
 
@@ -498,10 +496,6 @@ void ParserCKYAll_Impl<TCell>::get_candidates(Cell& left_cell,
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) const
 {
-#ifdef USE_THREADS
-  task_scheduler_init init(num_cell_threads);
-#endif
-
   chart->opencells_apply_bottom_up(
     [&,beam_threshold](Cell&cell)
     {

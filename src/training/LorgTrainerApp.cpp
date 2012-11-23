@@ -220,7 +220,7 @@ int LorgTrainerApp::run()
     tb = NULL;
 
     // create the trainer object
-    EMTrainer em_trainer(split_size,prob_threshold,verbose, nbthreads);
+    EMTrainer em_trainer(split_size,prob_threshold,verbose);
 
     if(verbose) {
         std::clog.precision(22);
@@ -462,8 +462,6 @@ bool LorgTrainerApp::read_config(ConfigTable& conf)
     smooth_method = (conf_smooth == "linear") ? TrainingGrammar::LinearSmooth : TrainingGrammar::WeightedSmooth;
 
     final_lex_em = conf.get_value<bool>("final-lex-em");
-
-    nbthreads = conf.get_value<unsigned>("nbthreads");
 
     return true;
 }

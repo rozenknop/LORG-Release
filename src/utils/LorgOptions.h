@@ -96,7 +96,7 @@ public:
       ("lexical-smoothing", "performs lexical smoothing (sophisticated lexicon)")
       ("final-lex-em" ,po::value<bool>()->default_value(false), "do one extra em iteration on lexicon after merge")
       ("smooth-method", po::value<std::string>()->default_value("linear"), "smoothing method: linear or weighted")
-      ("nbthreads", po::value<unsigned>()->default_value(1), "number of threads")
+      ("nbthreads", po::value<unsigned>()->default_value(0), "number of threads")
       ;
     options.add(grammar_opts);
   }
@@ -152,7 +152,7 @@ public:
       ("min-length-beam",po::value<unsigned>()->default_value(1), "minimum length of sentences to use beam")
       ("kbest,k",po::value<unsigned>()->default_value(1), "numbers of parses to return for each sentence (only used in kmax)")
       ("stubbornness,s", po::value<int>()->default_value(-1), "number of retries (with lower beam-threshold) if packed forest construction fails. Last try is performed without threshold. Set to negative value to skip this.")
-      ("nbthreads", po::value<unsigned>()->default_value(2), "Number of threads for processing the chart")
+      ("nbthreads", po::value<unsigned>()->default_value(0), "Number of threads for processing the chart")
       ;
     options.add(parser_opts);
   }

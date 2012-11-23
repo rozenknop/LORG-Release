@@ -60,8 +60,6 @@ private:
 
   bool final_lex_em;
 
-  unsigned nbthreads;
-
   // prevent copying
   LorgTrainerApp(const LorgTrainerApp&);
   LorgTrainerApp& operator=(const LorgTrainerApp&);

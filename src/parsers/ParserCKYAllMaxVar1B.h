@@ -14,8 +14,8 @@ public:
   ParserCKYAllMaxRule1B(std::vector<AGrammar*>& cgs,
                         const std::vector<double>& p, double b_t,
                         const annot_descendants_type& annot_descendants_,
-                        bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads)
-      : ParserCKYAllMaxRule<ParserCKYAllMaxRuleCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
+                        bool accurate_, unsigned min_beam, int stubborn)
+      : ParserCKYAllMaxRule<ParserCKYAllMaxRuleCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn)
   {
     // this is not in the super class because maxn parsing uses a
     //different mapping

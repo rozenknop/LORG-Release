@@ -11,8 +11,8 @@ class ParserCKYAllViterbi : public ParserCKYAll_Impl<ParserCKYAllViterbiCell>
 {
 public:
   ParserCKYAllViterbi(std::vector<AGrammar*>& cgs,
-		      const std::vector<double>& p, double b_t,
-		      const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_, bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads);
+                      const std::vector<double>& p, double b_t,
+                      const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_, bool accurate_, unsigned min_beam, int stubborn);
 
   virtual ~ParserCKYAllViterbi() { delete fine_grammar; fine_grammar = NULL;};
 
@@ -31,10 +31,10 @@ const ParserCKYAll::AGrammar& ParserCKYAllViterbi::get_fine_grammar() const
 
 
 ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
-					 const std::vector<double>& p, double b_t,
+                                         const std::vector<double>& p, double b_t,
                                          const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
-					 bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads)
-: ParserCKYAll_Impl<ParserCKYAllViterbiCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
+                                         bool accurate_, unsigned min_beam, int stubborn)
+: ParserCKYAll_Impl<ParserCKYAllViterbiCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn)
 {
   fine_grammar = new ParserCKYAll::AGrammar(*cgs[cgs.size()-1]);
   fine_grammar->set_logmode(); // the Viterbi algorithms assume the fine grammar rules weights are log_probs
