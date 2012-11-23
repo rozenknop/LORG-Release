@@ -84,9 +84,7 @@ public:
 
   ostream & to_stream(ostream & s) const;
   
-  template<int MIN_SPAN=0>
-  void opencells_apply_bottom_up( std::function<void(Cell &)> f );
-  void opencells_apply_bottom_up_span_2( std::function<void(Cell &)> f ) {opencells_apply_bottom_up<2>(f);}
+  void opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span=0 );
   void opencells_apply_top_down( std::function<void(Cell &)> f );
   void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
   
@@ -116,12 +114,11 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
 }
 #else
 template<class Cell, class MyWord>
-template<int MIN_SPAN>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f )
+ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span )
 {
   unsigned sent_size = get_size();
-  for (unsigned span = MIN_SPAN; span < sent_size; ++span) {
+  for (unsigned span = min_span; span < sent_size; ++span) {
     unsigned end_of_begin=sent_size-span;
     tbb::parallel_for(tbb::blocked_range<unsigned>(0, end_of_begin),
                       [this,span,&f](const tbb::blocked_range<unsigned>& r){

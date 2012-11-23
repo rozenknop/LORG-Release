@@ -502,10 +502,12 @@ void ParserCKYAll_Impl<TCell>::process_internal_rules(double beam_threshold) con
   task_scheduler_init init(num_cell_threads);
 #endif
 
-  chart->opencells_apply_bottom_up_span_2(
-    [this,&beam_threshold](Cell&cell){
+  chart->opencells_apply_bottom_up(
+    [&,beam_threshold](Cell&cell)
+    {
       this->process_cell(cell, beam_threshold);
-    }
+    },
+    1
   );
 }
 
