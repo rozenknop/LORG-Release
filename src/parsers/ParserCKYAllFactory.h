@@ -307,15 +307,17 @@ ParserCKYAll * ParserCKYAllFactory::create_parser(ConfigTable& config)
 
     unsigned min = config.get_value<unsigned>("min-length-beam");
 
+    #ifdef USE_THREADS
     unsigned nbthreads = config.get_value<unsigned>("nbthreads");
+    #endif
     if(verbose){
-        std::clog << "using " <<
-        #ifndef USE_THREADS
-        1
-        #else
-        (nbthreads == 0 ? tbb::task_scheduler_init::default_num_threads() : nbthreads)
-        #endif
-        << " threads to parse" << std::endl;
+      std::clog << "using " <<
+      #ifndef USE_THREADS
+      1
+      #else
+      (nbthreads == 0 ? tbb::task_scheduler_init::default_num_threads() : nbthreads)
+      #endif
+      << " threads to parse" << std::endl;
     }
 
     return create_parser(grammars,
