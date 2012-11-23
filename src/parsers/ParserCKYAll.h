@@ -627,13 +627,15 @@ void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) c
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 {
-  this->chart->opencells_apply_top_down( toFunc(& Cell::compute_outside_probabilities) );
+  this->chart->opencells_apply_top_down( toFunc(& Cell::compute_outside_probabilities),
+                                         num_cell_threads );
 }
 
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
 {
-  this->chart->opencells_apply_bottom_up ( & Cell::compute_inside_probabilities );
+  this->chart->opencells_apply_bottom_up ( & Cell::compute_inside_probabilities,
+                                           num_cell_threads );
  }
 
 
@@ -694,7 +696,8 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
         }
-      }
+      },
+      num_cell_threads
                                          );
 }
 
@@ -866,7 +869,8 @@ void ParserCKYAll_Impl<TCell>::change_rules_resize(unsigned step,
       (Cell& cell)
       {
         cell.change_rules_resize(next_annotations, annot_descendants_current);
-      }
+      },
+      num_cell_threads
                                          );
 }
 

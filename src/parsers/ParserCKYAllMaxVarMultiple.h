@@ -138,7 +138,8 @@ void ParserCKYAllMaxRuleMultiple::change_rules_reset() const
         // 0 means c2f
         // 1 means multiple grammar decoding
         cell.change_rules_resize(1,0);
-      }
+      },
+      num_cell_threads
                                          );
 }
 
@@ -148,21 +149,23 @@ void ParserCKYAllMaxRuleMultiple::change_rules_load_backup(unsigned backup_idx, 
   //  std::cout << "change_rules_load_backup" << std::endl;
   function<void(Edge&)> replace_rules = std::bind(&Edge::replace_rule_probabilities, std::placeholders::_1, size);
   function<void(Edge&)> replace_annotations = [backup_idx](Edge& e){e.get_annotations() = e.get_prob_model().get_annotations_backup()[backup_idx];};
-  
+
   chart->opencells_apply_bottom_up(
     [&replace_rules, &replace_annotations](Cell&cell){
       cell.apply_on_edges(
-        replace_rules, 
+        replace_rules,
         replace_annotations
       );
-    }
+    },
+    num_cell_threads
   );
 }
 
 void ParserCKYAllMaxRuleMultiple::modify_backup(unsigned backup_idx) const
 {
   function<void(Edge&)> modify = [backup_idx](Edge& e){e.get_prob_model().get_annotations_backup()[backup_idx] = e.get_annotations();};
-  chart->opencells_apply_bottom_up([&modify](Cell&cell){cell.apply_on_edges(modify);});  
+  chart->opencells_apply_bottom_up([&modify](Cell&cell){cell.apply_on_edges(modify);},
+                                   num_cell_threads);
 }
 
 
@@ -267,18 +270,20 @@ void ParserCKYAllMaxRuleMultiple::calculate_best_edge()
 {
   chart->opencells_apply_bottom_up( [](Cell&cell)
   {
-    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_lexical, 
+    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_lexical,
                          &MaxRuleProbabilityMultiple::pick_best_binary );
-    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_unary, 
+    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_unary,
                          &MaxRuleProbabilityMultiple::pick_best );
-  }
+  },
+                                    num_cell_threads
   );
 }
 
 void ParserCKYAllMaxRuleMultiple::backup_annotations() const
 {
   chart->opencells_apply_bottom_up([](Cell&cell){
-    cell.apply_on_edges(&MaxRuleProbabilityMultiple::backup_annotations);});
+      cell.apply_on_edges(&MaxRuleProbabilityMultiple::backup_annotations);},
+    num_cell_threads);
 }
 
 
