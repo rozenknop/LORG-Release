@@ -20,9 +20,6 @@ public:
 
 private:
   ConfigTable *  parse_config(int argc, char **argv);
-#ifdef USE_THREADS
-  tbb::task_scheduler_init tbb_task_scheduler;
-#endif
 
 protected:
   virtual bool read_config(ConfigTable& configuration);
@@ -33,6 +30,11 @@ protected:
 
   std::istream* in;
   std::ostream* out;
+
+  #ifdef USE_THREADS
+  tbb::task_scheduler_init tbb_task_scheduler;
+  #endif
+  
 };
 
 

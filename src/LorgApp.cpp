@@ -1,7 +1,11 @@
 #include "LorgApp.h"
 
 
-LorgApp::LorgApp() : verbose(false), in(NULL), out(NULL) {}
+LorgApp::LorgApp() : verbose(false), in(NULL), out(NULL)
+#ifdef USE_THREADS
+, tbb_task_scheduler(tbb::task_scheduler_init::deferred)
+#endif
+{}
 
 LorgApp::~LorgApp()
 {
@@ -21,7 +25,7 @@ bool LorgApp::init(int argc, char **argv)
   if (nbthreads!=0)
     tbb_task_scheduler.initialize(nbthreads);
   else
-    tbb_task_scheduler.initialize();
+    tbb_task_scheduler.initialize(tbb::task_scheduler_init::automatic);
 #endif
   
   return res;
