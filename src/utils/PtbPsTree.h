@@ -4,7 +4,7 @@
 
 #include "PsTree.h"
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/regex.hpp>
 #include <iostream>
 
@@ -34,7 +34,7 @@ public:
      \brief removes traces from a tree
      \param labels_to_remove labels to remove from the tree
    **/
-  void clean(const boost::unordered_set<std::string>& labels_to_remove);
+  void clean(const std::unordered_set<std::string>& labels_to_remove);
 
   /**
      \brief remove chains X -> X from a tree
@@ -58,7 +58,7 @@ public:
    **/
   void unbinarise();
 
-  
+
   /**
      \brief binarise a tree
    **/
@@ -73,7 +73,7 @@ public:
 				std::map<int, double> & LHS_counts) const;
 
   void coarse_terminal(bool prime,
-		       boost::unordered_map< std::string, boost::unordered_set<std::string> >& coarse_to_fine_map);
+		       std::unordered_map< std::string, std::unordered_set<std::string> >& coarse_to_fine_map);
 
 };
 

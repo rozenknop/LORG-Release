@@ -8,8 +8,7 @@
 #include <vector>
 #include <map>
 
-// we should make a decision about these 2 implementations
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 /**
    \class PsTree
@@ -31,7 +30,7 @@ public:
   **/
   virtual void productions(std::vector<Production>& internals,std::vector<Production>& lexicals) const = 0;
 
-  
+
   /**
      \brief collects the internal counts of productions of a  phrase structure tree (binary and unary rules only)
      \param binary_counts counts for LHS -> RHS0 RHS1
@@ -42,7 +41,7 @@ public:
 					std::map<Production, double> & unary_counts,
 					std::map< int, double> & LHS_counts) const = 0;
 
-  
+
 
 
   /**
@@ -50,7 +49,7 @@ public:
      Should be implemented by subclasses
      \param labels_to_remove labels to remove from the tree
    **/
-  virtual void clean(const boost::unordered_set<std::string>& labels_to_remove) = 0;
+  virtual void clean(const std::unordered_set<std::string>& labels_to_remove) = 0;
 
   /**
      \brief add parent information (ie, name) to each node

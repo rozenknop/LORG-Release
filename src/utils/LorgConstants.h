@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define MAP boost::unordered_map
+#define MAP std::unordered_map
 //#define MAP std::map
 
 namespace LorgConstants

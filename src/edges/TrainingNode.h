@@ -14,22 +14,6 @@
 typedef std::unordered_map< std::pair<int, int >, double> DeltaMap;
 
 
-namespace std
-{
-template <class U, class V>
-class hash<pair<U,V> > {
- public:
-  inline size_t operator()(const pair<U,V> & p) const {
-    size_t seed = 0;
-    seed ^= p.first + 0x9e3779b9 + (seed<<6) + (seed>>2);
-    seed ^= p.second + 0x9e3779b9 + (seed<<6) + (seed>>2);
-
-    return seed;
-  }
-};
-};
-
-
 class TrainingNode;
 
 struct brule_occurrence

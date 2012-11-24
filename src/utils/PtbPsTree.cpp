@@ -12,25 +12,25 @@
 //#include "RandomGenerator.h"
 
 namespace {
-    
+
     inline
     bool is_artificial( const std::string& str )
     {
         return str[0] == '['; // hardcoded == Bad -> true
     }
-    
+
     void replace_number( std::string& s, const boost::regex& num_exp)
     {
         boost::cmatch matched;
         if(boost::regex_match(s.c_str(),matched,num_exp))
             s = LorgConstants::token_number;
     }
-    
+
     void remove_function_from_nt_string( std::string& orig )
     {
         static const boost::regex exp ("^([A-Za-z]+\\$?)[=-].*");
         boost::cmatch matched;
-        
+
         if(boost::regex_match(orig.c_str(),matched,exp))
             orig = std::string(matched[1].first, matched[1].second);
     }
@@ -54,7 +54,7 @@ PtbPsTree::PtbPsTree(const Content& content, const std::vector<PtbPsTree>& daugh
 PtbPsTree::~PtbPsTree(){}
 
 //remove node with unwanted labels
-void PtbPsTree::clean(const boost::unordered_set<std::string>& labels_to_remove)
+void PtbPsTree::clean(const std::unordered_set<std::string>& labels_to_remove)
 {
     for(PtbPsTree::depth_first_iterator i(dfbegin()); i != dfend(); ++i) {
         if(labels_to_remove.count(*i)) {
@@ -72,10 +72,10 @@ void PtbPsTree::remove_useless_unary_chains()
     for(iterator i(dfbegin()); i != dfend(); ++i) {
         // look for configuration  X -> Y
         if(!i->has_left_sister() && !i->has_right_sister() && i->has_mother() && !i->leaf()) {
-            
+
             iterator save(i); save.up();
             if(*save != *i) continue;
-            
+
             iterator j(i); j.down_first();
             while(j != dfend()) {
                 add_last_daughter(save,subtree(j));
@@ -120,9 +120,9 @@ void PtbPsTree::unbinarise()
 
 
 namespace {
-    
+
     typedef PtbPsTree::depth_first_iterator iterator;
-    
+
     inline
     std::string daughters_to_string(const std::list<iterator>& daughters, const std::string&, int)
     {
@@ -131,10 +131,10 @@ namespace {
         for(std::list<iterator>::const_reverse_iterator iter = daughters.rbegin(); iter != daughters.rend();++iter)
             treename << '(' << *(*iter) <<')';
         treename << ']';
-        
+
         return treename.str();
     }
-    
+
     inline
     std::string
     n_daughters_left_to_string(const std::list<iterator>& daughters, const std::string& ancestor_name, int markov)
@@ -142,7 +142,7 @@ namespace {
         std::ostringstream treename;
         treename << "[("  + ancestor_name + ")>";
         //  treename << "@"+ ancestor_name;
-        
+
         std::list<iterator>::const_reverse_iterator iter = daughters.rbegin();
         while(markov > 0 && iter != daughters.rend()) {
             treename << '(' << *(*iter) << ')';
@@ -150,11 +150,11 @@ namespace {
             ++iter;
         }
         treename << ']';
-        
+
         return treename.str();
     }
-    
-    
+
+
     inline
     std::string
     n_daughters_right_to_string(const std::list<iterator>& daughters, const std::string& ancestor_name, int markov)
@@ -162,7 +162,7 @@ namespace {
         std::ostringstream treename;
         treename << "[("  + ancestor_name + ")>";
         // treename << "@"+ ancestor_name;
-        
+
         std::list<iterator>::const_iterator iter = daughters.begin();
         while(markov > 0 && iter != daughters.end()) {
             treename << '(' << *(*iter) << ')';
@@ -170,11 +170,11 @@ namespace {
             ++iter;
         }
         treename << ']';
-        
+
         return treename.str();
     }
-    
-    
+
+
     inline
     PtbPsTree
     create_bintree(const std::string& current_name,
@@ -192,13 +192,13 @@ namespace {
             child = daughters.front();
             daughters.pop_front();
         }
-        
+
         PtbPsTree bin(give_name(daughters, ancestor_name,mark));
         iterator bin_iter = bin.dfbegin();
         for(std::list<iterator>::const_iterator iter = daughters.begin(); iter != daughters.end();++iter)
             bin.add_first_daughter(bin_iter,bin.subtree(*iter));
-        
-        
+
+
         PtbPsTree new_tree(current_name);
         iterator new_iter = new_tree.dfbegin();
         if (dir ==  LEFT) {
@@ -209,7 +209,7 @@ namespace {
             new_tree.add_first_daughter(new_iter,new_tree.subtree(child));
             new_tree.add_first_daughter(new_iter,bin);
         }
-        
+
         return new_tree;
     }
 }
@@ -217,41 +217,41 @@ namespace {
 void PtbPsTree::binarise(Bin_Direction direction, HorizMarkov mark)
 {
     assert(direction == LEFT || direction == RIGHT);
-    
+
     std::string (*give_name)(const std::list<iterator>&, const std::string&, HorizMarkov) = NULL;
-    
-    
+
+
     if(mark < 0)
         give_name = daughters_to_string;
     else if(direction == LEFT)
         give_name = n_daughters_left_to_string;
     else
         give_name = n_daughters_right_to_string;
-    
+
     assert(give_name != NULL);
-    
+
     std::string ancestor_name;
-    
+
     // visit all nodes, starting from root (depth-first)
     for(iterator pos = dfbegin(); pos != dfend(); ++pos) {
-        
+
         std::list<iterator> daughters;
-        
+
         //get daughters (in reverse order)
         iterator dter = pos;
         for(dter.down_last(); dter != dfend(); dter.left())
             daughters.push_back(dter);
-        
+
         if(daughters.size() > 2 ) {
-            
+
             //should be a const_iterator !
             iterator ancestor_iter = pos;
             while(is_artificial(*ancestor_iter))
                 ancestor_iter.up();
             std::string ancestor_name = *ancestor_iter;
-            
+
             PtbPsTree new_tree = create_bintree(*pos,daughters, direction, ancestor_name, mark, give_name);
-            
+
             //replace content with binarized content
             add_left_sister(pos,new_tree);
             iterator new_pos = pos;
@@ -280,12 +280,12 @@ void PtbPsTree::parent_annotate(unsigned level, bool annotate_pos)
     std::priority_queue<PtbPsTree::depth_first_iterator, std::vector<PtbPsTree::depth_first_iterator>, Higher> pqueue;
     for(iterator i = dfbegin(); i != dfend(); ++i)
         pqueue.push(i);
-    
+
     // annotate tree nodes bottom up
     while(!pqueue.empty()) {
         if(!pqueue.top()->leaf()) {
             //      std::cout << "height " << pqueue.top()->height() << std::endl;
-            
+
             iterator copy = pqueue.top();
             if (!copy.down_first()->leaf() || annotate_pos) {
                 unsigned i = 0;
@@ -306,12 +306,12 @@ void PtbPsTree::productions(std::vector<Production>& internals, std::vector<Prod
     typedef PtbPsTree::const_depth_first_iterator const_iterator;
     static SymbolTable& sym_tab_nt = SymbolTable::instance_nt();
     static SymbolTable& sym_tab_word = SymbolTable::instance_word();
-    
+
     for(const_iterator i(this->dfbegin()); i != this->dfend(); ++i) {
         if(!i->leaf()) {
             int lhs = sym_tab_nt.insert(*i);
             std::vector<int> rhs;
-            
+
             const_iterator j = i;
             j.down_first();
             if(j->leaf()) {  //lexical rule
@@ -321,7 +321,7 @@ void PtbPsTree::productions(std::vector<Production>& internals, std::vector<Prod
             else { // internal rule
                 for(; j != this->dfend(); j.right())
                     rhs.push_back(sym_tab_nt.insert(*j));
-                
+
                 internals.push_back(Production(lhs,rhs,false));
             }
         }
@@ -334,27 +334,27 @@ void PtbPsTree::collect_internal_counts( std::map<Production, double> & binary_c
 {
     //static RandomGenerator random_gen(0,1);
     static SymbolTable& sym_tab_nt = SymbolTable::instance_nt();
-    
+
     for(PtbPsTree::const_depth_first_iterator i = this->dfbegin(); i != this->dfend(); ++i) {
         if(!i->leaf()) {
-            
+
             PtbPsTree::const_depth_first_iterator j = i;
             j.down_first();
-            
+
             double update = 1 /*+ random_gen.next() / 100*/ ;
             if(!j->leaf()) {//internal rule
                 int lhs = sym_tab_nt.insert(*i);
-                
+
                 LHS_counts[lhs] += update;
                 std::vector<int> rhs;
-                
+
                 for(; j != this->dfend(); j.right()){
                     rhs.push_back(sym_tab_nt.insert(*j));
                 }
-                
+
                 assert(rhs.size() >0 && rhs.size() <= 2);
-                
-                if (rhs.size()==1)//unary		        	
+
+                if (rhs.size()==1)//unary
                     unary_counts[Production(lhs,rhs,false)] += update;
                 else {
                     binary_counts[Production(lhs,rhs,false)] += update;

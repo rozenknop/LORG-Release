@@ -2,6 +2,9 @@
 
 #include "utils/SymbolTable.h"
 
+#include "utils/hash_impl.h"
+
+
 
 BinaryTrainingTree::BinaryTrainingTree() : root(NULL) {}
 

@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <iostream>
-#include "boost/unordered_set.hpp"
+#include <unordered_set>
 
 #include "boost/regex.hpp"
 
@@ -18,7 +18,7 @@
 
 
 struct treebank_options {
-  boost::unordered_set<std::string> labels_to_remove; // labels to remove
+  std::unordered_set<std::string> labels_to_remove; // labels to remove
   bool func;            //remove functional annotations
   bool num;             // replace numbers by |NUMBER|
   boost::regex num_regex; // regex to recognize numbers
@@ -28,15 +28,15 @@ struct treebank_options {
   Bin_Direction dir;    // direction for binarisation
   HorizMarkov   mark;    // horizontal precision of the binarisation
   unsigned int max_size;// maximum size for the input sentences to be added to the treebank (0 means no limit)
-  
-treebank_options(const boost::unordered_set<std::string>& labels_to_remove_ = boost::unordered_set<std::string>(), 
+
+treebank_options(const std::unordered_set<std::string>& labels_to_remove_ = std::unordered_set<std::string>(),
 		 bool func_ = true,
 		 bool num_ =  false,
 		 const boost::regex & num_regex_ = boost::regex(),
-		 bool pannotate_ = 0, 
-		 bool pannotate_extra_ = false, 
+		 bool pannotate_ = 0,
+		 bool pannotate_extra_ = false,
 		 bool remove_same_unary_= false,
-		 Bin_Direction dir_ = LEFT, 
+		 Bin_Direction dir_ = LEFT,
 		 HorizMarkov mark_ = -1, //infinite -> "exact" binarization
 		 unsigned max_size_ = 0) :
   labels_to_remove(labels_to_remove_),func(func_),num(num_), num_regex(num_regex_),
@@ -58,13 +58,13 @@ private:
   std::vector<T> trees; ///< the trees of the treebank
   treebank_options options;
   bool verbose;
-  
+
 public:
   /**
      \brief Empty Treebank
   **/
   Treebank(bool verb = false) : trees(), options(), verbose(verb) {};
-  
+
   Treebank(const treebank_options& tb_options, bool verb = false)
     : trees(), options(tb_options) , verbose(verb)
   {};
@@ -120,7 +120,7 @@ public:
      \param os the ostream to write on
      \param tb the treebank object to write
      \return the used ostream
-  */  
+  */
   template< class U>
   friend std::ostream& operator<<(std::ostream& os, const Treebank<U>& tb);
 

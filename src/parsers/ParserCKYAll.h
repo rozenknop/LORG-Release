@@ -605,7 +605,8 @@ void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
 {
-  this->chart->opencells_apply_bottom_up ( & Cell::compute_inside_probabilities );
+  this->chart->opencells_apply_bottom_up ( & Cell::compute_inside_probabilities,
+                                           num_cell_threads );
  }
 
 
@@ -654,7 +655,7 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
   compute_outside_probabilities();
 
   this->chart->opencells_apply_bottom_up(
-      [log_sent_prob, log_threshold, huang, start_symbol]
+      [log_sent_prob, log_threshold, huang]
       (Cell& cell)
       {
         cell.apply_on_edges(&Edge::clean_invalidated_binaries);
@@ -666,7 +667,8 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
         }
-      }
+      },
+      num_cell_threads
                                          );
 }
 
@@ -717,7 +719,7 @@ void process_internal(typename rulevect2mapvect<Key,MyRule>::map_type& map, std:
 }
 
 
-#define MAP boost::unordered_map
+#define MAP std::unordered_map
 //#define MAP std::map
 
 template <typename TCell>
