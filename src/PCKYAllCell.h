@@ -720,18 +720,14 @@ void PCKYAllCell<MyEdge>::change_rules_resize(const AnnotatedLabelsInfo& next_an
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::change_rules_resize(unsigned new_size, unsigned finer_idx)
 {
-  for(unsigned i = 0; i < max_size; ++i)
-    {
-      if(edges[i]) {
-        //resize
-        edges[i]->get_annotations().reset_probabilities(0.0);
-        edges[i]->get_annotations().resize(new_size);
-
-
-        //replace rule
-        edges[i]->replace_rule_probabilities(finer_idx);
-      }
-    }
+  apply_on_edges(function<void(Edge&)>([new_size,finer_idx](Edge&e){
+    //resize
+    e.get_annotations().reset_probabilities(0.0);
+    e.get_annotations().resize(new_size);
+    //replace rule
+    e.replace_rule_probabilities(finer_idx);
+  })
+  );
 }
 
 

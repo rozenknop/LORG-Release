@@ -44,8 +44,7 @@ public:
                              toFunc (&ProbaModel::update_binary));
         cell.apply_on_edges (toFunc(&ProbaModel::update_unary),
                              toFunc (&ProbaModel::finalize));
-      },
-      this->num_cell_threads
+      }
     );
   }
 

@@ -38,7 +38,9 @@ private:
   unsigned size;     ///< the size of the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
-
+  #ifdef USE_THREADS
+  std::vector<Cell *> vcells;
+  #endif
 
   // prevents unwanted conversions
   ChartCKY(const ChartCKY&);
@@ -92,6 +94,7 @@ public:
 
   ostream & to_stream(ostream & s) const;
   
+  void opencells_apply( std::function<void(Cell &)> f );
   void opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span=0 );
   void opencells_apply_top_down( std::function<void(Cell &)> f );
   void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
@@ -101,6 +104,14 @@ public:
 
 
 #ifndef USE_THREADS
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+{
+  opencells_apply_bottom_up(f);
+}
+
 template<class Cell, class MyWord>
 void
 ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span)
@@ -123,7 +134,7 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
 
 template<class Cell, class MyWord>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f , unsigned /*nbthreads*/)
+ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
 {
   unsigned sent_size=get_size();
   for (signed span = sent_size-1; span >= 0; --span) {
@@ -140,6 +151,20 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f 
   }
 }
 #else // USE_THREADS defined
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+{
+  tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
+                    [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
+                        for (auto cell = r.begin(); cell < r.end(); ++cell) {
+                          if(!(**cell).is_closed()) f(**cell);
+                        }
+                      }
+  );
+}
+
 
 #ifdef WITH_PARALLEL_FOR
 template<class Cell, class MyWord>
@@ -162,13 +187,8 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
 }
 template<class Cell, class MyWord>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f , unsigned nbthreads)
+ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
 {
-
-  tbb::task_scheduler_init init(nbthreads);
-
-
-
   unsigned sent_size=get_size();
   for (signed span = sent_size-1; span >= 0; --span) {
     unsigned end_of_begin=sent_size-span;
@@ -432,14 +452,25 @@ ChartCKY<Cell, MyWord>::ChartCKY(const std::vector< MyWord >& s, unsigned gramma
   }
 
   for (unsigned i = 0; i < sentence.size(); ++i)
-    {
-      // todo: proper error handling
-      if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
-        std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
+  {
+    // todo: proper error handling
+    if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
+      std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
+    
+    access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
+  }
 
-      access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
+  #ifdef USE_THREADS
+  unsigned sent_size=get_size();
+  vcells.reserve((sent_size*(sent_size+1))/2);
+  for (signed span = sent_size-1; span >= 0; --span) {
+    unsigned end_of_begin=sent_size-span;
+    for (unsigned begin=0; begin < end_of_begin; ++begin) {
+      unsigned end = begin + span ;
+      vcells.push_back(& access(begin,end)) ;
     }
-
+  }
+  #endif
 
   //  std::cout << "Chart is built and intialised" << std::endl;
 }
