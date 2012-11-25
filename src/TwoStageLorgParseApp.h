@@ -101,7 +101,8 @@ int TwoStageLorgParseApp::run()
 
             // extract best solution with the finest grammar
             if(parser->is_chart_valid(start_symbol))
-                parser->extract_solution();
+              parser->extract_solution();
+
             if(parser->is_chart_valid(start_symbol))
                 parser->get_parses(start_symbol, kbest, always_output_forms, output_annotations, best_trees);
         }

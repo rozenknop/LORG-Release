@@ -37,7 +37,7 @@ public:
    **/
    void calculate_maxrule_probabilities()
    {
-     this->chart->opencells_apply_bottom_up (
+     this->chart->opencells_apply_bottom_up(
       [](Cell & cell)
       {
         cell.apply_on_edges (toFunc(&ProbaModel::update_lexical),

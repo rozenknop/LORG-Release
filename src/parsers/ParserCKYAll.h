@@ -598,7 +598,7 @@ void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
 {
-  this->chart->opencells_apply_bottom_up ( & Cell::compute_inside_probabilities );
+  this->chart->opencells_apply_bottom_up( & Cell::compute_inside_probabilities );
 }
 
 
@@ -641,12 +641,12 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
         cell.apply_on_edges(&Edge::clean_invalidated_binaries);
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
-
-        if(!cell.is_closed() && huang) {
-          cell.apply_on_edges(&Edge::clean_invalidated_binaries);
-          cell.beam_huang(std::log(0.0001), log_sent_prob);
-          cell.clean();
-        }
+        #warning TODO: check why this is commented out. Is there still a problem with multithreading ?
+        // if(!cell.is_closed() && huang) {
+        //   cell.apply_on_edges(&Edge::clean_invalidated_binaries);
+        //   cell.beam_huang(std::log(0.0001), log_sent_prob);
+        //   cell.clean();
+        // }
       }
   );
 }
@@ -812,7 +812,6 @@ void ParserCKYAll_Impl<TCell>::change_rules_resize(unsigned step,
 {
   const AnnotatedLabelsInfo& next_annotations = current_grammars[step+1]->get_annotations_info();
   const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current =  annot_descendants[step];
-
 
   this->chart->opencells_apply(
     [next_annotations, annot_descendants_current]

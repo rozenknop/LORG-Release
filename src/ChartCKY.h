@@ -2,7 +2,7 @@
 #ifndef CHARTCKY_H_
 #define CHARTCKY_H_
 
-// #define WITH_PARALLEL_FOR
+//#define WITH_PARALLEL_FOR
 
 #include "utils/PtbPsTree.h"
 #include "utils/LorgConstants.h"
@@ -258,7 +258,7 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
   signed min_s = min_span;
   signed sent_size = get_size();
   if (min_s>=sent_size) return;
-  
+
   tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
   ChartTask* x[sent_size][sent_size];
   for (signed span = sent_size-1; span>=min_s; --span) {
@@ -270,7 +270,7 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
         x[span][begin] = new( tbb::task::allocate_root() ) ChartTask([](){});
       else
         x[span][begin] = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
-  
+
       // successor[0] = successor up-left, successor[1] = successor up
       x[span][begin]->successor[0] = span<sent_size-1 && begin>0              ? x[span+1][begin-1] : NULL;
       x[span][begin]->successor[1] = span<sent_size-1 && begin<end_of_begin-1 ? x[span+1][begin  ] : NULL;
@@ -311,7 +311,7 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f 
       x[span][begin]->successor[0] = span>0 ? x[span-1][begin] : waiter;
       x[span][begin]->successor[1] = span>0 ? x[span-1][begin+1] : NULL;
       x[span][begin]->set_ref_count((begin<end_of_begin) + (begin>0));
-      
+
 //       (std::cout << "created ("<< span << "," << begin << "," << end << " | " << x[span][begin]->successor[0] << "," << x[span][begin]->successor[1] << ")\n").flush();
     }
   }
@@ -320,11 +320,9 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f 
   waiter->spawn_and_wait_for_all(*x[sent_size-1][0]);
   tbb::task::destroy(*waiter);
 }
-  
+
 #endif // WITH_PARALLEL_FOR
 #endif // USE_THREADS
-
-
 
 
 
