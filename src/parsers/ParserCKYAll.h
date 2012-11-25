@@ -592,7 +592,7 @@ void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) c
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 {
-  this->chart->opencells_apply_top_down( & Cell::compute_outside_probabilities) ;
+  this->chart->opencells_apply_top_down_nothread( & Cell::compute_outside_probabilities) ;
 }
 
 template <typename TCell>
@@ -620,7 +620,7 @@ void ParserCKYAll_Impl<TCell>::beam_chart_io_relative() const
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
   chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
-  compute_outside_probabilities(chart);
+  compute_outside_probabilities();
 
   chart->opencells_apply([&io_beam_thresholds](Cell & cell){cell.beam(io_beam_thresholds[0]);});
 }

@@ -49,7 +49,7 @@ set(twostage_lorgparser_SOURCES
          rules/BRule.cpp rules/URule.cpp rules/LexicalRule.cpp)
 
 set(common_include_dir ${CMAKE_CURRENT_SOURCE_DIR} ${TBB_INCLUDE_DIRS})
-set(common_libs  ${TBB_LIBRARIES} ${RTLIB} ${TCMALLOC_LIB})
+set(common_libs  ${TBB_LIBS} ${RTLIB} ${TCMALLOC_LIB})
 
 #message(warning "In src : Include directories are : ${common_include_dir}")
 # message(warning "In src : Common libs are : ${common_libs}")

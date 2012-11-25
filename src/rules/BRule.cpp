@@ -101,10 +101,10 @@ void BRule::update_inside_annotations(std::vector<double>& up,
 
 
 void BRule::update_outside_annotations(const std::vector<double>& up_out,
-				       const std::vector<double>& left_in,
-				       const std::vector<double>& right_in,
-				       std::vector<double>& left_out,
-				       std::vector<double>& right_out) const
+                                       const std::vector<double>& left_in,
+                                       const std::vector<double>& right_in,
+                                       std::vector<double>& left_out,
+                                       std::vector<double>& right_out) const
 {
   for(unsigned short i = 0; i < probabilities.size(); ++i) {
     if(up_out[i] == LorgConstants::NullProba || up_out[i] == 0.0) continue;
@@ -115,15 +115,15 @@ void BRule::update_outside_annotations(const std::vector<double>& up_out,
       double factor4right = 0.0;
       if(left_in[j] != LorgConstants::NullProba) factor4right = up_out[i] * left_in[j];
       for(unsigned short k = 0; k < dim_j.size(); ++k) {
-	const double& t = dim_j[k];
-	// if(right_in[k] != LorgConstants::NullProba) temp4left += right_in[k] * t;
-	// if(right_out[k] != LorgConstants::NullProba) right_out[k] += factor4right * t;
+        const double& t = dim_j[k];
+        // if(right_in[k] != LorgConstants::NullProba) temp4left += right_in[k] * t;
+        // if(right_out[k] != LorgConstants::NullProba) right_out[k] += factor4right * t;
 
-	// I and O are always Null at the same time
-	if(right_in[k] != LorgConstants::NullProba) {
-	  temp4left += right_in[k] * t;
-	  right_out[k] += factor4right * t;
-	}
+        // I and O are always Null at the same time
+        if(right_in[k] != LorgConstants::NullProba) {
+          temp4left += right_in[k] * t;
+          right_out[k] += factor4right * t;
+        }
 
 
       }

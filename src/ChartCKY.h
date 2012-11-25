@@ -95,7 +95,9 @@ public:
   ostream & to_stream(ostream & s) const;
   
   void opencells_apply( std::function<void(Cell &)> f );
+  void opencells_apply_nothread( std::function<void(Cell &)> f );
   void opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span=0 );
+  void opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span=0 );
   void opencells_apply_top_down( std::function<void(Cell &)> f );
   void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
 
@@ -103,18 +105,17 @@ public:
 };
 
 
-#ifndef USE_THREADS
 
 template<class Cell, class MyWord>
 void
-ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+ChartCKY<Cell, MyWord>::opencells_apply_nothread( std::function<void(Cell &)> f)
 {
-  opencells_apply_bottom_up(f);
+  opencells_apply_bottom_up_nothread(f);
 }
 
 template<class Cell, class MyWord>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span)
+ChartCKY<Cell, MyWord>::opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span)
 {
 
   unsigned sent_size = get_size();
@@ -126,7 +127,6 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
       //std::cout << "(" << begin << "," << end << ")" << std::endl;
 
       Cell& cell = access(begin,end);
-
       if(!cell.is_closed()) f(cell);
     }
   }
@@ -134,7 +134,7 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
 
 template<class Cell, class MyWord>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
+ChartCKY<Cell, MyWord>::opencells_apply_top_down_nothread( std::function<void(Cell &)> f)
 {
   unsigned sent_size=get_size();
   for (signed span = sent_size-1; span >= 0; --span) {
@@ -145,11 +145,34 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
       //std::cout << '(' << begin << ',' << end << ')' << std::endl;
 
       Cell& cell = access(begin,end);
-
       if(!cell.is_closed()) f(cell);
     }
   }
 }
+
+#ifndef USE_THREADS
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+{
+  opencells_apply_nothread(f);
+}
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span)
+{
+  opencells_apply_bottom_up_nothread(f, min_span);
+}
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
+{
+  opencells_apply_bottom_up_nothread(f);
+}
+
 #else // USE_THREADS defined
 
 template<class Cell, class MyWord>
@@ -200,7 +223,6 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
                           //std::cout << '(' << begin << ',' << end << ')' << std::endl;
 
                           Cell& cell = this->access(begin,end);
-
                           if(!cell.is_closed()) f(cell);
                         }
                       }
@@ -305,25 +327,6 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f 
 
 
 
-
-template<class Cell, class MyWord>
-void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down_nothread( std::function<void(Cell &)> f )
-{
-  unsigned sent_size=get_size();
-  for (signed span = sent_size-1; span >= 0; --span) {
-    unsigned end_of_begin=sent_size-span;
-
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-      //std::cout << '(' << begin << ',' << end << ')' << std::endl;
-
-      Cell& cell = access(begin,end);
-
-      if(!cell.is_closed()) f(cell);
-    }
-  }
-}
 
 template<class Cell, class MyWord>
 ostream & operator<<(ostream & out, const ChartCKY<Cell,MyWord> & chart) { return chart.to_stream(out) ; }

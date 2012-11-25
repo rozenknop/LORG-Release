@@ -383,7 +383,6 @@ void PCKYAllCell<MyEdge>::compute_inside_probabilities()
   apply_on_edges(& Edge::                  adjust_inside_probability);
 }
 
-
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::compute_outside_probabilities()
 {
