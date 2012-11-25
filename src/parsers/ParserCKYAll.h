@@ -592,7 +592,7 @@ void ParserCKYAll_Impl<TCell>::process_unary(Cell& cell, int lhs, bool isroot) c
 template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_outside_probabilities()
 {
-  this->chart->opencells_apply_top_down_nothread( & Cell::compute_outside_probabilities) ;
+  this->chart->opencells_apply_top_down( & Cell::compute_outside_probabilities) ;
 }
 
 template <typename TCell>

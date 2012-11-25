@@ -98,7 +98,28 @@ void BRule::update_inside_annotations(std::vector<double>& up,
 
 
 
+#ifdef USE_THREADS
 
+#include <tbb/atomic.h>
+using tbb::atomic;
+
+inline void operator+=(atomic<double>& un, const double & deux)
+/**
+ * @brief atomic += operator used for concurrent computations of outside probabilities
+ *
+ * @param un left value to be modified
+ * @param deux additive term
+ * @return void
+ **/
+{
+  double oldx, newx ;
+  do {
+    oldx = un ;
+    newx = oldx+deux ;
+  } while (un.compare_and_swap(newx,oldx) != oldx);
+}
+
+#endif
 
 void BRule::update_outside_annotations(const std::vector<double>& up_out,
                                        const std::vector<double>& left_in,
@@ -106,6 +127,13 @@ void BRule::update_outside_annotations(const std::vector<double>& up_out,
                                        std::vector<double>& left_out,
                                        std::vector<double>& right_out) const
 {
+  #ifdef USE_THREADS
+  std::vector<atomic<double>> & lo = *(std::vector<atomic<double>> *) &left_out ;
+  std::vector<atomic<double>> & ro = *(std::vector<atomic<double>> *) &right_out ;
+  #else
+  std::vector<double> & lo = left_out ;
+  std::vector<double> & ro = right_out ;
+  #endif
   for(unsigned short i = 0; i < probabilities.size(); ++i) {
     if(up_out[i] == LorgConstants::NullProba || up_out[i] == 0.0) continue;
     const std::vector<std::vector<double> >& dim_i = probabilities[i];
@@ -122,12 +150,10 @@ void BRule::update_outside_annotations(const std::vector<double>& up_out,
         // I and O are always Null at the same time
         if(right_in[k] != LorgConstants::NullProba) {
           temp4left += right_in[k] * t;
-          right_out[k] += factor4right * t;
+          ro[k] += factor4right * t;
         }
-
-
       }
-      if(left_out[j] != LorgConstants::NullProba) left_out[j] += up_out[i] * temp4left;
+      if(lo[j] != LorgConstants::NullProba) lo[j] += up_out[i] * temp4left;
     }
   }
 }

@@ -700,8 +700,6 @@ void PCKYAllCell<MyEdge>::change_rules_resize(const AnnotatedLabelsInfo& next_an
             a.inside_probabilities.array[*new_annot] = LorgConstants::NullProba;
             a.outside_probabilities.array[*new_annot] = LorgConstants::NullProba;
           }
-
-
         }
       }
 
