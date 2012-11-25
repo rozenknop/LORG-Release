@@ -274,46 +274,66 @@ public:
 //   );
 // }
 
+#include "tbb/task_group.h"
 
 template<class Cell, class MyWord>
 void
 ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
 {
   unsigned sent_size = this->get_size();
-
-  tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
-
-  ChartTask* x[sent_size][sent_size];
-  tbb::task_list seeds;
-  unsigned count = 0;
-
+  tbb::task_group g;
   for(unsigned i = 0; i < sent_size; ++i) {
     for (unsigned j = i; j < sent_size; ++j) {
 
       Cell* cell = &this->access(i,j);
-
-      if(cell->is_closed())
+      if(!cell->is_closed())
       {
-        x[i][j] = new( tbb::task::allocate_root() ) ChartTask([](){});
+        g.run([cell,&f](){f(*cell);});
       }
-      else
-      {
-        x[i][j] = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
-      }
-      x[i][j]->successor[0] = waiter;
-      x[i][j]->successor[1] = NULL;
-      x[i][j]->set_ref_count(2);
-
-      seeds.push_back(*x[i][j]);
-      ++count;
     }
   }
-
-  waiter->set_ref_count(count +1);
-  // Wait for all tasks to complete.
-  waiter->spawn_and_wait_for_all(seeds);
-  tbb::task::destroy(*waiter);
+  g.wait();
 }
+
+// template<class Cell, class MyWord>
+// void
+// ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+// {
+//   unsigned sent_size = this->get_size();
+// 
+//   tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
+// 
+//   ChartTask* x[sent_size][sent_size];
+//   tbb::task_list seeds;
+//   unsigned count = 0;
+// 
+//   for(unsigned i = 0; i < sent_size; ++i) {
+//     for (unsigned j = i; j < sent_size; ++j) {
+// 
+//       Cell* cell = &this->access(i,j);
+// 
+//       if(cell->is_closed())
+//       {
+//         x[i][j] = new( tbb::task::allocate_root() ) ChartTask([](){});
+//       }
+//       else
+//       {
+//         x[i][j] = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
+//       }
+//       x[i][j]->successor[0] = waiter;
+//       x[i][j]->successor[1] = NULL;
+//       x[i][j]->set_ref_count(2);
+// 
+//       seeds.push_back(*x[i][j]);
+//       ++count;
+//     }
+//   }
+// 
+//   waiter->set_ref_count(count +1);
+//   // Wait for all tasks to complete.
+//   waiter->spawn_and_wait_for_all(seeds);
+//   tbb::task::destroy(*waiter);
+// }
 
 
 
