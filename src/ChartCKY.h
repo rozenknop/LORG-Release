@@ -97,6 +97,10 @@ public:
   void opencells_apply_top_down( std::function<void(Cell &)> f );
   void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
 
+  void opencells_apply_all( std::function<void(Cell &)> f);
+  void opencells_apply_all_nothread( std::function<void(Cell &)> f);
+
+
   std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](TCell & cell){return out << cell << endl; }); return out; }
 };
 
@@ -141,6 +145,20 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down_nothread( std::function<void(Ce
 }
 
 
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_all_nothread( std::function<void(Cell &)> f)
+{
+    for(unsigned i = 0; i < this->get_size(); ++i) {
+      for (unsigned j = i; j < this->get_size(); ++j) {
+
+        Cell& cell = this->access(i,j);
+
+        if(!cell.is_closed()) f(cell);
+      }
+    }
+}
+
 #ifndef USE_THREADS
 template<class Cell, class MyWord>
 inline
@@ -157,6 +175,15 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f 
 {
   this->opencells_apply_top_down_nothread(f);
 }
+
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_all( std::function<void(Cell &)> f )
+{
+  this->opencells_apply_all_nothread(f);
+}
+
 
 #else // USE_THREADS defined
 
@@ -213,8 +240,11 @@ class ChartTask: public tbb::task {
   const std::function<void()> action ;
 public:
 //   virtual ~ChartTask() {(std::cout << "destruction of " << this << std::endl).flush();}
-  ChartTask(std::function<void()> _action) : action(_action) { /*std::cout << "initialisation" << endl;*/}
-  tbb::task* successor[2];
+  ChartTask(std::function<void()> _action)
+      : action(_action)
+  { /*std::cout << "initialisation" << endl;*/}
+
+  tbb::task* successor[2]; // always NULL in constructor ?
 
   task* execute() {
     __TBB_ASSERT( ref_count()==0, NULL );
@@ -227,6 +257,48 @@ public:
       return NULL;
   }
 };
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply_all( std::function<void(Cell &)> f)
+{
+  unsigned sent_size = this->get_size();
+
+  tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
+
+  ChartTask* x[sent_size][sent_size];
+  tbb::task_list seeds;
+  unsigned count = 0;
+
+  for(unsigned i = 0; i < sent_size; ++i) {
+    for (unsigned j = i; j < sent_size; ++j) {
+
+      Cell* cell = &this->access(i,j);
+
+      if(cell->is_closed())
+      {
+        x[i][j] = new( tbb::task::allocate_root() ) ChartTask([](){});
+      }
+      else
+      {
+        x[i][j] = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
+      }
+      x[i][j]->successor[0] = waiter;
+      x[i][j]->successor[1] = NULL;
+      x[i][j]->set_ref_count(2);
+
+      seeds.push_back(*x[i][j]);
+      ++count;
+    }
+  }
+
+  waiter->set_ref_count(count +1);
+  // Wait for all tasks to complete.
+  waiter->spawn_and_wait_for_all(seeds);
+  tbb::task::destroy(*waiter);
+}
+
+
 
 template<class Cell, class MyWord>
 void

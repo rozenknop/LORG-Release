@@ -419,27 +419,21 @@ void ParserCKYAll_Impl<TCell>::parse(int start_symbol) const
 
 
     //init
-    bool isroot = chart->get_size() == 1;
-    for(unsigned i = 0; i < chart->get_size(); ++i) {
-      for (unsigned j = i; j < chart->get_size(); ++j) {
+    bool beam_short = chart->get_size() >= min_length_beam;
+    chart->opencells_apply_all(
+        [&,beam_short, this, beam_threshold]
+        (Cell& cell)
+        {
+          if(!cell.is_empty()) {
+            this->add_unary_init(cell,cell.get_top());
+            cell.adjust_inside_probability();
 
-        Cell& cell = chart->access(i,j);
-
-        if(!cell.is_empty()) {
-          add_unary_init(cell,isroot);
-          cell.adjust_inside_probability();
-
-          // prevent short sentences from being skipped ...
-          if(chart->get_size() >= min_length_beam)
-            cell.beam(priors, beam_threshold);
-
-          // if(cell.is_closed())
-          //   std::cout << "(" << i << "," <<j << ") is closed" << std::endl;
+            // prevent short sentences from being skipped ...
+            if(beam_short)
+              cell.beam(priors, beam_threshold);
+          }
         }
-
-      }
-    }
-
+                                              );
     //actual cky is here
     process_internal_rules(beam_threshold);
 

@@ -57,7 +57,7 @@ public:
    */
   void init(bool cl, unsigned begin, unsigned end, bool top);
   void reinit(bool cl);
-  
+
 
   /**
      \brief insert a candidate edge in the cell from application of a binary rule
@@ -82,7 +82,7 @@ public:
 
   /**
      \brief test if there's an edge in the cell
-     \return fasle if there exists at least an edge in the cell
+     \return false if there exists at least an edge in the cell
   */
   bool is_empty() const;
 
@@ -150,20 +150,20 @@ public:
   void change_rules_resize(const AnnotatedLabelsInfo& next_annotations, const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current);
   void change_rules_resize(unsigned new_size, unsigned fienr_idx);
 
-  
-  
+
+
   /**
    * \brief apply a list of functions on each edge of this cell
    */
-  template<typename... Function> 
+  template<typename... Function>
   void apply_on_edges(Function&&... args) {
-    for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/ 
+    for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
       if(exists_edge(i)) get_edge(i).apply(args...);
     }
   }
 
   unsigned get_max_size() const { return max_size; }
-  
+
 private:
   Edge ** edges;
   bool closed;
@@ -199,8 +199,6 @@ bool PCKYAllCell<PEProbability>::is_empty() const
     }
   return true;
 }
-
-
 
 
 template<class PEProbability>
@@ -373,12 +371,12 @@ template<class MyEdge>
 void PCKYAllCell<MyEdge>::compute_inside_probabilities()
 {
   //   apply_on_edges( & Edge::clean_invalidated_binaries);
-  
+
   apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
                       & Edge::LexicalDaughters::update_inside_annotations  ,
                       & Edge:: BinaryDaughters::update_inside_annotations  ,
                       & Edge::                  prepare_inside_probability );
-  
+
   apply_on_edges(& Edge::  UnaryDaughters::update_inside_annotations);
   apply_on_edges(& Edge::                  adjust_inside_probability);
 }
@@ -401,11 +399,11 @@ void PCKYAllCell<MyEdge>::compute_outside_probabilities()
 template<class MyEdge>
 void PCKYAllCell<MyEdge>::clean()
 {
-  
+
   bool changed;
   do {
     changed =  false;
-    
+
     // go through all the lists of unary daughters and remove the ones pointing on removed edges
     for(unsigned i = 0; i < max_size; ++i)
       if(edges[i]) {
@@ -413,7 +411,7 @@ void PCKYAllCell<MyEdge>::clean()
         udaughters.erase(std::remove_if(udaughters.begin(), udaughters.end(),
                                         toFunc(& Edge::UnaryDaughters::points_towards_invalid_cells)),
                          udaughters.end());
-        
+
         if (edges[i]->get_binary_daughters().empty()
             && edges[i]->get_lexical_daughters().empty()
             && edges[i]->get_unary_daughters().empty())
@@ -425,7 +423,7 @@ void PCKYAllCell<MyEdge>::clean()
         }
       }
   } while(changed);
-  
+
   // final memory reclaim
   // TODO: benchmark this carefully
   bool all_null = true;
@@ -439,7 +437,7 @@ void PCKYAllCell<MyEdge>::clean()
       }
       all_null = false ;
     }
-    
+
   // //if all edge pointers are NULL, close the cell
   if(all_null)
     {
@@ -753,7 +751,7 @@ template<class MyEdge>
 void PCKYAllCell<MyEdge>::clear()
 {
   closed = false;
-  
+
   if(!edges)
   {
     edges =  new MyEdge * [max_size];
