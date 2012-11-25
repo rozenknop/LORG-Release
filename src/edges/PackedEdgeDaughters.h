@@ -123,6 +123,13 @@ public:
   inline bool is_lexical() const {return false;}
   inline Cell * left_daughter() const  {return left;}
   
+  inline bool points_towards_invalid_cells() const
+  {
+    return (
+      left->is_closed() or 
+      left->get_edge_ptr(get_rule()->get_rhs0()) == nullptr
+    );
+  }
   inline void update_inside_annotations(AnnotationInfo & annotations) {
     assert(rule != NULL);
     rule->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,

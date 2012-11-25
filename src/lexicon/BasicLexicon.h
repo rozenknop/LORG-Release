@@ -39,18 +39,17 @@ private:
 				   lexical_counts_map& lexical_counts);
 #ifdef USE_THREADS
   void update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & trees,
-					  bool last_iteration,
-                                          std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-                                          unsigned nbthreads);
+                                          bool last_iteration,
+                                          std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences);
 #endif
   void update_annotated_rule_counts(LexicalRuleTraining& rule, const AnnotationInfo& up_annotations,
-				    const scaled_array& root_insides) const;
+                                    const scaled_array& root_insides) const;
 
   void traverse_leaf_nodes(const BinaryTrainingTree& tree);
 
   void maximisation();
   void output_counts(const std::map<int, int>& LHS_counts, const std::map<int ,int>& RHS_counts,
-		     const lexical_counts_map& lexical_counts, const lexical_counts_map& lex_and_unknown_counts);
+                     const lexical_counts_map& lexical_counts, const lexical_counts_map& lex_and_unknown_counts);
 
  public:
   ~BasicLexicon();

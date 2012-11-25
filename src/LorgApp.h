@@ -4,6 +4,10 @@
 
 #include "utils/ConfigTable.h"
 
+#ifdef USE_THREADS
+#include <tbb/task_scheduler_init.h>
+#endif
+
 class LorgApp
 {
 public:
@@ -26,6 +30,11 @@ protected:
 
   std::istream* in;
   std::ostream* out;
+
+  #ifdef USE_THREADS
+  tbb::task_scheduler_init tbb_task_scheduler;
+  #endif
+  
 };
 
 

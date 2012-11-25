@@ -72,8 +72,7 @@ public:
 
   void update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & trees,
 					  bool last_iteration,
-                                          std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-                                          unsigned nbthreads);
+                                          std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences);
 
   std::string get_word_class(const std::string& word, int position) const;
 

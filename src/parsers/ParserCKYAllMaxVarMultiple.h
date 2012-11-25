@@ -12,10 +12,10 @@ class ParserCKYAllMaxRuleMultiple : public ParserCKYAllMaxRule<ParserCKYAllMaxRu
 {
 public:
   ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,
-			      const std::vector<double>& p, double b_t,
-			      const std::vector< std::vector<AGrammar*> >& fgs,
+                              const std::vector<double>& p, double b_t,
+                              const std::vector< std::vector<AGrammar*> >& fgs,
                               const std::vector<annot_descendants_type>& all_annot_descendants_,
-			      bool accurate_, unsigned min_beam, int stubborn, unsigned k, unsigned cell_threads);
+                              bool accurate_, unsigned min_beam, int stubborn, unsigned k);
 
   ~ParserCKYAllMaxRuleMultiple();
 
@@ -91,8 +91,8 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
                                                          const std::vector<double>& p, double b_t,
                                                          const std::vector< std::vector<AGrammar*> >& fgs,
                                                          const std::vector< annot_descendants_type >& all_annot_descendants_,
-							 bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-: ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn, cell_threads),
+							 bool accurate_, unsigned min_beam, int stubborn, unsigned k_)
+: ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn),
     fine_grammars(fgs), all_annot_descendants(all_annot_descendants_), nb_grammars(fgs.size() + 1), k(k_)
 {
 
@@ -118,7 +118,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
   create_coarse_to_fine_mapping(maxn_mapping);
 
   //TODO calculate this properly for multiple grammars
-  Edge::set_viterbi_unary_chains(grammars.back()->get_unary_decoding_paths());
+  Edge::set_unary_chains(grammars.back()->get_unary_decoding_paths());
 }
 
 

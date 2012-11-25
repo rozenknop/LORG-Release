@@ -11,8 +11,8 @@ class ParserCKYAllViterbi : public ParserCKYAll_Impl<ParserCKYAllViterbiCell>
 {
 public:
   ParserCKYAllViterbi(std::vector<AGrammar*>& cgs,
-		      const std::vector<double>& p, double b_t,
-		      const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_, bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads);
+                      const std::vector<double>& p, double b_t,
+                      const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_, bool accurate_, unsigned min_beam, int stubborn);
 
   virtual ~ParserCKYAllViterbi() { delete fine_grammar; fine_grammar = NULL;};
 
@@ -31,10 +31,10 @@ const ParserCKYAll::AGrammar& ParserCKYAllViterbi::get_fine_grammar() const
 
 
 ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
-					 const std::vector<double>& p, double b_t,
+                                         const std::vector<double>& p, double b_t,
                                          const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
-					 bool accurate_, unsigned min_beam, int stubborn, unsigned cell_threads)
-: ParserCKYAll_Impl<ParserCKYAllViterbiCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads)
+                                         bool accurate_, unsigned min_beam, int stubborn)
+: ParserCKYAll_Impl<ParserCKYAllViterbiCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn)
 {
   fine_grammar = new ParserCKYAll::AGrammar(*cgs[cgs.size()-1]);
   fine_grammar->set_logmode(); // the Viterbi algorithms assume the fine grammar rules weights are log_probs
@@ -47,37 +47,28 @@ ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
 
   create_coarse_to_fine_mapping(all_grammars);
 
-  Edge::set_viterbi_unary_chains(fine_grammar->get_unary_decoding_paths());
+  Edge::set_unary_chains(fine_grammar->get_unary_decoding_paths());
 }
 
 
 void ParserCKYAllViterbi::extract_solution()
 {
-  unsigned sent_size=chart->get_size();
-  const AnnotatedLabelsInfo& annotations = fine_grammar->get_annotations_info();
+  const AnnotatedLabelsInfo& annotations_info = fine_grammar->get_annotations_info();
 
 
-  // for (unsigned i=0; i < sent_size; ++i) {
-  //   //std::cout << "(" << i << "," << i << ")" << std::endl;
-
-  //   assert(!chart->access(i,i).is_closed());
-
-  //   chart->access(i,i).compute_best_viterbi_derivation(annotations);
-  // }
-
-  for (unsigned span = 0; span < sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin < end_of_begin; ++begin) {
-      unsigned end = begin + span ;
-
-      //std::cout << "(" << begin << "," << end << ")" << std::endl;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed())
-      	cell.compute_best_viterbi_derivation(annotations);
+  chart->opencells_apply_bottom_up(
+    [&annotations_info](Cell & cell){
+      
+      for(unsigned i = 0; i < cell.get_max_size(); ++i) {
+        if(cell.exists_edge(i))  {
+          cell.get_edge(i).get_prob_model().set_size(annotations_info.get_number_of_annotations(i));
+          cell.get_edge(i).replace_rule_probabilities(0);
+          cell.get_edge(i).apply(&ViterbiProbability::update_lexical);
+          cell.get_edge(i).apply(&ViterbiProbability::update_binary);
+        }
+      }
     }
-  }
+  );
 }
 
 

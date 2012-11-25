@@ -635,9 +635,8 @@ void BerkeleyLexicon::traverse_leaf_nodes(const BinaryTrainingTree& tree, bool s
 }
 
 void BerkeleyLexicon::update_annotated_counts_from_trees(const std::vector<BinaryTrainingTree> & trees,
-							 bool last_iteration,
-                                                           std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& /*lex_occurrences*/,
-                                                         unsigned /*nbthreads*/)
+                                                         bool last_iteration,
+                                                           std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& /*lex_occurrences*/)
 {
 
   unsigned treebank_size = trees.size();

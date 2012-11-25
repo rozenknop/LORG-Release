@@ -16,15 +16,15 @@ class ParserCKYAllMaxRuleKB : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCe
   ParserCKYAllMaxRuleKB(std::vector<AGrammar*>& cgs,
                         const std::vector<double>& p, double b_t,
                         const annot_descendants_type& annot_descendants_,
-                        bool accurate_, unsigned min_beam, int stubborn, unsigned k_, unsigned cell_threads)
-      : ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn, cell_threads) , k(k_)
+                        bool accurate_, unsigned min_beam, int stubborn, unsigned k_)
+      : ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn) , k(k_)
   {
     // this is not in the super class because maxn parsing uses a
     //different mapping
     //create the coarse-to-fine map
     this->create_coarse_to_fine_mapping(this->grammars);
 
-    Edge::set_viterbi_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
+    Edge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
   }
 
   ~ParserCKYAllMaxRuleKB() {};

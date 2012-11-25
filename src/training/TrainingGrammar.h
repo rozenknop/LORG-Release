@@ -45,8 +45,7 @@ class TrainingGrammar: public Grammar<BRuleTraining,URuleTraining,LexicalRuleTra
         TrainingGrammar(Treebank<PtbPsTree> & tb, Lexicon * lex);
         TrainingGrammar() : lexicon(NULL) {};
         ~TrainingGrammar() {delete lexicon;}
-        void update_lexical_counts(std::vector<BinaryTrainingTree> & trees, bool last_iteration, std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-                int nbthreads);
+        void update_lexical_counts(std::vector<BinaryTrainingTree> & trees, bool last_iteration, std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences);
         void maximise_lexical_rules();
 
         void split_all_rules(unsigned n, unsigned randomness = 1 );
@@ -166,21 +165,20 @@ inline const std::vector<LexicalRuleTraining>& TrainingGrammar::get_lexical_rule
 }
 
 inline void TrainingGrammar::update_lexical_counts(std::vector<BinaryTrainingTree> & trees, bool last_iteration,
-        std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences,
-        int nbthreads)
+        std::vector< std::pair<LexicalRuleTraining*, std::vector<lrule_occurrence> > >& lex_occurrences)
 {
     assert(lexicon != NULL);
-    lexicon->update_annotated_counts_from_trees(trees, last_iteration, lex_occurrences, nbthreads);
+    lexicon->update_annotated_counts_from_trees(trees, last_iteration, lex_occurrences);
 }
 
-    inline
+inline
 void TrainingGrammar::reset_lexical_counts()
 {
     assert(lexicon != NULL);
     lexicon->reset_counts();
 }
 
-    inline
+inline
 void TrainingGrammar::resize_lexical_datastructs()
 {
     assert(lexicon != NULL);
@@ -188,21 +186,21 @@ void TrainingGrammar::resize_lexical_datastructs()
 }
 
 
-    inline
+inline
 void TrainingGrammar::maximise_lexical_rules()
 {
     assert(lexicon != NULL);
     lexicon->maximisation();
 }
 
-    inline
+inline
 void TrainingGrammar::lexical_smoothing()
 {
     assert(lexicon != NULL);
     lexicon->lexical_smoothing();
 }
 
-    inline
+inline
 void TrainingGrammar::create_additional_rules()
 {
     assert(lexicon != NULL);
