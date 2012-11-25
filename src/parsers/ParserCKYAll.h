@@ -103,8 +103,6 @@ class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, Lexic
   unsigned min_length_beam; ///< minimum sentence length to apply beam on
 
   int stubbornness; ///< number of tries with incremental prior-based pruning
-
-  unsigned num_cell_threads; ///< number of threads for cell parallel processing
 };
 
 
@@ -420,20 +418,21 @@ void ParserCKYAll_Impl<TCell>::parse(int start_symbol) const
 
     //init
     bool beam_short = chart->get_size() >= min_length_beam;
-    chart->opencells_apply_all(
-        [&,beam_short, this, beam_threshold]
-        (Cell& cell)
-        {
-          if(!cell.is_empty()) {
-            this->add_unary_init(cell,cell.get_top());
-            cell.adjust_inside_probability();
+    chart->opencells_apply([&](Cell& cell){
+      if(!cell.is_empty()) {
+        this->add_unary_init(cell,cell.get_top());
+        cell.adjust_inside_probability();
 
-            // prevent short sentences from being skipped ...
-            if(beam_short)
-              cell.beam(priors, beam_threshold);
-          }
-        }
-                                              );
+        // prevent short sentences from being skipped ...
+        if(beam_short)
+          cell.beam(priors, beam_threshold);
+
+        // if(cell.is_closed())
+          //   std::cout << "(" << i << "," <<j << ") is closed" << std::endl;
+      }
+    }
+    );
+
     //actual cky is here
     process_internal_rules(beam_threshold);
 
@@ -600,7 +599,7 @@ template <typename TCell>
 void ParserCKYAll_Impl<TCell>::compute_inside_probabilities()
 {
   this->chart->opencells_apply_bottom_up( & Cell::compute_inside_probabilities );
- }
+}
 
 
 template <typename TCell>
@@ -621,21 +620,12 @@ void ParserCKYAll_Impl<TCell>::beam_chart_io_relative() const
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
   chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
-  compute_outside_probabilities(chart);
+  compute_outside_probabilities();
 
-  unsigned sent_size=chart->get_size();
-  for (unsigned span = 1; span <= sent_size; ++span) {
-    unsigned end_of_begin=sent_size-span;
-    for (unsigned begin=0; begin <= end_of_begin; ++begin) {
-      unsigned end = begin + span -1;
-
-      Cell& cell = chart->access(begin,end);
-
-      if(!cell.is_closed()) {
-        cell.beam(io_beam_thresholds[0]);
-      }
-    }
-  }
+  chart->opencells_apply(
+      [this](Cell & cell)
+      {cell.beam(this->io_beam_thresholds[0]);}
+                         );
 }
 
 //absolute beam
@@ -654,14 +644,13 @@ void ParserCKYAll_Impl<TCell>::beam_chart(double log_sent_prob, double log_thres
         cell.apply_on_edges(&Edge::clean_invalidated_binaries);
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
-
-        // if(!cell.is_closed() && huang) {
-        //   cell.apply_on_edges(&Edge::clean_invalidated_binaries);
-        //   cell.beam_huang(std::log(0.0001), log_sent_prob);
-        //   cell.clean();
-        // }
+        if(!cell.is_closed() && huang) {
+          cell.apply_on_edges(&Edge::clean_invalidated_binaries);
+          cell.beam_huang(std::log(0.0001), log_sent_prob);
+          cell.clean();
+        }
       }
-                                         );
+  );
 }
 
 
@@ -826,9 +815,7 @@ void ParserCKYAll_Impl<TCell>::change_rules_resize(unsigned step,
   const AnnotatedLabelsInfo& next_annotations = current_grammars[step+1]->get_annotations_info();
   const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current =  annot_descendants[step];
 
-  // Doesn't need to be bottom up
-  // May perform every cell in parallel
-  this->chart->opencells_apply_bottom_up(
+  this->chart->opencells_apply(
     [next_annotations, annot_descendants_current]
     (Cell& cell)
     {

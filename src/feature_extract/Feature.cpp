@@ -228,7 +228,7 @@ struct neighbours_function : function_feature
 
     ss << "<>";
 
-    for (unsigned i = 0; i < nlast; ++i)
+    for (signed i = 0; i < (signed) nlast; ++i)
       {
         const_iterator d = llast;
         d.up();
