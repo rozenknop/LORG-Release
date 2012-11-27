@@ -2,7 +2,15 @@
 #ifndef CHARTCKY_H_
 #define CHARTCKY_H_
 
+/* use parallel_for in opencells_apply_bottom_up and opencells_apply_top_down */
 //#define WITH_PARALLEL_FOR
+
+/* choices for the opencells_apply method */
+// #define OPENCELLS_APPLY_TASK_GROUP
+#define OPENCELLS_APPLY_PARALLEL_FOR
+// #define OPENCELLS_APPLY_CONTINUATION_TASK
+// #define OPENCELLS_APPLY_CHART_TASK
+
 
 #include "utils/PtbPsTree.h"
 #include "utils/LorgConstants.h"
@@ -261,50 +269,113 @@ public:
 };
 
 
-// template<class Cell, class MyWord>
-// void
-// ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
-// {
-//   tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
-//                     [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
-//                         for (auto cell = r.begin(); cell < r.end(); ++cell) {
-//                           if(!(**cell).is_closed()) f(**cell);
-//                         }
-//                       }
-//   );
-// }
+#ifdef OPENCELLS_APPLY_PARALLEL_FOR
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+{
+  tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
+                    [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
+                        for (auto cell = r.begin(); cell < r.end(); ++cell) {
+                          if(!(**cell).is_closed()) f(**cell);
+                        }
+                      }
+  );
+}
+#endif
 
+#ifdef OPENCELLS_APPLY_CONTINUATION_TASK
+#include <tbb/atomic.h>
+using tbb::atomic;
+
+template<typename Cell>
+class ParallelTask: public tbb::task {
+  const std::function<void(Cell &)> action ;
+  atomic<Cell**> & it  ;
+  Cell** end ;
+  tbb::task * waiter;
+
+public:
+  ParallelTask(std::function<void(Cell &)> _action, atomic<Cell **> & _it, Cell ** _end, tbb::task * _waiter)
+  : action(_action), it(_it), end(_end), waiter(_waiter)
+  {
+//     std::cout << "ParallelTask it = " << _it << std::endl;
+  }
+  task* execute() {
+    __TBB_ASSERT( ref_count()==0, NULL );
+    Cell ** oldit, ** newit;
+    do {
+      oldit = it ; newit = oldit;
+      if (newit!=end) ++newit;
+    } while(it.compare_and_swap(newit,oldit) != oldit);
+
+    if (oldit != end) {
+//       std::cout << "cell : " << it << " ? " << end << std::endl ;
+      if (not (**oldit).is_closed()) action(**oldit);
+      recycle_as_continuation();
+      return this;
+    } else {
+      waiter->decrement_ref_count();
+      return NULL;
+    }
+  }  
+};
 
 template<class Cell, class MyWord>
 void
 ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
 {
-  unsigned sent_size = this->get_size();
+  atomic<Cell **> it; it = &vcells[0];
+  tbb::task_list seeds;
+  tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
+  for (signed t=0; t</*1*/tbb::task_scheduler_init::default_num_threads(); ++t) {
+    ParallelTask<Cell> & task = *new (tbb::task::allocate_root()) ParallelTask<Cell>(f, it, &vcells[0]+vcells.size(), waiter);
+    task.set_ref_count(2);
+    seeds.push_back(task);
+    waiter->increment_ref_count();
+  }
+  waiter->increment_ref_count();
+  waiter->spawn_and_wait_for_all(seeds);
+  tbb::task::destroy(*waiter);
+}
+#endif
 
+
+#ifdef OPENCELLS_APPLY_TASK_GROUP
+
+#include "tbb/task_group.h"
+
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+{
+  tbb::task_group g;
+  for(auto cell: vcells) {
+    if(!cell->is_closed()) g.run([cell,&f](){f(*cell);});
+  }
+  g.wait();
+}
+#endif
+
+
+#ifdef OPENCELLS_APPLY_CHART_TASK
+template<class Cell, class MyWord>
+void
+ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+{
   tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
 
-  ChartTask* x[sent_size][sent_size];
   tbb::task_list seeds;
   unsigned count = 0;
 
-  for(unsigned i = 0; i < sent_size; ++i) {
-    for (unsigned j = i; j < sent_size; ++j) {
-
-      Cell* cell = &this->access(i,j);
-
-      if(cell->is_closed())
-      {
-        x[i][j] = new( tbb::task::allocate_root() ) ChartTask([](){});
-      }
-      else
-      {
-        x[i][j] = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
-      }
-      x[i][j]->successor[0] = waiter;
-      x[i][j]->successor[1] = NULL;
-      x[i][j]->set_ref_count(2);
-
-      seeds.push_back(*x[i][j]);
+  for(auto cell: vcells) {
+    if(not cell->is_closed())
+    {
+      ChartTask * t = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
+      t->successor[0] = waiter;
+      t->successor[1] = NULL;
+      t->set_ref_count(2);
+      seeds.push_back(*t);
       ++count;
     }
   }
@@ -314,7 +385,7 @@ ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
   waiter->spawn_and_wait_for_all(seeds);
   tbb::task::destroy(*waiter);
 }
-
+#endif
 
 
 template<class Cell, class MyWord>
@@ -537,6 +608,7 @@ ChartCKY<Cell, MyWord>::ChartCKY(const std::vector< MyWord >& s, unsigned gramma
       vcells.push_back(& access(begin,end)) ;
     }
   }
+//   std::cout << "Size of vcells : " << vcells.size() << ", begin : " << &vcells[0] << ", end : " << &vcells[0]+vcells.size() << std::endl;
   #endif
 
   //  std::cout << "Chart is built and intialised" << std::endl;

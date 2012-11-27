@@ -128,8 +128,8 @@ void BRule::update_outside_annotations(const std::vector<double>& up_out,
                                        std::vector<double>& right_out) const
 {
   #ifdef USE_THREADS
-  std::vector<atomic<double>> & lo = *(std::vector<atomic<double>> *) &left_out ;
-  std::vector<atomic<double>> & ro = *(std::vector<atomic<double>> *) &right_out ;
+  std::vector<atomic<double>> & lo = *reinterpret_cast<std::vector<atomic<double>> *>(&left_out);
+  std::vector<atomic<double>> & ro = *reinterpret_cast<std::vector<atomic<double>> *>(&right_out);
   #else
   std::vector<double> & lo = left_out ;
   std::vector<double> & ro = right_out ;
