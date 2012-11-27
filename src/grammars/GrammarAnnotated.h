@@ -38,8 +38,8 @@ public:
   void set_logmode();
   void remove_unlikely_annotations_all_rules(double threshold);
 
-  const PathMatrix&
-  get_unary_decoding_paths() const;
+  inline const PathMatrix&
+  get_unary_decoding_paths() const {return viterbi_decoding_paths;}
 
   GrammarAnnotated(const std::string& filename);
 
@@ -51,7 +51,7 @@ public:
 
   std::vector<double> compute_priors() const;
 
-  const std::vector< Tree<unsigned> >&  get_history_trees() const;
+  inline const std::vector< Tree<unsigned> >&  get_history_trees() const {return history_trees;}
 
 
 private:
@@ -101,7 +101,6 @@ std::vector<std::vector<double> >
 calculate_conditional_probs(const std::vector<std::vector<double> >& expected_counts,
                             const std::vector<std::vector<std::vector<unsigned> > >& mapping);
 
-std::vector<uomap<unsigned,unsigned> > invert_mapping(std::vector<std::vector<std::vector<unsigned> > > mapping);
 
 
 
@@ -109,13 +108,9 @@ std::vector<uomap<unsigned,unsigned> > invert_mapping(std::vector<std::vector<st
 /**************************************************************************************
  * struct project_rule used in GrammarAnnotated.hpp. Defined in GrammarAnnotated.cpp
  **************************************************************************************/
-struct project_rule
+class project_rule
 {
-  const std::vector<std::vector<double> >& conditional_probabilities;
-  const std::vector<std::vector<std::vector<unsigned> > >& mapping;
-  std::vector<uomap<unsigned,unsigned> > inverted;
-  
-  
+public:
   project_rule(const std::vector<std::vector<double> >& conditional_probabilities_,
                const std::vector<std::vector<std::vector<unsigned> > >& mapping_)
   :
@@ -123,15 +118,25 @@ struct project_rule
   mapping(mapping_),
   inverted(invert_mapping(mapping_))
   {}
+
+  LexicalRuleC2f operator()(const LexicalRuleC2f& old_rule) const;
+  URuleC2f operator()(const URuleC2f& old_rule) const;
+  BRuleC2f operator()(const BRuleC2f& old_rule) const;
+
+private:
+  const std::vector<std::vector<double> >& conditional_probabilities;
+  const std::vector<std::vector<std::vector<unsigned> > >& mapping;
+  std::vector<uomap<unsigned,unsigned> > inverted;
+  
+  
   
   
   //TODO: iterate on new_probs instead of old_probs
   // would be more efficient (especially for binary rules)
   
   
-  LexicalRuleC2f operator()(const LexicalRuleC2f& old_rule) const;
-  URuleC2f operator()(const URuleC2f& old_rule) const;
-  BRuleC2f operator()(const BRuleC2f& old_rule) const;
+  
+  std::vector<uomap<unsigned,unsigned> > invert_mapping(std::vector<std::vector<std::vector<unsigned> > > mapping);
 };
 
 

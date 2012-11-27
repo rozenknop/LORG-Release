@@ -1,5 +1,6 @@
 #include "ParserCKYAll.hpp"
 #include "ParserCKYAllViterbi.h"
+#include "grammars/GrammarAnnotated.hpp"
 
 ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
                                          const std::vector<double>& p, double b_t,

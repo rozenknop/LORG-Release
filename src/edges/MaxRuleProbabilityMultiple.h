@@ -4,12 +4,10 @@
 #define _MAXRULEMULTIPLEPROBABILITY_H_
 
 #include "PackedEdgeProbability.h"
+#include "PackedEdge.h"
+#include "MaxRuleUpdater.h"
 
-#include <numeric>
-
-#include "maxrule_functions.h"
-
-
+// #include <numeric>
 #include <vector>
 #include <unordered_map>
 
@@ -22,6 +20,7 @@ private:
   typedef std::unordered_map<const PackedEdgeDaughters*,double> score_map_type;
   typedef std::unordered_map<const PackedEdgeDaughters*,unsigned> occ_map_type;
   typedef std::vector<packed_edge_probability_with_index> heap_type;
+  typedef MaxRuleUpdater<MaxRuleProbabilityMultiple> Updater;
 
   score_map_type scores;
   occ_map_type occ;
@@ -53,35 +52,31 @@ public:
   static void set_log_normalisation_factor(double lnf);
   static void reset_log_normalisation_factor();
   static const double& get_log_normalisation_factor();
-  static const double& get_log_normalisation_factor(unsigned i);
+  inline static const double& get_log_normalisation_factor(unsigned i);
 
-  static void set_size(unsigned k)
-  {size = k;}
+  inline static void set_size(unsigned k)       {size = k;}
 
-  static void set_nbgrammars(unsigned n)
-  {nb_grammars = n;}
+  inline static void set_nbgrammars(unsigned n) {nb_grammars = n;}
 
-  const packed_edge_probability_with_index& get(unsigned idx) const
-  {return derivations[idx];}
-  packed_edge_probability_with_index& get(unsigned idx)
-  {return derivations[idx];}
+  inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
+  inline       packed_edge_probability_with_index& get(unsigned idx)       {return derivations[idx];}
 
-  void update_lexical(Edge& e, const LexicalDaughters& dtr);
-  void update_unary(Edge& e, const UnaryDaughters& dtr);
-  void update_binary(Edge& e, const BinaryDaughters& dtr);
-  void finalize();
+  inline void update_lexical(Edge& e, const LexicalDaughters& dtr);
+  inline void update_unary(Edge& e, const UnaryDaughters& dtr);
+  inline void update_binary(Edge& e, const BinaryDaughters& dtr);
+  inline void finalize();
 
-  void pick_best_lexical(const LexicalDaughters& dtr);
-  void pick_best_binary(const BinaryDaughters& dtr);
-  void pick_best_unary(const UnaryDaughters& dtr);
-  void pick_best();
+  inline void pick_best_lexical(const LexicalDaughters& dtr);
+  inline void pick_best_binary(const BinaryDaughters& dtr);
+  inline void pick_best_unary(const UnaryDaughters& dtr);
+  inline void pick_best();
 
-  void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
-  virtual void extend_derivation(Edge*, unsigned, bool);
+  inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
+  inline void extend_derivation(Edge*, unsigned, bool);
 
 
-  unsigned n_deriv() const {return derivations.size();}
-  bool has_solution(unsigned i) const
+  inline unsigned n_deriv() const {return derivations.size();}
+  inline bool has_solution(unsigned i) const
   {
     //    std::cout << "i " << i << std::endl;
     //    std::cout << "derivations.size() " << derivations.size() << std::endl;
@@ -94,14 +89,13 @@ public:
     //&& derivations[i].probability != -std::numeric_limits<double>::infinity();
   }
 
-  std::vector<AnnotationInfo>& get_annotations_backup();
+  inline       std::vector<AnnotationInfo>& get_annotations_backup();
+  inline const std::vector<AnnotationInfo>& get_annotations_backup() const;
 
-  const std::vector<AnnotationInfo>& get_annotations_backup() const;
-
-  void backup_annotations(const AnnotationInfo& annotations);
+  inline void backup_annotations(const AnnotationInfo& annotations);
 
 private:
-  void write_scores(const PackedEdgeDaughters& dtr, double probability);
+  inline void write_scores(const PackedEdgeDaughters& dtr, double probability);
 
 
   struct test_helper
@@ -119,36 +113,11 @@ private:
 
 };
 
-
-unsigned MaxRuleProbabilityMultiple::size = 1;
-double MaxRuleProbabilityMultiple::log_normalisation_factor = 0;
-unsigned MaxRuleProbabilityMultiple::nb_grammars = 0;
-std::vector<double> MaxRuleProbabilityMultiple::log_normalisation_factor_backup;
-
-
-void MaxRuleProbabilityMultiple::set_log_normalisation_factor(double lnf)
-{
-  log_normalisation_factor = lnf;
-  log_normalisation_factor_backup.push_back(lnf);
-}
-
-void MaxRuleProbabilityMultiple::reset_log_normalisation_factor()
-{
-  log_normalisation_factor_backup.resize(0);
-}
-
-const double& MaxRuleProbabilityMultiple::get_log_normalisation_factor()
-{
-  return log_normalisation_factor;
-}
-
 const double& MaxRuleProbabilityMultiple::get_log_normalisation_factor(unsigned i)
 {
   //  std::cout << "size: " << log_normalisation_factor_backup.size() << std::endl;;
   return log_normalisation_factor_backup[i];
 }
-
-
 
 void MaxRuleProbabilityMultiple::write_scores(const PackedEdgeDaughters& dtr, double probability)
 {
@@ -171,7 +140,7 @@ void MaxRuleProbabilityMultiple::write_scores(const PackedEdgeDaughters& dtr, do
 void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughters& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
-  double probability(maxrule_function::update_maxrule_probability(a, dtr.get_rule(), log_normalisation_factor));
+  double probability(Updater::update_maxrule_probability(a, dtr.get_rule(), log_normalisation_factor));
 
   if (probability > derivations[0].probability) {
     derivations[0].probability = probability;
@@ -188,7 +157,7 @@ void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughters & dt
 
   Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
   if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
-    probability =  maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
+    probability =  Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
   }
   // else {
   //   std::cout << "ERROR" << std::endl;
@@ -212,7 +181,7 @@ void MaxRuleProbabilityMultiple::update_binary(Edge& e, const BinaryDaughters& d
   //calculate the probability for this edge -
   //if it's the best probability so far, update the best edge info
 
-  double probability = maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
+  double probability = Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
 
   // if(std::isnan(probability))
   //   return;
@@ -336,7 +305,7 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryPackedEdgeDaughter
         const std::vector<std::vector<std::vector<double> > >& rule_probs =
           d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-        p.probability += maxrule_function::update_maxrule_probability_simple<Edge>(upannots[i],
+        p.probability += Updater::update_maxrule_probability_simple(upannots[i],
                                                                                    get_log_normalisation_factor(i),
                                                                                    leftannots[i],
                                                                                    rightannots[i],
@@ -391,7 +360,7 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryPackedEdgeDaughters<
           const std::vector<std::vector<double> >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += maxrule_function::update_maxrule_probability_simple<Edge>(upannots[i],
+          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rule_probs);
@@ -427,11 +396,10 @@ void MaxRuleProbabilityMultiple::pick_best()
   score_map_type().swap(scores);
   occ_map_type().swap(occ);
 
-
   if(!candidates.empty()) {
     if(candidates.size() > size) {
       //      std::cout << candidates.size() << std::endl;
-      std::nth_element(candidates.begin(),candidates.begin()+size,candidates.end(), gt_pep());
+      std::nth_element(candidates.begin(),candidates.begin()+size,candidates.end(), std::greater<packed_edge_probability_with_index>());
       candidates.resize(size);
 
     }
@@ -577,7 +545,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
           const std::vector<std::vector<std::vector<double> > >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += maxrule_function::update_maxrule_probability_simple<Edge>(upannots[i],
+          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rightannots[i],
@@ -620,7 +588,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
           const std::vector<std::vector<std::vector<double> > >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += maxrule_function::update_maxrule_probability_simple<Edge>(upannots[i],
+          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rightannots[i],
@@ -675,7 +643,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
           const std::vector<std::vector<double> >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += maxrule_function::update_maxrule_probability_simple<Edge>(upannots[i],
+          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rule_probs);

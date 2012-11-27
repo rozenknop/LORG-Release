@@ -47,7 +47,7 @@ std::vector<std::vector<std::vector<unsigned> > > compute_mapping(unsigned from,
   return result;
 }
 
-std::vector<uomap<unsigned,unsigned> > invert_mapping(std::vector<std::vector<std::vector<unsigned> > > mapping)
+std::vector<uomap<unsigned,unsigned> > project_rule::invert_mapping(std::vector<std::vector<std::vector<unsigned> > > mapping)
 {
   std::vector<uomap<unsigned,unsigned> > res(mapping.size());
   
@@ -203,180 +203,109 @@ calculate_conditional_probs(const std::vector<std::vector<double> >& expected_co
 
 
 
-
-
-
-template<typename Bin, typename Un, typename Lex>
-GrammarAnnotated<Bin,Un,Lex> *
-GrammarAnnotated<Bin,Un,Lex>::create_projection(const std::vector<std::vector<double> >& expected_counts,
-						const std::vector<std::vector<std::vector<unsigned> > >& annotation_mapping) const
+ void calculate_expected_counts(uomap<int, uomap<unsigned, uomap<int, uomap<unsigned, double > > > >& trans,
+                                const AnnotatedLabelsInfo& ali,
+                                std::vector<std::vector<double> >& result)
 {
+  static int root_id = SymbolTable::instance_nt().get_label_id(LorgConstants::tree_root_name);
+  unsigned n_nts = SymbolTable::instance_nt().get_symbol_count();
 
-  std::vector<std::vector<double> > conditional_probabilities = calculate_conditional_probs(expected_counts, annotation_mapping);
+  result.resize(n_nts);
+  result[root_id].resize(1);
 
-  GrammarAnnotated * result =  new GrammarAnnotated(conditional_probabilities, annotation_mapping,
-						    Grammar<Bin,Un,Lex>::binary_rules,
-						    Grammar<Bin,Un,Lex>::unary_rules,
-						    Grammar<Bin,Un,Lex>::lexical_rules);
+  std::vector<std::vector<double> > temp(result);
 
 
-  return result;
+  result[root_id][0] = 1;
+  temp[root_id][0] = 1;
+
+  unsigned n_iter = 30;
+  double epsilon = 1;
+
+
+
+  while(n_iter-- && epsilon > 1.0e-10) {
+
+    //        std::clog << n_iter << " : " << epsilon << std::endl;
+
+    for (size_t i = 0; i < result.size(); ++i)
+      {
+        // if( (i % 100) == 0) {
+        //   std::clog << "i : " << i << "\r";
+        //   std::flush(std::clog);
+        // }
+
+        std::vector<double>& result_i = result[i];
+        //if(n_iter == 50)
+          result_i.resize(ali.get_number_of_annotations(i));
+
+        uomap< unsigned, uomap<int,uomap<unsigned,double> > >& map = trans[i];
+
+        for (unsigned annot_i = 0; annot_i < result_i.size(); ++annot_i)
+        {
+          //std::clog << "annot_i : " << annot_i << std::endl;
+
+          const double& old_value = result_i[annot_i];
+          uomap<int,uomap<unsigned,double> >& lhs_map = map[annot_i];
+
+          for (unsigned j = 0; j < result.size(); ++j)
+          {
+
+            //            std::clog << "j : " << j << std::endl;
+
+            if((int) j == root_id) continue;
+
+            std::vector<double>& temp_j = temp[j];
+            //if(n_iter == 50)
+            temp_j.resize(ali.get_number_of_annotations(j));
+
+            uomap<int,uomap<unsigned,double> >::iterator found_key;
+            if( (found_key = lhs_map.find(j)) != lhs_map.end() ) {
+
+              //                std::clog << "here" << std::endl;
+              for (unsigned annot_j = 0; annot_j < temp_j.size(); ++annot_j)
+              {
+                // std::clog << "annot_j : " << annot_j << std::endl;
+                //                try {
+                temp_j[annot_j] += old_value * found_key->second[annot_j];
+                  //                }
+                  //                catch(std::out_of_range& e) {}
+                //                    std::clog << "there" << std::endl;
+              }
+            }
+          }
+        }
+      }
+
+    //    std::clog << "updated temp" << std::endl;
+
+    epsilon = 0;
+
+    for (unsigned i = 0; i < result.size(); ++i)
+    {
+      //        std::cout << SymbolTable::instance_nt().translate(i) << std::endl;
+
+      if((int) i == root_id) {
+        //          std::cout << result[0][0] << std::endl;
+        continue;
+      }
+
+      std::vector<double>& temp_i = temp[i];
+      std::vector<double>& result_i = result[i];
+
+      for (unsigned annot_i = 0; annot_i < result_i.size(); ++annot_i)
+      {
+        epsilon += std::abs(temp_i[annot_i] - result_i[annot_i]);
+        result_i[annot_i] = temp_i[annot_i];
+        // std::cout << annot_i
+        //           << " : "
+        //           << result_i[annot_i]
+        //           << std::endl;
+        temp_i[annot_i] = 0;
+      }
+    }
+  }
 }
-
-
-// compute probabilities p(\alpha X_i \beta | Y_j )
-//in table  table[Y,j][X,i] or [Y,j][word_id,0]
-template<typename Bin, typename Un, typename Lex>
-void GrammarAnnotated<Bin,Un,Lex>::compute_transition_probabilities(uomap<int, uomap<unsigned, uomap<int, uomap<unsigned, double > > > >& result) const
-{
-  for (typename std::vector<Bin>::const_iterator b(Grammar<Bin,Un,Lex>::binary_rules.begin());
-       b != Grammar<Bin,Un,Lex>::binary_rules.end(); ++b)
-    {
-      const std::vector<std::vector<std::vector<double> > >& probs = b->get_probability();
-
-      uomap<unsigned, uomap<int, uomap<unsigned, double > > >& lhs_map = result[b->get_lhs()];
-
-
-      for (unsigned i = 0; i < probs.size(); ++i)
-	{
-
-          uomap<unsigned, double >& rhs0_map = lhs_map[i][b->get_rhs0()];
-          uomap<unsigned, double >& rhs1_map = lhs_map[i][b->get_rhs1()];
-          const std::vector<std::vector<double> >& probs_i = probs[i];
-
-	  for (unsigned j = 0; j < probs_i.size(); ++j)
-	    {
-	      double& rhs0_entry = rhs0_map[j];
-              const std::vector<double>& probs_i_j = probs_i[j];
-
-	      for (unsigned k = 0; k < probs_i_j.size(); ++k)
-		{
-		  rhs0_entry += probs_i_j[k];
-		  rhs1_map[k] += probs_i_j[k];
-		}
-	    }
-	}
-    }
-
-
-  for (typename std::vector<Un>::const_iterator u(Grammar<Bin,Un,Lex>::unary_rules.begin());
-       u != Grammar<Bin,Un,Lex>::unary_rules.end(); ++u)
-    {
-      const std::vector<std::vector<double> >& probs = u->get_probability();
-      uomap<unsigned, uomap<int, uomap<unsigned, double > > >& lhs_map = result[u->get_lhs()];
-
-      for (unsigned i = 0; i < probs.size(); ++i)
-	{
-          const std::vector<double>& probs_i = probs[i];
-	  uomap<unsigned,double>& rhs0_map = lhs_map[i][u->get_rhs0()];
-	  for (unsigned j = 0; j < probs_i.size(); ++j)
-	    {
-	      rhs0_map[j] += probs_i[j];
-	    }
-	}
-    }
-
-  // for (typename std::vector<Lex>::const_iterator l(Grammar<Bin,Un,Lex>::lexical_rules.begin());
-  //      l != Grammar<Bin,Un,Lex>::lexical_rules.end(); ++l)
-  //   {
-  //     const std::vector<double>& probs = l->get_probability();
-  //     uomap<unsigned, uomap<int, uomap<unsigned, double > > >& lhs_map = result[l->get_lhs()];
-
-
-  //     for (unsigned i = 0; i < probs.size(); ++i)
-  //       {
-  //         lhs_map[i][l->get_word()][0] += probs[i];
-  //       }
-  //   }
-}
-
-template<typename Bin, typename Un, typename Lex>
-GrammarAnnotated<Bin,Un,Lex>::GrammarAnnotated
-(const std::vector<std::vector<double> >& conditional_probabilities,
- const std::vector<std::vector<std::vector<unsigned> > >& mapping,
- const std::vector<Bin>& old_binary_rules,
- const std::vector<Un>& old_unary_rules,
- const std::vector<Lex>& old_lexical_rules) :
-
-  Grammar<Bin,Un,Lex>(), AnnotatedContents(), viterbi_decoding_paths()
-
-{
-  //set label annotations
-  // TODO get rid of it ?
-  std::vector<unsigned short> la(mapping.size());
-  for (unsigned short i = 0; i < mapping.size(); ++i)
-    {
-      la[i] = mapping[i].size();
-    }
-
-  label_annotations.set_num_annotations_map(la);
-
-
-  project_rule pr(conditional_probabilities, mapping);
-
-  //  std::clog << "before binaries" << std::endl;
-  Grammar<Bin,Un,Lex>::binary_rules.reserve(old_binary_rules.size());
-  std::transform(old_binary_rules.begin(),old_binary_rules.end(),
-		 std::back_inserter(Grammar<Bin,Un,Lex>::binary_rules),
-		 pr);
-  //  std::clog << "after binaries" << std::endl;
-  // std::copy(Grammar<Bin,Un,Lex>::binary_rules.begin(),
-  // 	    Grammar<Bin,Un,Lex>::binary_rules.end(),
-  //   	    std::ostream_iterator<Bin> (std::clog, "\n"));
-
-  //  std::clog << "before unaries" << std::endl;
-  Grammar<Bin,Un,Lex>::unary_rules.reserve(old_unary_rules.size());
-  std::transform(old_unary_rules.begin(),old_unary_rules.end(),
-		 std::back_inserter(Grammar<Bin,Un,Lex>::unary_rules),
-		 pr);
-  //  std::clog << "after unaries" << std::endl;
-  // std::copy(Grammar<Bin,Un,Lex>::unary_rules.begin(),
-  // 	    Grammar<Bin,Un,Lex>::unary_rules.end(),
-  //   	    std::ostream_iterator<Un> (std::clog, "\n"));
-
-  //  std::clog << "before lexicals" << std::endl;
-  Grammar<Bin,Un,Lex>::lexical_rules.reserve(old_lexical_rules.size());
-  std::transform(old_lexical_rules.begin(),old_lexical_rules.end(),
-		 std::back_inserter(Grammar<Bin,Un,Lex>::lexical_rules),
-		 pr);
-  //  std::clog << "after lexicals" << std::endl;
-
-  // std::copy(Grammar<Bin,Un,Lex>::lexical_rules.begin(),
-  // 	    Grammar<Bin,Un,Lex>::lexical_rules.end(),
-  //   	    std::ostream_iterator<Lex> (std::clog, "\n"));
-
-}
-
-
-// assume only one annotation per symbol !!!!!
-template<typename Bin, typename Un, typename Lex>
-std::vector<double>
-GrammarAnnotated<Bin,Un,Lex>::compute_priors() const
-{
-
-  uomap<int, uomap<unsigned, uomap<int, uomap< unsigned, double > > > > transition_probabilities;
-  compute_transition_probabilities(transition_probabilities);
-
-  std::vector<std::vector<double> > expected_counts;
-  calculate_expected_counts(transition_probabilities, get_annotations_info(), expected_counts);
-
-  // assume only one annotation !!!!!
-  double sum = 0;
-  for (unsigned i = 0; i < expected_counts.size(); ++i)
-    {
-      sum += expected_counts[i][0];
-    }
-
-  std::vector<double> res(expected_counts.size());
-
-  for (unsigned i = 0; i < res.size(); ++i)
-    {
-      res[i] = expected_counts[i][0] / sum;
-    }
-
-  return res;
-}
-
-
+ 
 
 #endif /* _GRAMMARANNOTATED_H_ */

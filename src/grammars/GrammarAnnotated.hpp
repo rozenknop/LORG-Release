@@ -334,21 +334,6 @@ void GrammarAnnotated<Bin,Un,Lex>::remove_unlikely_annotations_all_rules(double 
 
 
 template<typename Bin, typename Un, typename Lex>
-const PathMatrix& GrammarAnnotated<Bin,Un,Lex>::get_unary_decoding_paths() const
-{
-  return viterbi_decoding_paths;
-}
-
-template<typename Bin, typename Un, typename Lex>
-const std::vector< Tree<unsigned> >& GrammarAnnotated<Bin,Un,Lex>::get_history_trees() const
-{
-  return history_trees;
-}
-
-
-
-
-template<typename Bin, typename Un, typename Lex>
 GrammarAnnotated<Bin,Un,Lex> *
 GrammarAnnotated<Bin,Un,Lex>::create_projection(const std::vector<std::vector<double> >& expected_counts,
             const std::vector<std::vector<std::vector<unsigned> > >& annotation_mapping) const

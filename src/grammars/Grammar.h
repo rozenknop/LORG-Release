@@ -38,11 +38,20 @@ public:
 
   Grammar(const std::string& filename);
 
+  void linear_smooth(double internal_threshold, double lexical_threshold);
 
 protected:
 };
 
 #include <algorithm>
+
+template<class Bin, class Un, class Lex>
+void Grammar<Bin, Un, Lex>::linear_smooth(double internal_threshold, double lexical_threshold) 
+{
+  for(auto& rule:  binary_rules) {rule.linear_smooth(internal_threshold);}
+  for(auto& rule:   unary_rules) {rule.linear_smooth(internal_threshold);}
+  for(auto& rule: lexical_rules) {rule.linear_smooth( lexical_threshold);}
+}
 
 
 template<class Bin, class Un, class Lex>

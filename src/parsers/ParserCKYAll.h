@@ -34,6 +34,7 @@ using namespace tbb;
 typedef std::vector< std::vector<std::vector< std::vector<unsigned> > > > annot_descendants_type;
 
 
+
 class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, LexicalRuleC2f> >
 {
  public:
@@ -228,14 +229,7 @@ public:
   void process_unary(Cell& cell, int lhs, bool isroot) const;
 
 
-  /**
-     \brief create an efficient data structure for c2f parsing
-     from a vector of trees denoting annotation histories
-     \param annot_histories the trees
-  */
-  void create_annot_descendants(const std::vector< Tree<unsigned> >& annot_histories);
-
- protected:
+protected:
   /**
      \brief computes the inside probability for all nodes in chart
   */
@@ -298,6 +292,5 @@ public:
  protected: // attributes
   Chart * chart; // the chart
 };
-
 
 #endif /*PARSERCKYALL_H*/

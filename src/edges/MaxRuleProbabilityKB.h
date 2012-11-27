@@ -73,24 +73,6 @@ private:
 
 
 
-std::ostream & MaxRuleProbabilityKB::operator>> (std::ostream & out) const
-{
-  for(auto& cand: candidates) { out << "cand:" << cand.probability << " "; }
-  return out;
-}
-
-
-std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityKB& p)
-{
-  return p >> out ;
-}
-
-
-
-double MaxRuleProbabilityKB::log_normalisation_factor = 0;
-unsigned MaxRuleProbabilityKB::size = 0;
-
-
 void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughters& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();

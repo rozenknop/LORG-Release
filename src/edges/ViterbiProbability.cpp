@@ -72,7 +72,3 @@ void ViterbiProbability::update_binary(Edge& edge, const BinaryDaughters& dtr)
     }
   }
 }
-
-
-
-#endif /* _VITERBIPROBABILITY_H_ */

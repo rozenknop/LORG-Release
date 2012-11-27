@@ -6,9 +6,9 @@
 
 #include <numeric>
 
-double MaxRuleProbability::log_normalisation_factor = 0;
+double MaxRuleProbability1B::log_normalisation_factor = 0;
 
-void MaxRuleProbability::set_log_normalisation_factor(double lnf)
+void MaxRuleProbability1B::set_log_normalisation_factor(double lnf)
 {
   log_normalisation_factor = lnf;
 }

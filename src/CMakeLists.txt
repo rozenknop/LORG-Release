@@ -22,11 +22,12 @@ set(common_sources
          lexicon/ArabicUMapping.cpp
          lexicon/ArabicIGMapping.cpp
          Word.cpp
-         parsers/ParserCKY.h
          LorgApp.cpp
          LorgParseApp.cpp
          feature_extract/Extract.cpp
-         feature_extract/Feature.cpp)
+         feature_extract/Feature.cpp
+         ParseSolution.cpp
+   )
 
 set(simple_lorgparser_SOURCES
          ${common_sources}
@@ -41,10 +42,20 @@ set(simple_lorgparser_SOURCES
 set(twostage_lorgparser_SOURCES
          ${common_sources}
          twostage_lorgparser.cpp
+         TwoStageLorgParseApp.cpp
+         edges/ViterbiProbability.cpp
+         edges/MaxRuleProbability1B.cpp
+         edges/MaxRuleProbabilityKB.cpp
+         edges/MaxRuleProbabilityMultiple.cpp
+         parsers/ParserCKYAll.cpp
+         parsers/ParserCKYAllFactory.cpp
          parsers/ParserCKYAllViterbi.cpp
          parsers/ParserCKYAllMaxVar1B.cpp
+         parsers/ParserCKYAllMaxVarKB.cpp
+         parsers/ParserCKYAllMaxVarMultiple.cpp
          grammars/compact_binary_rules_annotated.cpp
          grammars/AnnotatedLabelsInfo.cpp
+         grammars/GrammarAnnotated.cpp
          utils/data_parsers/BURuleInputParser.cpp
          utils/data_parsers/AnnotHistoriesParser.cpp
          edges/AnnotationInfo.cpp

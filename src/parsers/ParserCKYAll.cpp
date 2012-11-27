@@ -75,6 +75,4 @@ ParserCKYAll::ParserCKYAll(std::vector<AGrammar*>& cgs,
   }
 }
 
-
-
 #endif /*PARSERCKYALL_CPP*/
