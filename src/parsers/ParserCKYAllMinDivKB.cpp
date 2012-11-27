@@ -1,6 +1,6 @@
 // -*- mode: c++ -*-
-#ifndef _PARSERCKYALLMAXVARKB_CPP_
-#define _PARSERCKYALLMAXVARKB_CPP_
+#ifndef _PARSERCKYALLMINDIVKB_CPP_
+#define _PARSERCKYALLMINDIVKB_CPP_
 
 #include "ParserCKYAllMinDivKB.h"
 #include "ParserCKYAll.hpp"
@@ -235,4 +235,4 @@ void ParserCKYAllMinDivKB::initialise_candidates()
 
 
 
-#endif /* _PARSERCKYALLMAXVARKB_CPP_ */
+#endif /* _PARSERCKYALLMINDIVKB_CPP_ */

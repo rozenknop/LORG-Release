@@ -9,6 +9,7 @@
 #include "ParserCKYAllMaxVar1B.h"
 #include "ParserCKYAllMaxVarKB.h"
 #include "ParserCKYAllMaxVarMultiple.h"
+#include "ParserCKYAllMinDivKB.h"
 
 #include "ParserCKYAll.hpp"
 #include "grammars/GrammarAnnotated.hpp"
@@ -23,6 +24,8 @@ ParserCKYAllFactory::string_to_pa(const std::string& s)
 
     if (s == "maxn") return ParserCKYAllFactory::MaxN;
     if (s == "kmax") return ParserCKYAllFactory::KMaxRule;
+
+    if (s == "mind") return ParserCKYAllFactory::MinDiv;
 
     std::clog << "Unknown parser type: " << s << std::endl;
 
@@ -39,23 +42,19 @@ ParserCKYAll * create_parser(std::vector<ParserCKYAll::AGrammar*> cgs, ParserCKY
 {
     using namespace ParserCKYAllFactory;
     switch(pt) {
-        case Viterbi :
-            return new ParserCKYAllViterbi(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn);
-            break;
-        case MaxRule :
-            return new ParserCKYAllMaxRule1B(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn);
-            break;
-        case MaxN :
-            return new ParserCKYAllMaxRuleMultiple(cgs, p, b_t, fgs, all_annot_descendants, accurate, min_beam, stubborn, k);
-            break;
-        case KMaxRule :
-            return new ParserCKYAllMaxRuleKB(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, k);
-            break;
-        default :
-            return NULL;
+      case Viterbi :
+        return new ParserCKYAllViterbi(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn);
+      case MaxRule :
+        return new ParserCKYAllMaxRule1B(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn);
+      case MaxN :
+        return new ParserCKYAllMaxRuleMultiple(cgs, p, b_t, fgs, all_annot_descendants, accurate, min_beam, stubborn, k);
+      case KMaxRule :
+        return new ParserCKYAllMaxRuleKB(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, k);
+      case MinDiv :
+        return new ParserCKYAllMinDivKB(cgs, p, b_t, all_annot_descendants[0], accurate, min_beam, stubborn, k);
+      default :
+        return NULL;
     }
-
-    return NULL;
 }
 
 

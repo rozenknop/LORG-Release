@@ -1,6 +1,6 @@
 // -*- mode: c++ -*-
-#ifndef _PARSERCKYALLMAXVARKB_H_
-#define _PARSERCKYALLMAXVARKB_H_
+#ifndef _PARSERCKYALLMINDIVKB_H_
+#define _PARSERCKYALLMINDIVKB_H_
 
 #include "ParserCKYAll.h"
 #include "edges/MaxRuleUpdater.h"
@@ -73,7 +73,6 @@ private:
 
 
 
-
 typedef PCKYAllCell<PackedEdge<MinDivProbabilityKB> > MinDivProbabilityCell ;
 
 
@@ -98,4 +97,4 @@ class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivProbabilityCell>
   void extend_all_derivations();
 };
 
-#endif /* _PARSERCKYALLMAXVARKB_H_ */
+#endif /* _PARSERCKYALLMINDIVKB_H_ */
