@@ -5,7 +5,7 @@ endif
 
 check_PROGRAMS              = twostage_lorgparser_test
 noinst_PROGRAMS             = $(check_PROGRAMS)
-AM_CPPFLAGS= -I../src -I../src/utils -I../src/classifier -I../src/lexicon -I../src/parsers -I../src/edges -I../src/grammars
+AM_CPPFLAGS= -I${top_srcdir}/src -I${top_srcdir}/src/utils -I${top_srcdir}/src/classifier -I${top_srcdir}/src/lexicon -I${top_srcdir}/src/parsers -I${top_srcdir}/src/edges -I${top_srcdir}/src/grammars
 
 common_sources = ../src/Bracketing.h \
     ../src/ChartCKY.h \

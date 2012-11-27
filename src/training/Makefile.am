@@ -8,7 +8,7 @@ endif
 
 
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(TBB_CPPFLAGS) -I$(top_srcdir)/src
-tb2gram_CXXFLAGS = -O6 -Wall -Wextra -pipe -ffast-math -DNDEBUG -std=c++11
+tb2gram_CXXFLAGS = -O6 -Wall -Wextra -pipe -ffast-math -DNDEBUG -std=c++0x
 #tb2gram_CXXFLAGS = -O3 -Wall -pipe #-fdiagnostics-show-option
 
 #flags for debugging

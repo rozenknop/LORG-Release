@@ -6,6 +6,8 @@
 
 #include "utils/data_parsers/RuleInputParser.h"
 
+#include "ChartCKY.hpp"
+
 template<>
 Grammar<Rule, Rule, Rule>::Grammar(const std::string& filename)
 {

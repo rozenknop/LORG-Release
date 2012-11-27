@@ -45,9 +45,10 @@ common_sources = rules/Types4Rules.h rules/MetaProduction.h \
 	lexicon/ArabicIGMapping.h lexicon/ArabicIGMapping.cpp \
         classifier/NaiveBayesClassifier.h classifier/ProbModel.h \
         classifier/Classifier.h classifier/FreqDist.h \
-	ChartCKY.h \
+	ChartCKY.h ChartCKY.hpp \
 	Word.cpp Word.h \
 	ParseSolution.h \
+	ParseSolution.cpp \
 	parsers/ParserCKY.h\
 	LorgApp.h LorgApp.cpp \
 	LorgParseApp.h LorgParseApp.cpp \
@@ -85,9 +86,10 @@ endif
 
 twostage_lorgparser_SOURCES = $(common_sources)
 twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
+	TwoStageLorgParseApp.cpp \
 	grammars/compact_binary_rules_annotated.cpp \
 	grammars/AnnotatedLabelsInfo.h grammars/AnnotatedLabelsInfo.cpp \
-	grammars/GrammarAnnotated.h utils/RuleVect2Map.h\
+	grammars/GrammarAnnotated.h grammars/GrammarAnnotated.hpp grammars/GrammarAnnotated.cpp utils/RuleVect2Map.h\
 	utils/data_parsers/BURuleInputParser.cpp utils/data_parsers/BURuleInputParser.h \
 	utils/data_parsers/AnnotHistoriesParser.h utils/data_parsers/AnnotHistoriesParser.cpp \
 	edges/PackedEdge.h edges/PackedEdgeDaughters.h edges/PackedEdgeProbability.h \
@@ -95,11 +97,21 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	edges/MaxRuleProbability.h edges/MaxRuleProbabilityKB.h \
 	edges/BestProbability.h \
 	edges/MaxRuleProbabilityMultiple.h \
-	PCKYAllCell.h parsers/ParserCKYAll.h \
+	PCKYAllCell.h parsers/ParserCKYAll.h parsers/ParserCKYAll.hpp \
 	parsers/ParserCKYAllViterbi.h parsers/ParserCKYAllMaxVar.h \
 	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
 	parsers/ParserCKYAllMaxVar1B.h \
 	parsers/ParserCKYAllFactory.h \
+	edges/ViterbiProbability.cpp \
+	edges/MaxRuleProbability1B.cpp \
+	edges/MaxRuleProbabilityKB.cpp \
+	edges/MaxRuleProbabilityMultiple.cpp \
+	parsers/ParserCKYAll.cpp \
+	parsers/ParserCKYAllFactory.cpp \
+	parsers/ParserCKYAllViterbi.cpp \
+	parsers/ParserCKYAllMaxVar1B.cpp \
+	parsers/ParserCKYAllMaxVarKB.cpp \
+	parsers/ParserCKYAllMaxVarMultiple.cpp \
 	utils/lorg_functional.h utils/tick_count.h utils/hash_impl.h \
 	rules/AnnotatedRule.h edges/AnnotationInfo.h edges/AnnotationInfo.cpp\
 	rules/C2f.h \
@@ -136,7 +148,7 @@ twostage_lorgparser_LDADD = $(BOOST_LDFLAGS)  $(BOOST_REGEX_LIB) $(BOOST_PROGRAM
 # # gram2clmodel_LDADD = $(BOOST_LDFLAGS) $(BOOST_REGEX_LIB) -lprofiler -ltcmalloc
 
 
-feature_extractor_CXXFLAGS= -O3 -Wall -Wextra -pipe -std=c++11
+feature_extractor_CXXFLAGS= -O3 -Wall -Wextra -pipe -std=c++0x
 feature_extractor_SOURCES = feature_extract/ExtractApp.h \
 	feature_extract/ExtractApp.cpp \
 	LorgApp.h LorgApp.cpp \
