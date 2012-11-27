@@ -31,7 +31,7 @@ Table of Contents
 1 Introduction
 ---------------
      This is the README for lorg tools written at [http://www.nclt.dcu.ie]
-     Questions, bug reports, feedback on the software can be logged via github https://github.com/CNGLdlab/LORG-Release 
+     Questions, bug reports, feedback on the software can be logged via github https://github.com/CNGLdlab/LORG-Release
      We'll do our best to get back to you but we won't make any promises.
 
      lorg_tools consist of 3 programs:
@@ -39,7 +39,7 @@ Table of Contents
      twostage_lorgparser: a PCFG-LA parser implementing the CKY algorithm and a coarse-to-fine strategy.
      tb2gram: a trainer for PCFG-LAs
 
-     This software is free to use in non-commercial projects. 
+     This software is free to use in non-commercial projects.
 
      If you use these tools in support of an academic publication,
      please cite the paper [1].
@@ -63,9 +63,7 @@ Table of Contents
 
 2.2 Compilation
 ================
-      Uncompress the archive lorg_tools-SVN.tar.gz, go into the created directory and type :
-
-      ./configure && make && make install
+      autoreconf --install && ./configure && make && make install
 
       NB: You may need administrator privileges to install lorg tools system-wide
 
