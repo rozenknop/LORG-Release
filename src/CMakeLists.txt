@@ -53,6 +53,7 @@ set(twostage_lorgparser_SOURCES
          parsers/ParserCKYAllMaxVar1B.cpp
          parsers/ParserCKYAllMaxVarKB.cpp
          parsers/ParserCKYAllMaxVarMultiple.cpp
+         parsers/ParserCKYAllMinDivKB.cpp
          grammars/compact_binary_rules_annotated.cpp
          grammars/AnnotatedLabelsInfo.cpp
          grammars/GrammarAnnotated.cpp

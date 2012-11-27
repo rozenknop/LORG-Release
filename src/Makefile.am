@@ -101,6 +101,7 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	parsers/ParserCKYAllViterbi.h parsers/ParserCKYAllMaxVar.h \
 	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
 	parsers/ParserCKYAllMaxVar1B.h \
+	parsers/ParserCKYAllMinDivKB.h parsers/ParserCKYAllMinDivKB.cpp \
 	parsers/ParserCKYAllFactory.h \
 	edges/ViterbiProbability.cpp \
 	edges/MaxRuleProbability1B.cpp \

@@ -10,6 +10,8 @@
 #include "utils/LorgConstants.h"
 #include "parsers/ParserCKYAllFactory.h"
 
+#include "parsers/ParserCKYAll.h"
+
 #ifdef USE_THREADS
 #include <tbb/tick_count.h>
 using tbb::tick_count;
