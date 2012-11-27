@@ -41,6 +41,8 @@ set(simple_lorgparser_SOURCES
 set(twostage_lorgparser_SOURCES
          ${common_sources}
          twostage_lorgparser.cpp
+         parsers/ParserCKYAllViterbi.cpp
+         parsers/ParserCKYAllMaxVar1B.cpp
          grammars/compact_binary_rules_annotated.cpp
          grammars/AnnotatedLabelsInfo.cpp
          utils/data_parsers/BURuleInputParser.cpp

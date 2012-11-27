@@ -2,6 +2,8 @@
 #ifndef _PARSERCKY_H_
 #define _PARSERCKY_H_
 
+#include "Word.h"
+#include "grammars/Grammar.h"
 #include "grammars/compact_binary_rules.h"
 
 namespace {

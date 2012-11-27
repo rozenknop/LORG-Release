@@ -9,6 +9,7 @@
 #include "PCKYBestCell.h"
 
 #include "ParserCKY.h"
+#include "ChartCKY.hpp"
 
 /**
   \class ParserCKYBest

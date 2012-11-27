@@ -4,18 +4,21 @@
 
 #include "PackedEdgeProbability.h"
 #include "PackedEdge.h"
-#include "maxrule_functions.h"
+#include "MaxRuleUpdater.h"
 
 class MaxRuleProbabilityKB
 {
+
 public:
+
   typedef std::vector<packed_edge_probability_with_index> heap_type;
   typedef PackedEdge<MaxRuleProbabilityKB> Edge;
   typedef PCKYAllCell<Edge> Cell;
   typedef UnaryPackedEdgeDaughters<Cell> UnaryDaughters;
   typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
   typedef LexicalPackedEdgeDaughters LexicalDaughters;
-
+  typedef MaxRuleUpdater<MaxRuleProbabilityKB> Updater;
+  
 private:
 
   heap_type candidates;
@@ -24,46 +27,48 @@ private:
 
   static double log_normalisation_factor;
   static unsigned size;
+
 public:
+
   MaxRuleProbabilityKB() :  candidates(), derivations() {candidates.reserve(50);};
   ~MaxRuleProbabilityKB() {};
 
-  static void set_size(unsigned k)
-  {size = k;}
+  inline static void set_size(unsigned k) {size = k;}
 
-  static void set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
+  inline static void set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
 
-  const packed_edge_probability_with_index& get(unsigned idx) const
-  {return derivations[idx];}
-  packed_edge_probability& get(unsigned idx)
-  {return derivations[idx];}
+  inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
+  inline packed_edge_probability& get(unsigned idx) { return derivations[idx]; }
 
 
-  void update_lexical(Edge& e, const LexicalDaughters& dtr);
-  void update_unary(Edge& e, const UnaryDaughters& dtr);
-  void update_binary(Edge& e, const BinaryDaughters& dtr);
-  void finalize();
+  inline void update_lexical(Edge& e, const LexicalDaughters& dtr);
+  inline void update_unary(Edge& e, const UnaryDaughters& dtr);
+  inline void update_binary(Edge& e, const BinaryDaughters& dtr);
+  inline void finalize();
   
-  void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
-  void extend_derivation(Edge*, unsigned, bool) ;
+  inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
+  inline void extend_derivation(Edge*, unsigned, bool) ;
 
-  unsigned n_deriv() const {return derivations.size();};
+  inline unsigned n_deriv() const {return derivations.size();};
 
-  bool has_solution(unsigned i) const {return i <derivations.size();}
+  inline bool has_solution(unsigned i) const {return i <derivations.size();}
 
 private:
+  
   struct test_helper
   {
     const packed_edge_probability_with_index& pep;
     test_helper(const packed_edge_probability_with_index& p) : pep(p) {};
 
-    bool operator()(const packed_edge_probability_with_index& p)
-    {return (p.probability == pep.probability) //|| (p.dtrs == pep.dtrs)
-        ;}
+    inline bool operator()(const packed_edge_probability_with_index& p)
+    {
+      return (p.probability == pep.probability) //|| (p.dtrs == pep.dtrs)
+      ;
+    }
   };
   
   public:
-    std::ostream& operator>>(std::ostream& out) const;
+    inline std::ostream& operator>>(std::ostream& out) const;
 };
 
 
@@ -93,7 +98,7 @@ void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughters& dtr)
   assert(rule != NULL);
 
   packed_edge_probability_with_index pep;
-  pep.probability = maxrule_function::update_maxrule_probability(a, rule, log_normalisation_factor);
+  pep.probability = Updater::update_maxrule_probability(a, rule, log_normalisation_factor);
 
 //    std::cout << "lexical " << pep.probability << std::endl;
   assert(pep.probability <=0);
@@ -116,7 +121,7 @@ void MaxRuleProbabilityKB::update_unary(Edge& e, const UnaryDaughters& dtr)
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
   //  std::cout << "before ump" << std::endl;
-  pep.probability= maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
+  pep.probability= Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
 
 //    std::cout << "unary "<< pep.probability << std::endl;
   assert(pep.probability <=0);
@@ -137,7 +142,7 @@ void MaxRuleProbabilityKB::update_binary(Edge& e, const BinaryDaughters& dtr)
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
 
-  pep.probability= maxrule_function::update_maxrule_probability<Edge>(a, dtr, log_normalisation_factor);
+  pep.probability= Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
 
   //  std::cout << candidates.size() << std::endl;
 //   std::cout << "binary " << pep.probability << std::endl;
@@ -287,7 +292,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
-      p.probability = maxrule_function::update_maxrule_probability<Edge>(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
+      p.probability = Updater::update_maxrule_probability(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
 
       assert(p.probability <= 0);
 
@@ -314,7 +319,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
 
       packed_edge_probability_with_index p(pep);
       p.right_index = nextright;
-      p.probability = maxrule_function::update_maxrule_probability<Edge>(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
+      p.probability = Updater::update_maxrule_probability(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
 
       assert(p.probability <= 0);
 
@@ -349,7 +354,7 @@ void MaxRuleProbabilityKB::find_succ(PackedEdge<MaxRuleProbabilityKB>* edge, pac
       //        std::cout << "un extending" << std::endl;
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
-      p.probability = maxrule_function::update_maxrule_probability<Edge>(edge->get_annotations(), *d, log_normalisation_factor, p.left_index);
+      p.probability = Updater::update_maxrule_probability(edge->get_annotations(), *d, log_normalisation_factor, p.left_index);
 
       assert(p.probability <= 0);
 
