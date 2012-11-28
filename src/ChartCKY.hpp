@@ -2,6 +2,7 @@
 #define ChartCKY_hpp
 
 #include "ChartCKY.h"
+#include "PCKYAllCell.hpp"
 
 /* use parallel_for in opencells_apply_bottom_up and opencells_apply_top_down */
 //#define WITH_PARALLEL_FOR
@@ -13,16 +14,16 @@
 // #define OPENCELLS_APPLY_CHART_TASK
 
 
-template<class Cell, class MyWord>
+template<class Types>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_nothread( std::function<void(Cell &)> f)
+ChartCKY<Types>::opencells_apply_nothread( std::function<void(Cell &)> f)
 {
   opencells_apply_bottom_up_nothread(f);
 }
 
-template<class Cell, class MyWord>
+template<class Types>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span)
+ChartCKY<Types>::opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span)
 {
   
   unsigned sent_size = get_size();
@@ -39,9 +40,9 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up_nothread( std::function<void(C
   }
 }
 
-template<class Cell, class MyWord>
+template<class Types>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down_nothread( std::function<void(Cell &)> f)
+ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(Cell &)> f)
 {
   unsigned sent_size=get_size();
   for (signed span = sent_size-1; span >= 0; --span) {
@@ -59,26 +60,26 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down_nothread( std::function<void(Ce
 
 #ifndef USE_THREADS
 
-template<class Cell, class MyWord>
+template<class Types>
 inline
 void
-ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
 {
   opencells_apply_nothread(f);
 }
 
-template<class Cell, class MyWord>
+template<class Types>
 inline
 void
-ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span)
+ChartCKY<Types>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span)
 {
   opencells_apply_bottom_up_nothread(f, min_span);
 }
 
-template<class Cell, class MyWord>
+template<class Types>
 inline
 void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
+ChartCKY<Types>::opencells_apply_top_down( std::function<void(Cell &)> f)
 {
   opencells_apply_bottom_up_nothread(f);
 }
@@ -88,9 +89,9 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
 #else // USE_THREADS defined
 
 #ifdef WITH_PARALLEL_FOR
-template<class Cell, class MyWord>
+template<class Types>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span )
+ChartCKY<Types>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span )
 {
   unsigned sent_size = get_size();
   for (unsigned span = min_span; span < sent_size; ++span) {
@@ -106,9 +107,9 @@ ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f
     );
   }
 }
-template<class Cell, class MyWord>
+template<class Types>
 void
-ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
+ChartCKY<Types>::opencells_apply_top_down( std::function<void(Cell &)> f)
 {
   unsigned sent_size=get_size();
   for (signed span = sent_size-1; span >= 0; --span) {
@@ -128,9 +129,9 @@ ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f)
   }
 }
 
-template<class Cell, class MyWord>
+template<class Types>
 void
-ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
 {
   tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
                     [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
@@ -169,9 +170,9 @@ public:
   
   
   #ifdef OPENCELLS_APPLY_PARALLEL_FOR
-  template<class Cell, class MyWord>
+  template<class Types>
   void
-  ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+  ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
     tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
                       [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
@@ -220,9 +221,9 @@ public:
     }  
   };
   
-  template<class Cell, class MyWord>
+  template<class Types>
   void
-  ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+  ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
     atomic<Cell **> it; it = &vcells[0];
     tbb::task_list seeds;
@@ -244,9 +245,9 @@ public:
   
   #include "tbb/task_group.h"
   
-  template<class Cell, class MyWord>
+  template<class Types>
   void
-  ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+  ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
     tbb::task_group g;
     for(auto cell: vcells) {
@@ -258,9 +259,9 @@ public:
   
   
   #ifdef OPENCELLS_APPLY_CHART_TASK
-  template<class Cell, class MyWord>
+  template<class Types>
   void
-  ChartCKY<Cell, MyWord>::opencells_apply( std::function<void(Cell &)> f)
+  ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
     tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
     
@@ -287,9 +288,9 @@ public:
   #endif
   
   
-  template<class Cell, class MyWord>
+  template<class Types>
   void
-  ChartCKY<Cell, MyWord>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span )
+  ChartCKY<Types>::opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span )
   {
     signed min_s = min_span;
     signed sent_size = get_size();
@@ -326,9 +327,9 @@ public:
       tbb::task::destroy(*waiter);
   }
   
-  template<class Cell, class MyWord>
+  template<class Types>
   void
-  ChartCKY<Cell, MyWord>::opencells_apply_top_down( std::function<void(Cell &)> f )
+  ChartCKY<Types>::opencells_apply_top_down( std::function<void(Cell &)> f )
   {
     signed sent_size = get_size();
     tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
@@ -362,11 +363,11 @@ public:
   
   
   
-  template<class Cell, class MyWord>
-  ostream & operator<<(ostream & out, const ChartCKY<Cell,MyWord> & chart) { return chart.to_stream(out) ; }
+  template<class Types>
+  ostream & operator<<(ostream & out, const ChartCKY<Types> & chart) { return chart.to_stream(out) ; }
   
-  template<class Cell, class MyWord>
-  ostream & ChartCKY<Cell, MyWord>::to_stream(ostream & s) const {
+  template<class Types>
+  ostream & ChartCKY<Types>::to_stream(ostream & s) const {
     opencells_apply_top_down_nothread( [&s](Cell & cell){
       s << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
       s << cell << std::endl;
@@ -376,24 +377,24 @@ public:
   
   //#include "utils/SymbolTable.h"
   
-  template<class Cell, class MyWord>
+  template<class Types>
   inline
-  unsigned ChartCKY<Cell, MyWord>::get_size() const
+  unsigned ChartCKY<Types>::get_size() const
   {
     return size;
   }
   
-  template<class Cell, class MyWord>
+  template<class Types>
   inline
-  Cell& ChartCKY<Cell, MyWord>::access(unsigned start, unsigned end) const
+  typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
   {
     //   assert(start <= end);
     //   assert(end < size);
     return chart[start][end-start];
   }
   
-  template<class Cell, class MyWord>
-  ChartCKY<Cell, MyWord>::~ChartCKY()
+  template<class Types>
+  ChartCKY<Types>::~ChartCKY()
   {
     for(unsigned i = 0; i < size; ++i)
       delete[] chart[i];
@@ -411,14 +412,14 @@ public:
   };
   
   
-  template<class Cell, class MyWord>
-  Cell& ChartCKY<Cell, MyWord>::get_root() const
+  template<class Types>
+  typename Types::Cell& ChartCKY<Types>::get_root() const
   {
     return access(0,size-1);
   }
   
-  template<class Cell, class MyWord>
-  PtbPsTree* ChartCKY<Cell, MyWord>::get_best_tree(int start_symbol, unsigned k, bool output_forms, bool output_annotations) const
+  template<class Types>
+  PtbPsTree* ChartCKY<Types>::get_best_tree(int start_symbol, unsigned k, bool output_forms, bool output_annotations) const
   {
     PtbPsTree* tree = NULL;
     
@@ -432,15 +433,15 @@ public:
   }
   
   //score at root
-  template<class Cell, class MyWord>
-  double ChartCKY<Cell, MyWord>::get_score(int symbol, unsigned k) const
+  template<class Types>
+  double ChartCKY<Types>::get_score(int symbol, unsigned k) const
   {
     return get_root().get_edge(symbol).get_prob_model().get(k).probability;
   }
   
   
-  template<class Cell, class MyWord>
-  void ChartCKY<Cell, MyWord>::init(const std::vector< MyWord >& sentence)
+  template<class Types>
+  void ChartCKY<Types>::init(const std::vector< MyWord >& sentence)
   {
     //iterate through all the words in the sentence
     for(typename std::vector<MyWord>::const_iterator w_itr(sentence.begin());
@@ -464,8 +465,8 @@ public:
   
   
   // assume that words in sentence are in left to right direction (start in ascending direction)
-  template<class Cell, class MyWord>
-  ChartCKY<Cell, MyWord>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) :
+  template<class Types>
+  ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) :
   chart(NULL),
   size(find_last_in_sentence(s)),
   sentence(s),
@@ -516,8 +517,8 @@ public:
   
   
   
-  template<class Cell, class MyWord>
-  void ChartCKY<Cell, MyWord>::reset_probabilities()
+  template<class Types>
+  void ChartCKY<Types>::reset_probabilities()
   {
     for(unsigned i = 0; i < size; ++i)
       for(unsigned j = i; j < size; ++j) {
@@ -527,15 +528,15 @@ public:
   }
   
   
-  template<class Cell, class MyWord>
-  bool ChartCKY<Cell, MyWord>::has_solution(int symb, unsigned i) const
+  template<class Types>
+  bool ChartCKY<Types>::has_solution(int symb, unsigned i) const
   {
     //  std::cout << SymbolTable::instance_nt().translate(symb) << std::endl;
     return get_root().get_edge(symb).has_solution(i);
   }
   
-  template<class Cell, class MyWord>
-  void ChartCKY<Cell, MyWord>::clear()
+  template<class Types>
+  void ChartCKY<Types>::clear()
   {
     for(unsigned i = 0; i < size; ++i)
       for(unsigned j = i; j < size; ++j) {
@@ -543,8 +544,8 @@ public:
       }
   }
   
-  template<class Cell, class MyWord>
-  void ChartCKY<Cell, MyWord>::prepare_retry()
+  template<class Types>
+  void ChartCKY<Types>::prepare_retry()
   {
     this->clear();
     this->reset_probabilities();
@@ -563,8 +564,8 @@ public:
     }
   }
   
-  template <class Cell, class MyWord>
-  bool ChartCKY<Cell, MyWord>::is_valid(int start_symbol) const
+  template <class Types>
+  bool ChartCKY<Types>::is_valid(int start_symbol) const
   {
     return !get_root().is_closed() && get_root().exists_edge(start_symbol);
   }

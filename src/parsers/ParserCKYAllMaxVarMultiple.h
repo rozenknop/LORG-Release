@@ -6,9 +6,7 @@
 #include "edges/MaxRuleProbabilityMultiple.h"
 
 
-typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityMultiple> > ParserCKYAllMaxRuleMultipleCell ;
-
-class ParserCKYAllMaxRuleMultiple : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>
+class ParserCKYAllMaxRuleMultiple : public ParserCKYAllMaxRule<MaxRuleMultipleTypes>
 {
 public:
   ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,

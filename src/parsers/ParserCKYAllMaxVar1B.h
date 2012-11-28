@@ -4,11 +4,12 @@
 
 #include "ParserCKYAllMaxVar.h"
 #include "edges/MaxRuleProbability1B.h"
+#include "Word.h"
+
+#include "emptystruct.h"
 
 
-typedef PCKYAllCell< PackedEdge< MaxRuleProbability1B>> ParserCKYAllMaxRuleCell ;
-
-class ParserCKYAllMaxRule1B : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleCell>
+class ParserCKYAllMaxRule1B : public ParserCKYAllMaxRule<MaxRule1BTypes>
 {
 public:
   ParserCKYAllMaxRule1B(std::vector<AGrammar*>& cgs,

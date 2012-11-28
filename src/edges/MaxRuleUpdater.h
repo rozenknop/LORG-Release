@@ -13,12 +13,12 @@ class MaxRuleUpdater
 {
 public:
   typedef typename ProbaModel::Edge Edge ;
-  typedef typename Edge::LexicalDaughters LexicalDaughters;
-  typedef typename Edge::UnaryDaughters UnaryDaughters;
-  typedef typename Edge::BinaryDaughters BinaryDaughters;
+  typedef typename Edge::LexicalDaughter LexicalDaughter;
+  typedef typename Edge::UnaryDaughter UnaryDaughter;
+  typedef typename Edge::BinaryDaughter BinaryDaughter;
 
   static double update_maxrule_probability (const AnnotationInfo & up_annotations,
-                                            const BinaryDaughters & dtr,
+                                            const BinaryDaughter & dtr,
                                             double normalisation_factor,
                                             unsigned left_idx =0, unsigned right_idx = 0)
   {
@@ -112,7 +112,7 @@ public:
   }
   
   static void compute_best_indexes (const AnnotationInfo & up_annotations,
-                                    const BinaryDaughters & dtrs,
+                                    const BinaryDaughter & dtrs,
                                     double normalisation_factor,
                                     unsigned &left_idx, unsigned &right_idx)
   {
@@ -165,7 +165,7 @@ public:
   }
   
   static double update_maxrule_probability (const AnnotationInfo & up_annotations,
-                                            const UnaryDaughters & dtrs,
+                                            const UnaryDaughter & dtrs,
                                             double normalisation_factor,
                                             unsigned left_idx = 0)
   {
@@ -227,7 +227,7 @@ public:
   }
   
   static void compute_best_indexes (const AnnotationInfo & up_annotations,
-                                    const UnaryDaughters & dtrs,
+                                    const UnaryDaughter & dtrs,
                                     double normalisation_factor,
                                     unsigned &left_idx)
   {

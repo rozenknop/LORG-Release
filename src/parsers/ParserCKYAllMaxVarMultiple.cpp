@@ -12,7 +12,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
                                                          const std::vector< std::vector<AGrammar*> >& fgs,
                                                          const std::vector< annot_descendants_type >& all_annot_descendants_,
                                                          bool accurate_, unsigned min_beam, int stubborn, unsigned k_)
-: ParserCKYAllMaxRule<ParserCKYAllMaxRuleMultipleCell>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn),
+: ParserCKYAllMaxRule<MaxRuleMultipleTypes>(cgs, p, b_t, all_annot_descendants_[0], accurate_, min_beam, stubborn),
     fine_grammars(fgs), all_annot_descendants(all_annot_descendants_), nb_grammars(fgs.size() + 1), k(k_)
 {
 

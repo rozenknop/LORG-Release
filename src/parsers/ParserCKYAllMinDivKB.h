@@ -4,6 +4,22 @@
 
 #include "ParserCKYAll.h"
 #include "edges/MaxRuleUpdater.h"
+#include "emptystruct.h"
+
+class MinDivProbabilityKB;
+
+struct MinDivKBTypes {
+  typedef MinDivProbabilityKB EdgeProbability ;
+  typedef emptystruct EdgeDaughterProbability ;
+  typedef Word ChartWord ;
+  
+  typedef PackedEdge< MinDivKBTypes > Edge ;
+  typedef PCKYAllCell< MinDivKBTypes > Cell ;
+  typedef ChartCKY< MinDivKBTypes > Chart ;
+  typedef BinaryPackedEdgeDaughters<MinDivKBTypes> BinaryDaughter;
+  typedef UnaryPackedEdgeDaughters<MinDivKBTypes>  UnaryDaughter;
+  typedef LexicalPackedEdgeDaughters<MinDivKBTypes> LexicalDaughter;
+};
 
 class MinDivProbabilityKB
 {
@@ -11,11 +27,12 @@ class MinDivProbabilityKB
 public:
 
   typedef std::vector<packed_edge_probability_with_index> heap_type;
-  typedef PackedEdge<MinDivProbabilityKB> Edge;
-  typedef PCKYAllCell<Edge> Cell;
-  typedef UnaryPackedEdgeDaughters<Cell> UnaryDaughters;
-  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
-  typedef LexicalPackedEdgeDaughters LexicalDaughters;
+
+  typedef typename MinDivKBTypes::Edge Edge;
+  typedef typename MinDivKBTypes::Cell Cell;
+  typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
+  typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
+  typedef typename MinDivKBTypes::LexicalDaughter LexicalDaughter;
   typedef MaxRuleUpdater<MinDivProbabilityKB> Updater;
   
 private:
@@ -40,9 +57,9 @@ public:
   inline packed_edge_probability& get(unsigned idx) { return derivations[idx]; }
 
 
-  inline void update_lexical(Edge& e, const LexicalDaughters& dtr);
-  inline void update_unary(Edge& e, const UnaryDaughters& dtr);
-  inline void update_binary(Edge& e, const BinaryDaughters& dtr);
+  inline void update_lexical(Edge& e, const LexicalDaughter& dtr);
+  inline void update_unary(Edge& e, const UnaryDaughter& dtr);
+  inline void update_binary(Edge& e, const BinaryDaughter& dtr);
   inline void finalize();
   
   inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
@@ -73,10 +90,8 @@ private:
 
 
 
-typedef PCKYAllCell<PackedEdge<MinDivProbabilityKB> > MinDivProbabilityCell ;
 
-
-class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivProbabilityCell>
+class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivKBTypes>
 {
  private:
   unsigned k;

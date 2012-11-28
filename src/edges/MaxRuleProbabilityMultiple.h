@@ -6,11 +6,29 @@
 #include "PackedEdgeProbability.h"
 #include "PackedEdge.h"
 #include "MaxRuleUpdater.h"
+#include "emptystruct.h"
+#include "ChartCKY.h"
 
 // #include <numeric>
 #include <vector>
 #include <unordered_map>
 
+
+
+class MaxRuleProbabilityMultiple;
+
+struct MaxRuleMultipleTypes {
+  typedef MaxRuleProbabilityMultiple EdgeProbability ;
+  typedef emptystruct EdgeDaughterProbability ;
+  typedef Word ChartWord ;
+  
+  typedef PackedEdge< MaxRuleMultipleTypes > Edge ;
+  typedef PCKYAllCell< MaxRuleMultipleTypes > Cell ;
+  typedef ChartCKY< MaxRuleMultipleTypes > Chart ;
+  typedef BinaryPackedEdgeDaughters<MaxRuleMultipleTypes> BinaryDaughter;
+  typedef UnaryPackedEdgeDaughters<MaxRuleMultipleTypes>  UnaryDaughter;
+  typedef LexicalPackedEdgeDaughters<MaxRuleMultipleTypes> LexicalDaughter;
+};
 
 
 
@@ -38,12 +56,12 @@ private:
 
 
 public:
-  typedef PackedEdge<MaxRuleProbabilityMultiple> Edge;
-  typedef PCKYAllCell<Edge> Cell;
-  typedef UnaryPackedEdgeDaughters<Cell> UnaryDaughters;
-  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
-  typedef LexicalPackedEdgeDaughters LexicalDaughters;
-
+  typedef typename MaxRuleMultipleTypes::Edge Edge;
+  typedef typename MaxRuleMultipleTypes::Cell Cell;
+  typedef typename MaxRuleMultipleTypes::UnaryDaughter UnaryDaughter;
+  typedef typename MaxRuleMultipleTypes::BinaryDaughter BinaryDaughter;
+  typedef typename MaxRuleMultipleTypes::LexicalDaughter LexicalDaughter;
+  
   MaxRuleProbabilityMultiple() : candidates(),
                                  derivations(heap_type(1))
   {candidates.reserve(50);};
@@ -61,14 +79,14 @@ public:
   inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
   inline       packed_edge_probability_with_index& get(unsigned idx)       {return derivations[idx];}
 
-  inline void update_lexical(Edge& e, const LexicalDaughters& dtr);
-  inline void update_unary(Edge& e, const UnaryDaughters& dtr);
-  inline void update_binary(Edge& e, const BinaryDaughters& dtr);
+  inline void update_lexical(Edge& e, const LexicalDaughter& dtr);
+  inline void update_unary(Edge& e, const UnaryDaughter& dtr);
+  inline void update_binary(Edge& e, const BinaryDaughter& dtr);
   inline void finalize();
 
-  inline void pick_best_lexical(const LexicalDaughters& dtr);
-  inline void pick_best_binary(const BinaryDaughters& dtr);
-  inline void pick_best_unary(const UnaryDaughters& dtr);
+  inline void pick_best_lexical(const LexicalDaughter& dtr);
+  inline void pick_best_binary(const BinaryDaughter& dtr);
+  inline void pick_best_unary(const UnaryDaughter& dtr);
   inline void pick_best();
 
   inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
@@ -137,7 +155,7 @@ void MaxRuleProbabilityMultiple::write_scores(const PackedEdgeDaughters& dtr, do
 }
 
 
-void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughters& dtr)
+void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughter& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
   double probability(Updater::update_maxrule_probability(a, dtr.get_rule(), log_normalisation_factor));
@@ -150,7 +168,7 @@ void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughters&
   write_scores(dtr, probability);
 }
 
-void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughters & dtr)
+void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughter & dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
   double probability = -std::numeric_limits<double>::infinity();
@@ -174,7 +192,7 @@ void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughters & dt
   write_scores(dtr, probability);
 }
 
-void MaxRuleProbabilityMultiple::update_binary(Edge& e, const BinaryDaughters& dtr)
+void MaxRuleProbabilityMultiple::update_binary(Edge& e, const BinaryDaughter& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
 
@@ -201,7 +219,7 @@ void MaxRuleProbabilityMultiple::finalize()
 }
 
 
-void MaxRuleProbabilityMultiple::pick_best_lexical(const LexicalPackedEdgeDaughters& dtr)
+void MaxRuleProbabilityMultiple::pick_best_lexical(const LexicalDaughter & dtr)
 {
   if(occ[&dtr] == nb_grammars) {
     packed_edge_probability_with_index p;
@@ -213,7 +231,7 @@ void MaxRuleProbabilityMultiple::pick_best_lexical(const LexicalPackedEdgeDaught
     //    std::cout << "size annots: " << upannots.size() << std::endl;
 
 
-    const Edge::LexicalDaughters* d = static_cast<const Edge::LexicalDaughters*>(p.dtrs);
+    const LexicalDaughter* d = static_cast<const LexicalDaughter*>(p.dtrs);
     //          std::cout << *( d->get_rule()->get_coarser(upannots.size() - i + 1)) << std::endl;
 
     p.probability = 0;
@@ -270,7 +288,7 @@ void MaxRuleProbabilityMultiple::pick_best_lexical(const LexicalPackedEdgeDaught
 }
 
 
-void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryPackedEdgeDaughters<Cell>& dtr)
+void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryDaughter& dtr)
 {
 
   if(occ[&dtr] == nb_grammars) {
@@ -286,7 +304,7 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryPackedEdgeDaughter
 
     //    std::cout << "binary case" << std::endl;
 
-    const Edge::BinaryDaughters* d = static_cast<const Edge::BinaryDaughters*>(p.dtrs);
+    const BinaryDaughter * d = static_cast<const BinaryDaughter*>(p.dtrs);
 
     Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
     const std::vector<AnnotationInfo>& leftannots = left.get_prob_model().get_annotations_backup();
@@ -332,7 +350,7 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryPackedEdgeDaughter
 }
 
 
-void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryPackedEdgeDaughters<Cell>& dtr)
+void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryDaughter & dtr)
 {
   if(occ[&dtr] == nb_grammars) {
 
@@ -342,7 +360,7 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryPackedEdgeDaughters<
     const std::vector<AnnotationInfo>& upannots = get_annotations_backup();
 
 
-    const Edge::UnaryDaughters* d = static_cast<const Edge::UnaryDaughters*>(p.dtrs);
+    const UnaryDaughter* d = static_cast<const UnaryDaughter*>(p.dtrs);
 
     Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
 
@@ -515,7 +533,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
 
     //    std::cout << "binary case" << std::endl;
 
-    const Edge::BinaryDaughters* d = static_cast<const Edge::BinaryDaughters*>(pep.dtrs);
+    const BinaryDaughter* d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
     Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
     const std::vector<AnnotationInfo>& leftannots = left.get_prob_model().get_annotations_backup();
@@ -616,7 +634,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
 
     //    std::cout << "unary case" << std::endl;
 
-    const Edge::UnaryDaughters* d = static_cast<const Edge::UnaryDaughters*>(pep.dtrs);
+    const UnaryDaughter* d = static_cast<const UnaryDaughter*>(pep.dtrs);
 
     Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
     const std::vector<AnnotationInfo>& leftannots = left.get_prob_model().get_annotations_backup();

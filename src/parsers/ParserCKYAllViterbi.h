@@ -4,10 +4,11 @@
 
 #include "ParserCKYAll.h"
 #include "edges/ViterbiProbability.h"
+#include "emptystruct.h"
 
-typedef PCKYAllCell<PackedEdge<ViterbiProbability> > ParserCKYAllViterbiCell ;
 
-class ParserCKYAllViterbi : public ParserCKYAll_Impl<ParserCKYAllViterbiCell>
+
+class ParserCKYAllViterbi : public ParserCKYAll_Impl<ViterbiTypes>
 {
 public:
   ParserCKYAllViterbi(std::vector<AGrammar*>& cgs,

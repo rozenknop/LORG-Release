@@ -71,18 +71,16 @@ MinDivProbabilityKB::extend_derivation (MinDivProbabilityKB::Edge * edge,
 
 }
 
-void MinDivProbabilityKB::find_succ(PackedEdge<MinDivProbabilityKB>* edge, packed_edge_probability_with_index& pep, bool licence_unaries)
+void MinDivProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_index& pep, bool licence_unaries)
 {
-  typedef PackedEdge<MinDivProbabilityKB> P;
-
   if(pep.dtrs->is_lexical())  { return;}
   // binary -> extend left and right daughters
   if(pep.dtrs->is_binary()) {
-    const P::BinaryDaughters* d = static_cast<const P::BinaryDaughters*>(pep.dtrs);
+    const BinaryDaughter * d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
     //extend to the left
     unsigned left_pos = d->get_rule()->get_rhs0();
-    P* left  = d->left_daughter()->get_edge_ptr(left_pos);
+    Edge* left  = d->left_daughter()->get_edge_ptr(left_pos);
     unsigned nextleft = pep.left_index + 1;
     left->extend_derivation(nextleft+1,true);
 
@@ -107,7 +105,7 @@ void MinDivProbabilityKB::find_succ(PackedEdge<MinDivProbabilityKB>* edge, packe
 
     //extend to the right
     unsigned right_pos = d->get_rule()->get_rhs1();
-    P* right = d->right_daughter()->get_edge_ptr(right_pos);
+    Edge* right = d->right_daughter()->get_edge_ptr(right_pos);
     unsigned nextright = pep.right_index + 1;
 
     right->extend_derivation(nextright+1,true);
@@ -137,14 +135,14 @@ void MinDivProbabilityKB::find_succ(PackedEdge<MinDivProbabilityKB>* edge, packe
 
     //      std::cout << "unary case" << std::endl;
 
-    const P::UnaryDaughters* d = static_cast<const P::UnaryDaughters*>(pep.dtrs);
+    const UnaryDaughter* d = static_cast<const UnaryDaughter*>(pep.dtrs);
 
     //        std::cout << * d->get_rule() << std::endl;
 
 
     //extend to the left
     unsigned left_pos = d->get_rule()->get_rhs0();
-    P* left  = d->left_daughter()->get_edge_ptr(left_pos);
+    Edge* left  = d->left_daughter()->get_edge_ptr(left_pos);
     unsigned nextleft = pep.left_index + 1;
 
     left->extend_derivation(nextleft+1, false);
@@ -174,7 +172,7 @@ ParserCKYAllMinDivKB::ParserCKYAllMinDivKB(std::vector<AGrammar*>& cgs,
                                              const std::vector<double>& p, double b_t,
                                              const annot_descendants_type& annot_descendants_,
                                              bool accurate_, unsigned min_beam, int stubborn, unsigned k_)
-: ParserCKYAll_Impl<MinDivProbabilityCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn) , k(k_)
+: ParserCKYAll_Impl<MinDivKBTypes>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn) , k(k_)
 {
   // this is not in the super class because maxn parsing uses a
   //different mapping

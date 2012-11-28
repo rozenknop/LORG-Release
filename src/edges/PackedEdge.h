@@ -42,22 +42,22 @@ typedef std::unordered_map<asymb, std::unordered_map< asymb, asymb> > PathMatrix
 
 
 
-template<class PEP>
+template<class Types>
 class PackedEdge
 {
 public:
-  typedef PEP ProbaModel;
-  typedef PCKYAllCell<PackedEdge<PEP> > Cell;
-  typedef PackedEdge<PEP> Edge;
-  typedef PackedEdgeDaughters Daughters;
-  typedef BinaryPackedEdgeDaughters<Cell> BinaryDaughters;
-  typedef UnaryPackedEdgeDaughters<Cell>  UnaryDaughters;
-  typedef LexicalPackedEdgeDaughters LexicalDaughters;
+  typedef typename Types::EdgeProbability ProbaModel;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+//   typedef PackedEdgeDaughters Daughters;
+  typedef typename Types::BinaryDaughter  BinaryDaughter;
+  typedef typename Types::UnaryDaughter   UnaryDaughter;
+  typedef typename Types::LexicalDaughter LexicalDaughter;
 
 protected:
-  typedef std::vector<BinaryDaughters> bvector;
-  typedef std::vector<UnaryDaughters>  uvector;
-  typedef std::vector<LexicalDaughters>  lvector;
+  typedef std::vector<BinaryDaughter> bvector;
+  typedef std::vector<UnaryDaughter>  uvector;
+  typedef std::vector<LexicalDaughter>  lvector;
 
   typedef typename bvector::iterator biterator;
   typedef typename uvector::iterator  uiterator;
@@ -81,7 +81,7 @@ public:
      \brief Constructor
      \param ped daughters to add
   */
-    PackedEdge(const BinaryDaughters& ped)
+    PackedEdge(const BinaryDaughter& ped)
   {
     binary_daughters.push_back(ped);
     this->local_resize_annotations(1);
@@ -91,7 +91,7 @@ public:
      \brief Constructor
      \param ped daughters to add
   */
-  PackedEdge(const UnaryDaughters& ped)
+  PackedEdge(const UnaryDaughter& ped)
   {
     unary_daughters.push_back(ped);
     this->local_resize_annotations(1);
@@ -101,7 +101,7 @@ public:
      \brief Constructor
      \param ped daughters to add
   */
-  PackedEdge(const LexicalDaughters& ped)
+  PackedEdge(const LexicalDaughter& ped)
   {
     lexical_daughters.push_back(ped);
     this->local_resize_annotations(1);
@@ -130,14 +130,14 @@ public:
  /**
      \brief get one particular daughter of the edge
   */
-  BinaryDaughters& get_binary_daughter(unsigned i);
-  const BinaryDaughters& get_binary_daughter(unsigned i) const;
+  BinaryDaughter& get_binary_daughter(unsigned i);
+  const BinaryDaughter& get_binary_daughter(unsigned i) const;
 
-  UnaryDaughters& get_unary_daughter(unsigned i);
-  const UnaryDaughters& get_unary_daughter(unsigned i) const;
+  UnaryDaughter& get_unary_daughter(unsigned i);
+  const UnaryDaughter& get_unary_daughter(unsigned i) const;
 
-  LexicalDaughters& get_lexical_daughter(unsigned i);
-  const LexicalDaughters& get_lexical_daughter(unsigned i) const;
+  LexicalDaughter& get_lexical_daughter(unsigned i);
+  const LexicalDaughter& get_lexical_daughter(unsigned i) const;
 
   /**
      \brief is the daughter lexical ?
@@ -188,24 +188,24 @@ public:
   void add_daughters(Cell * left,
                      Cell * right, const BRuleC2f* rule)
   {
-    binary_daughters.push_back(BinaryDaughters(left,right,rule));
+    binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 
   void add_daughters(Cell * left, const URuleC2f* rule)
   {
-    unary_daughters.push_back(UnaryDaughters(left,rule));
+    unary_daughters.push_back(UnaryDaughter(left,rule));
   }
 
   void add_daughters(const LexicalRuleC2f* rule, const Word* w)
   {
-    lexical_daughters.push_back(LexicalDaughters(rule, w));
+    lexical_daughters.push_back(LexicalDaughter(rule, w));
   }
 
   /**
      \brief get the structure holding the "best calculation for the prob. model" whatever it means
    */
-  const PEP& get_prob_model() const;
-  PEP& get_prob_model();
+  const ProbaModel& get_prob_model() const;
+  ProbaModel& get_prob_model();
 
 
   /**
@@ -242,32 +242,32 @@ protected :
 
 
 private:
-  PEP best;
+  ProbaModel best;
 
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                     bool append_annot, bool outpu_forms) const;
 
 public:
-  void process(function<void(Edge &, LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
-  void process(function<void(Edge &, UnaryDaughters &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
-  void process(function<void(Edge &, BinaryDaughters &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
+  void process(function<void(Edge &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
+  void process(function<void(Edge &, UnaryDaughter &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
+  void process(function<void(Edge &, BinaryDaughter &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
 
-  void process(function<void(LexicalDaughters &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
+  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
 
-  void process(function<void(UnaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
-  void process(function<void(BinaryDaughters &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
+  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
+  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
 
-  void process(function<void(PEP &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
+  void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
 
-  void process(function<void(PEP &, Edge &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(PEP &, Edge &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(PEP &, Edge &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
 
-  void process(function<void(PEP &, const LexicalDaughters &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
-  void process(function<void(PEP &, const UnaryDaughters &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), d);}
-  void process(function<void(PEP &, const BinaryDaughters &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), d);}
 
-  void process(function<void(PEP &)> f) {f(get_prob_model());}
+  void process(function<void(ProbaModel &)> f) {f(get_prob_model());}
 
   void process(function<void(Edge &)> f) { f(*this); }
   
@@ -279,95 +279,95 @@ public:
 
 
 
-template<class PEP>
+template<class Types>
 inline
-AnnotationInfo& PackedEdge<PEP>::get_annotations() {return annotations;}
+AnnotationInfo& PackedEdge<Types>::get_annotations() {return annotations;}
 
-template<class PEP>
+template<class Types>
 inline
-const AnnotationInfo& PackedEdge<PEP>::get_annotations() const {return annotations;}
+const AnnotationInfo& PackedEdge<Types>::get_annotations() const {return annotations;}
 
-// template<class PEP>
+// template<class Types>
 // inline
-// std::vector<AnnotationInfo>& PackedEdge<PEP>::get_annotations_backup() {return best.get_annotations_backup();}
+// std::vector<AnnotationInfo>& PackedEdge<Types>::get_annotations_backup() {return best.get_annotations_backup();}
 
-// template<class PEP>
+// template<class Types>
 // inline
-// const std::vector<AnnotationInfo>& PackedEdge<PEP>::get_annotations_backup() const {return best.get_annotations_backup();}
+// const std::vector<AnnotationInfo>& PackedEdge<Types>::get_annotations_backup() const {return best.get_annotations_backup();}
 
-template<class PEP>
+template<class Types>
 inline
-const typename PackedEdge<PEP>::bvector& PackedEdge<PEP>::get_binary_daughters() const {return binary_daughters;}
+const typename PackedEdge<Types>::bvector& PackedEdge<Types>::get_binary_daughters() const {return binary_daughters;}
 
 
-template<class PEP>
+template<class Types>
 inline
-typename PackedEdge<PEP>::bvector& PackedEdge<PEP>::get_binary_daughters() {return binary_daughters;}
+typename PackedEdge<Types>::bvector& PackedEdge<Types>::get_binary_daughters() {return binary_daughters;}
 
-template<class PEP>
+template<class Types>
 inline
-const typename PackedEdge<PEP>::uvector& PackedEdge<PEP>::get_unary_daughters() const {return unary_daughters;}
+const typename PackedEdge<Types>::uvector& PackedEdge<Types>::get_unary_daughters() const {return unary_daughters;}
 
-template<class PEP>
+template<class Types>
 inline
-typename PackedEdge<PEP>::uvector& PackedEdge<PEP>::get_unary_daughters() {return unary_daughters;}
+typename PackedEdge<Types>::uvector& PackedEdge<Types>::get_unary_daughters() {return unary_daughters;}
 
-template<class PEP>
+template<class Types>
 inline
-typename PackedEdge<PEP>::BinaryDaughters& PackedEdge<PEP>::get_binary_daughter(unsigned i) {return binary_daughters[i];}
+typename PackedEdge<Types>::BinaryDaughter& PackedEdge<Types>::get_binary_daughter(unsigned i) {return binary_daughters[i];}
 
-template<class PEP>
+template<class Types>
 inline
-const typename PackedEdge<PEP>::BinaryDaughters& PackedEdge<PEP>::get_binary_daughter(unsigned i) const {return binary_daughters[i];}
+const typename PackedEdge<Types>::BinaryDaughter& PackedEdge<Types>::get_binary_daughter(unsigned i) const {return binary_daughters[i];}
 
 
-template<class PEP>
+template<class Types>
 inline
-typename PackedEdge<PEP>::UnaryDaughters& PackedEdge<PEP>::get_unary_daughter(unsigned i) {return unary_daughters[i];}
+typename PackedEdge<Types>::UnaryDaughter& PackedEdge<Types>::get_unary_daughter(unsigned i) {return unary_daughters[i];}
 
-template<class PEP>
+template<class Types>
 inline
-const typename PackedEdge<PEP>::UnaryDaughters& PackedEdge<PEP>::get_unary_daughter(unsigned i) const {return unary_daughters[i];}
+const typename PackedEdge<Types>::UnaryDaughter& PackedEdge<Types>::get_unary_daughter(unsigned i) const {return unary_daughters[i];}
 
-template<class PEP>
+template<class Types>
 inline
-bool PackedEdge<PEP>::get_lex() const {return !(lexical_daughters.empty());}
+bool PackedEdge<Types>::get_lex() const {return !(lexical_daughters.empty());}
 
-template<class PEP>
+template<class Types>
 inline
-const typename PackedEdge<PEP>::lvector& PackedEdge<PEP>::get_lexical_daughters() const {return lexical_daughters;}
+const typename PackedEdge<Types>::lvector& PackedEdge<Types>::get_lexical_daughters() const {return lexical_daughters;}
 
-template<class PEP>
+template<class Types>
 inline
-typename PackedEdge<PEP>::lvector& PackedEdge<PEP>::get_lexical_daughters() {return lexical_daughters;}
+typename PackedEdge<Types>::lvector& PackedEdge<Types>::get_lexical_daughters() {return lexical_daughters;}
 
-template<class PEP>
+template<class Types>
 inline
-typename PackedEdge<PEP>::LexicalDaughters& PackedEdge<PEP>::get_lexical_daughter(unsigned i) {return lexical_daughters[i];}
+typename PackedEdge<Types>::LexicalDaughter& PackedEdge<Types>::get_lexical_daughter(unsigned i) {return lexical_daughters[i];}
 
-template<class PEP>
+template<class Types>
 inline
-const typename PackedEdge<PEP>::LexicalDaughters& PackedEdge<PEP>::get_lexical_daughter(unsigned i) const {return lexical_daughters[i];}
+const typename PackedEdge<Types>::LexicalDaughter& PackedEdge<Types>::get_lexical_daughter(unsigned i) const {return lexical_daughters[i];}
 
-template<class PEP>
+template<class Types>
 inline
-void PackedEdge<PEP>::local_resize_annotations(unsigned size) {annotations.resize(size);}
+void PackedEdge<Types>::local_resize_annotations(unsigned size) {annotations.resize(size);}
 
 /////////////////////////////////////////////////////
 // parsing
 ////////////////////////////////////////////////
 
-template<class PEP>
+template<class Types>
 inline
-const PEP& PackedEdge<PEP>::get_prob_model() const {return best;}
+const typename Types::EdgeProbability & PackedEdge<Types>::get_prob_model() const {return best;}
 
-template<class PEP>
+template<class Types>
 inline
-PEP& PackedEdge<PEP>::get_prob_model() {return best;}
+typename Types::EdgeProbability& PackedEdge<Types>::get_prob_model() {return best;}
 
-template<class PEP>
+template<class Types>
 inline
-bool PackedEdge<PEP>::valid_prob_at(unsigned i) const
+bool PackedEdge<Types>::valid_prob_at(unsigned i) const
 {
   return get_annotations().valid_prob_at(i, LorgConstants::NullProba);
 }
@@ -375,15 +375,15 @@ bool PackedEdge<PEP>::valid_prob_at(unsigned i) const
 
 //////////
 
-template <class PEP>
-PathMatrix PackedEdge<PEP>::unary_chains = PathMatrix();
+template <class Types>
+PathMatrix PackedEdge<Types>::unary_chains = PathMatrix();
 
 
 
 
 
-template <class PEP>
-void PackedEdge<PEP>::prepare_inside_probability()
+template <class Types>
+void PackedEdge<Types>::prepare_inside_probability()
 {
   this->get_annotations().inside_probabilities_unary_temp.array = this->get_annotations().inside_probabilities.array ;
   for(auto & prob: this->get_annotations().inside_probabilities_unary_temp.array) {
@@ -391,8 +391,8 @@ void PackedEdge<PEP>::prepare_inside_probability()
   }
 }
 
-template <class PEP>
-void PackedEdge<PEP>::adjust_inside_probability()
+template <class Types>
+void PackedEdge<Types>::adjust_inside_probability()
 {
   for (unsigned i = 0; i < this->get_annotations().inside_probabilities.array.size(); ++i)
     {
@@ -402,8 +402,8 @@ void PackedEdge<PEP>::adjust_inside_probability()
 }
 
 
-template <class PEP>
-void PackedEdge<PEP>::prepare_outside_probability()
+template <class Types>
+void PackedEdge<Types>::prepare_outside_probability()
 {
   this->get_annotations().outside_probabilities_unary_temp.array = this->get_annotations().outside_probabilities.array ;
   for(auto & prob: this->get_annotations().outside_probabilities_unary_temp.array) {
@@ -411,8 +411,8 @@ void PackedEdge<PEP>::prepare_outside_probability()
   }
 }
 
-template <class PEP>
-void PackedEdge<PEP>::adjust_outside_probability()
+template <class Types>
+void PackedEdge<Types>::adjust_outside_probability()
 {
   for (unsigned i = 0; i < this->get_annotations().outside_probabilities.array.size(); ++i)
     {
@@ -426,14 +426,14 @@ void PackedEdge<PEP>::adjust_outside_probability()
 
 
 // should be renamed (Why Viterbi?) and moved
-template <class PEP>
-void PackedEdge<PEP>::set_unary_chains(const PathMatrix& pathmatrix)
+template <class Types>
+void PackedEdge<Types>::set_unary_chains(const PathMatrix& pathmatrix)
 {
   unary_chains = pathmatrix;
 }
 
-template <class PEP>
-const PathMatrix& PackedEdge<PEP>::get_unary_chains()
+template <class Types>
+const PathMatrix& PackedEdge<Types>::get_unary_chains()
 {
   return unary_chains;
 }
@@ -453,8 +453,8 @@ struct c2f_replace_struct_helper
   }
 };
 
-template <class PEP>
-void PackedEdge<PEP>::replace_rule_probabilities(unsigned i)
+template <class Types>
+void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 {
   // for all possible daughters
   c2f_replace_struct_helper c2f_replacer(i);
@@ -470,10 +470,10 @@ void PackedEdge<PEP>::replace_rule_probabilities(unsigned i)
 /// clean
 ////////////
 
-template <class PEP>
-void PackedEdge<PEP>::clean_invalidated_binaries()
+template <class Types>
+void PackedEdge<Types>::clean_invalidated_binaries()
 {
-  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughters::points_towards_invalid_cells)), binary_daughters.end());
+  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughter::points_towards_invalid_cells)), binary_daughters.end());
 
 
   // Reclaim memory !
@@ -568,8 +568,8 @@ unsigned decode_path(PtbPsTree& tree,
 // }
 
 
-template <class PEP>
-PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
+template <class Types>
+PtbPsTree * PackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
 {
 
   PtbPsTree * tree = NULL;
@@ -617,7 +617,7 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
       //           << "\t" << best.get(ith_deriv).get_left_index()
       //           << "\t" << best.get(ith_deriv).get_right_index() << std::endl;
 
-      const BinaryDaughters * daughters =  static_cast<const BinaryDaughters*>(best.get(ith_deriv).dtrs);
+      const BinaryDaughter * daughters =  static_cast<const BinaryDaughter*>(best.get(ith_deriv).dtrs);
       int rhs0 = daughters->get_rule()->get_rhs0();
       daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
       int rhs1 = daughters->get_rule()->get_rhs1();
@@ -628,7 +628,7 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
             // std::cout << "deriv " << ith_deriv
             //     << "\t" << best.get(ith_deriv).get_left_index() << std::endl;
 
-      const UnaryDaughters * daughters =  static_cast<const UnaryDaughters*>(best.get(ith_deriv).dtrs);
+      const UnaryDaughter * daughters =  static_cast<const UnaryDaughter*>(best.get(ith_deriv).dtrs);
       decode_path(*tree,pos,
                   get_unary_chains(),
                   std::make_pair(lhs,0),
@@ -641,8 +641,8 @@ PtbPsTree * PackedEdge<PEP>::to_ptbpstree(int lhs, unsigned ith_deriv, bool appe
     return tree;
 }
 
-template <class PEP>
-void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
+template <class Types>
+void PackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
                                    PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                                    bool append_annot, bool output_forms) const
 {
@@ -668,7 +668,7 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
     // std::cout << SymbolTable::instance_nt()->translate(get_lhs()) << std::endl;
     // pos = tree.add_last_daughter(pos, SymbolTable::instance_word()->translate(get_lhs()));
 
-    const LexicalDaughters * daughters =  static_cast<const LexicalDaughters*>(best.get(index).dtrs);
+    const LexicalDaughter * daughters =  static_cast<const LexicalDaughter*>(best.get(index).dtrs);
 
 
     node_content << SymbolTable::instance_nt().translate(lhs);
@@ -704,7 +704,7 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
       //           << "\t" << best.get(index).get_left_index()
       //           << "\t" << best.get(index).get_right_index() << std::endl;
 
-      const BinaryDaughters * daughters =  static_cast<const BinaryDaughters*>(best.get(index).dtrs);
+      const BinaryDaughter * daughters =  static_cast<const BinaryDaughter*>(best.get(index).dtrs);
 
       int rhs0 = daughters->get_rule()->get_rhs0();
       daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(tree, pos, rhs0,
@@ -720,7 +720,7 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
       //           << "\t" << best.get(index).get_left_index()
       //           << "\t" << best.get(index).get_right_index() << std::endl;
 
-      const UnaryDaughters * daughters =  static_cast<const UnaryDaughters*>(best.get(index).dtrs);
+      const UnaryDaughter * daughters =  static_cast<const UnaryDaughter*>(best.get(index).dtrs);
 
       std::pair<int,int> fro = std::make_pair(lhs, index);
       std::pair<int,int> to =  std::make_pair(daughters->get_rule()->get_rhs0(),
@@ -751,9 +751,9 @@ void PackedEdge<PEP>::to_ptbpstree(PtbPsTree& tree,
 
 // TODO refile this method above
 
-template <class PEP>
+template <class Types>
 inline
-bool PackedEdge<PEP>::has_solution(unsigned i) const
+bool PackedEdge<Types>::has_solution(unsigned i) const
 {
   return best.has_solution(i);
 }

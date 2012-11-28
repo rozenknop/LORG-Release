@@ -5,9 +5,8 @@
 #include "edges/MaxRuleProbabilityKB.h"
 #include "ParserCKYAllMaxVar.h"
 
-typedef PCKYAllCell<PackedEdge<MaxRuleProbabilityKB> > ParserCKYAllMaxRuleKBCell ;
 
-class ParserCKYAllMaxRuleKB : public ParserCKYAllMaxRule<ParserCKYAllMaxRuleKBCell>
+class ParserCKYAllMaxRuleKB : public ParserCKYAllMaxRule<MaxRuleKBTypes>
 {
  private:
   unsigned k;

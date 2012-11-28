@@ -51,9 +51,10 @@ public:
    \class BinaryPackedEdgeDaughters
    \brief represents a binary branching of possible daughters + a binary rule
 */
-template<class Cell>
-class BinaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<BRuleC2f>
+template<class Types>
+class BinaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<BRuleC2f>, public Types::EdgeDaughterProbability
 {
+  typedef typename Types::Cell Cell;
   Cell * left;
   Cell * right;
 public:
@@ -107,9 +108,10 @@ public:
    \class UnaryPackedEdgeDaughters
    \brief represents a unary branching (!) + a unary rule
 */
-template<class Cell>
-class UnaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<URuleC2f>
+template<class Types>
+class UnaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<URuleC2f>, public Types::EdgeDaughterProbability
 {
+  typedef typename Types::Cell Cell;
   Cell * left;
 
 public:
@@ -147,7 +149,8 @@ public:
    \class LexicalPackedEdgeDaughters
    \brief represents a zero-ary branching (!) + a lexical rule
 */
-class LexicalPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<LexicalRuleC2f>
+template<class Types>
+class LexicalPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<LexicalRuleC2f>, public Types::EdgeDaughterProbability
 {
   const Word* word;
 

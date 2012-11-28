@@ -25,14 +25,15 @@ using std::endl;
   \class ChartCKY
   \brief represents a chart of cells
 */
-template<class TCell, class MyWord>
+template<class Types>
 class ChartCKY
 {
 public:
-    typedef TCell Cell;
+  typedef typename Types::Cell Cell ;
+  typedef typename Types::ChartWord MyWord;
 
 private:
-  TCell ** chart; ///< the chart itself
+  Cell ** chart; ///< the chart itself
   unsigned size;     ///< the size of the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
@@ -69,9 +70,9 @@ public:
      \return a cell (may segfault if coordinates are out of bounds)
   */
 
-  TCell& access(unsigned start, unsigned end) const;
+  Cell& access(unsigned start, unsigned end) const;
 
-  TCell& get_root() const;
+  Cell& get_root() const;
 
   PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations) const;
 
@@ -99,7 +100,7 @@ public:
   void opencells_apply_top_down( std::function<void(Cell &)> f );
   void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
 
-  std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](TCell & cell){return out << cell << endl; }); return out; }
+  std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
 };
 
 

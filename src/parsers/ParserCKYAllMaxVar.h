@@ -6,22 +6,22 @@
 #include "ParserCKYAll.h"
 #include "utils/lorg_functional.h"
 
-template<class TCell>
-class ParserCKYAllMaxRule : public ParserCKYAll_Impl<TCell>
+template<class Types>
+class ParserCKYAllMaxRule : public ParserCKYAll_Impl<Types>
 {
 public:
-    typedef typename ParserCKYAll_Impl<TCell>::AGrammar AGrammar;
-    typedef typename ParserCKYAll_Impl<TCell>::Chart Chart;
-    typedef typename Chart::Cell Cell;
-    typedef typename Cell::Edge Edge;
-    typedef typename Edge::ProbaModel ProbaModel;
+  typedef typename ParserCKYAll_Impl<Types>::AGrammar AGrammar;
+  typedef typename Types::Chart Chart;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+  typedef typename Types::EdgeProbability ProbaModel;
 
     ParserCKYAllMaxRule(std::vector<AGrammar*>& cgs,
                         const std::vector<double>& priors,
                         double beam_threshold,
                         const annot_descendants_type& annot_descendants_,
                         bool accurate_, unsigned min_beam_length, int stubborn)
-    : ParserCKYAll_Impl<TCell>(cgs,
+    : ParserCKYAll_Impl<Types>(cgs,
                                priors,
                                beam_threshold,
                                annot_descendants_,
@@ -47,7 +47,6 @@ public:
       }
     );
   }
-
 };
 
 #endif /* _PARSERCKYALLMAXVAR_H_ */

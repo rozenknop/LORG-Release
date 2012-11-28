@@ -112,14 +112,14 @@ class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, Lexic
  \class ParserCKYAll
  \brief represents a parsing device for probabilistic cfgs using the cky algorithm
  */
-template<class TCell>
+template<class Types>
 class ParserCKYAll_Impl : public ParserCKYAll
 {
 public:
-    typedef TCell Cell;
-    typedef typename TCell::Edge Edge;
-    typedef typename TCell::Edge::ProbaModel ProbaModel;
-    typedef ChartCKY<Cell, Word> Chart;
+    typedef typename Types::Cell Cell;
+    typedef typename Types::Edge Edge;
+    typedef typename Types::EdgeProbability ProbaModel;
+    typedef typename Types::Chart Chart;
 
   /**
      \brief ParserCKYAll_Impl destructor

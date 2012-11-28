@@ -6,7 +6,7 @@ ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
                                          const std::vector<double>& p, double b_t,
                                          const std::vector< std::vector<std::vector< std::vector<unsigned> > > >& annot_descendants_,
                                          bool accurate_, unsigned min_beam, int stubborn)
-: ParserCKYAll_Impl<ParserCKYAllViterbiCell>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn)
+: ParserCKYAll_Impl<ViterbiTypes>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn)
 {
   fine_grammar = new ParserCKYAll::AGrammar(*cgs[cgs.size()-1]);
   fine_grammar->set_logmode(); // the Viterbi algorithms assume the fine grammar rules weights are log_probs

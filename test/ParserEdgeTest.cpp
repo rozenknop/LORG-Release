@@ -21,6 +21,25 @@
 #include "Word.h"
 
 //using namespace std;
+struct StringType {
+  typedef typename std::string Cell;
+  typedef emptystruct EdgeProbability;
+  typedef emptystruct EdgeDaughterProbability;
+  typedef PackedEdge<StringType> Edge;
+  typedef BinaryPackedEdgeDaughters<StringType> BinaryDaughter;
+  typedef UnaryPackedEdgeDaughters<StringType> UnaryDaughter;
+  typedef LexicalPackedEdgeDaughters<StringType> LexicalDaughter;
+};
+
+struct StringMultipleType {
+  typedef typename std::string Cell;
+  typedef MaxRuleProbabilityMultiple EdgeProbability;
+  typedef emptystruct EdgeDaughterProbability;
+  typedef PackedEdge<StringMultipleType> Edge;
+  typedef BinaryPackedEdgeDaughters<StringMultipleType> BinaryDaughter;
+  typedef UnaryPackedEdgeDaughters<StringMultipleType> UnaryDaughter;
+  typedef LexicalPackedEdgeDaughters<StringMultipleType> LexicalDaughter;
+};
 
 BOOST_AUTO_TEST_SUITE(EdgeTestSuite)
 
@@ -115,14 +134,14 @@ BOOST_AUTO_TEST_CASE(BinaryEdgeDaughtersTest){
     std::string *left = new std::string;
     std::string *right = new std::string;
 
-    BinaryPackedEdgeDaughters<std::string> *bped = new BinaryPackedEdgeDaughters<std::string>(left, right, br_c2f);
+    BinaryPackedEdgeDaughters<StringType> *bped = new BinaryPackedEdgeDaughters<StringType>(left, right, br_c2f);
 
     BOOST_CHECK_EQUAL(bped->is_binary(), true);
     BOOST_CHECK_EQUAL(bped->is_lexical(), false);
     BOOST_CHECK_EQUAL(bped->left_daughter(), left);
     BOOST_CHECK_EQUAL(bped->right_daughter(), right);
 
-    UnaryPackedEdgeDaughters<std::string> *uped = new UnaryPackedEdgeDaughters<std::string>(left, ur_c2f);
+    UnaryPackedEdgeDaughters<StringType> *uped = new UnaryPackedEdgeDaughters<StringType>(left, ur_c2f);
 
     BOOST_CHECK_EQUAL(uped->is_binary(), false);
     BOOST_CHECK_EQUAL(uped->is_lexical(), false);
@@ -133,7 +152,7 @@ BOOST_AUTO_TEST_CASE(BinaryEdgeDaughtersTest){
 
     const Word *w = new Word("cat", 1, 2, std::vector<std::string>());
 
-    LexicalPackedEdgeDaughters* lped = new LexicalPackedEdgeDaughters(lr_c2f, w);
+    LexicalPackedEdgeDaughters<StringType>* lped = new LexicalPackedEdgeDaughters<StringType>(lr_c2f, w);
 
     BOOST_CHECK_EQUAL(lped->is_binary(), false);
     BOOST_CHECK_EQUAL(lped->is_lexical(), true);
@@ -230,37 +249,41 @@ BOOST_AUTO_TEST_CASE(PackedEdgeProbabilityTest){
 BOOST_AUTO_TEST_CASE(PackedEdgeConstructorsTest){
     //For the sake of the test with use a dummy
     //PackedEdge Probability ie string (uh ?)
-    typedef BinaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<std::string> > > BinaryDaughters;
-    typedef UnaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<std::string> > > UnaryDaughters;
-
-    PackedEdge<std::string> *ped = new PackedEdge<std::string>();
+    typedef typename StringType::BinaryDaughter BinaryDaughter;
+    typedef typename StringType::UnaryDaughter UnaryDaughter;
+    typedef typename StringType::LexicalDaughter LexicalDaughter;
+    typedef typename StringType::Edge Edge;
+    
+    typename StringType::Edge *ped = new StringType::Edge();
     BOOST_CHECK_EQUAL(ped->get_annotations().get_size(), 1U);
 
-    BinaryDaughters bped(NULL, NULL, NULL);
-    PackedEdge<std::string> *ped2 = new PackedEdge<std::string>(bped);
+    BinaryDaughter bped(NULL, NULL, NULL);
+    Edge *ped2 = new Edge(bped);
     BOOST_CHECK_EQUAL(ped2->get_binary_daughters().size(), 1U);
 
-    UnaryDaughters uped(NULL, NULL);
-    PackedEdge<std::string> *ped3 = new PackedEdge<std::string>(uped);
+    UnaryDaughter uped(NULL, NULL);
+    Edge *ped3 = new Edge(uped);
     BOOST_CHECK_EQUAL(ped3->get_unary_daughters().size(), 1U);
 
-    LexicalPackedEdgeDaughters lped(NULL, NULL);
-    PackedEdge<std::string> *ped4 = new PackedEdge<std::string>(lped);
+    LexicalDaughter lped(NULL, NULL);
+    Edge *ped4 = new Edge(lped);
     BOOST_CHECK_EQUAL(ped4->get_lexical_daughters().size(), 1U);
 }
 
 BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
-    typedef BinaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<std::string> > > BinaryDaughters;
-    typedef UnaryPackedEdgeDaughters<PCKYAllCell<PackedEdge<std::string> > > UnaryDaughters;
+  typedef typename StringType::BinaryDaughter BinaryDaughter;
+  typedef typename StringType::UnaryDaughter UnaryDaughter;
+  typedef typename StringType::LexicalDaughter LexicalDaughter;
+  typedef typename StringType::Edge Edge;
+  
+    BinaryDaughter bped(NULL, NULL, NULL);
+    Edge *ped = new Edge(bped);
 
-    BinaryDaughters bped(NULL, NULL, NULL);
-    PackedEdge<std::string> *ped = new PackedEdge<std::string>(bped);
+    UnaryDaughter uped(NULL, NULL);
+    Edge *ped2 = new Edge(uped);
 
-    UnaryDaughters uped(NULL, NULL);
-    PackedEdge<std::string> *ped2 = new PackedEdge<std::string>(uped);
-
-    LexicalPackedEdgeDaughters lped(NULL, NULL);
-    PackedEdge<std::string> *ped3 = new PackedEdge<std::string>(lped);
+    LexicalDaughter lped(NULL, NULL);
+    Edge *ped3 = new Edge(lped);
 
     BOOST_CHECK_EQUAL(ped->get_binary_daughters().size(), 1U);
 
@@ -280,7 +303,7 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
     BOOST_CHECK_EQUAL(annot.get_size(), 1U);
 
     //Backup is only in use for MaxRuleProbabilityMultiple
-    PackedEdge<MaxRuleProbabilityMultiple> *ped_maxrulem = new PackedEdge<MaxRuleProbabilityMultiple>();
+    typename StringMultipleType::Edge *ped_maxrulem = new StringMultipleType::Edge();
     std::vector<AnnotationInfo>& backup = ped_maxrulem->get_prob_model().get_annotations_backup();
     BOOST_CHECK_EQUAL(backup.size(), 0U);
 }
