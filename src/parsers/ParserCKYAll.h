@@ -238,7 +238,7 @@ protected:
   /**
      \brief computes the outside probability for all nodes in chart
   */
-  void compute_outside_probabilities();
+  virtual void compute_outside_probabilities();
 
 
   /**

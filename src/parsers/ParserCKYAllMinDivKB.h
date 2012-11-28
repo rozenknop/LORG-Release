@@ -7,10 +7,11 @@
 #include "emptystruct.h"
 
 class MinDivProbabilityKB;
+class MinDivEdgeDaughterProbability;
 
 struct MinDivKBTypes {
   typedef MinDivProbabilityKB EdgeProbability ;
-  typedef emptystruct EdgeDaughterProbability ;
+  typedef MinDivEdgeDaughterProbability EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
   typedef PackedEdge< MinDivKBTypes > Edge ;
@@ -19,6 +20,14 @@ struct MinDivKBTypes {
   typedef BinaryPackedEdgeDaughters<MinDivKBTypes> BinaryDaughter;
   typedef UnaryPackedEdgeDaughters<MinDivKBTypes>  UnaryDaughter;
   typedef LexicalPackedEdgeDaughters<MinDivKBTypes> LexicalDaughter;
+};
+
+struct MinDivEdgeDaughterProbability
+{
+  /// marginal probability on p (annotated forest)
+  double mp;
+  /// rule probability on q
+  double q;
 };
 
 class MinDivProbabilityKB
@@ -93,20 +102,30 @@ private:
 
 class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivKBTypes>
 {
- private:
+  typedef typename MinDivKBTypes::Edge Edge;
+  typedef typename MinDivKBTypes::Cell Cell;
+  typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
+  typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
+  typedef typename MinDivKBTypes::LexicalDaughter LexicalDaughter;
+  typedef MaxRuleUpdater<MinDivProbabilityKB> Updater;
+
+private:
   unsigned k;
 
- public:
+public:
   ParserCKYAllMinDivKB(std::vector<AGrammar*>& cgs,
-                        const std::vector<double>& p, double b_t,
-                        const annot_descendants_type& annot_descendants_,
-                        bool accurate_, unsigned min_beam, int stubborn, unsigned k_);
+                       const std::vector<double>& p, double b_t,
+                       const annot_descendants_type& annot_descendants_,
+                       bool accurate_, unsigned min_beam, int stubborn, unsigned k_);
 
   ~ParserCKYAllMinDivKB() {};
 
   void extract_solution();
 
- private:
+private:
+  /** also computes marginals for each daughter */
+  virtual void compute_outside_probabilities();
+
   void initialise_candidates();
 
   void extend_all_derivations();

@@ -200,14 +200,57 @@ void ParserCKYAllMinDivKB::extend_all_derivations()
   }
 }
 
+/*****************************************************************************/
+/*    real parsing stuff                                                     */
+/*****************************************************************************/
+
+void ParserCKYAllMinDivKB::compute_outside_probabilities()
+{
+  function<void(Edge&,UnaryDaughter&)> outside_and_marginal_unary = [](Edge & edge, UnaryDaughter & dtr) -> void {
+
+    auto * leftedge = dtr.left_daughter()->get_edge_ptr(dtr.get_rule()->get_rhs0());    
+    dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array,
+                                                                        leftedge->get_annotations().inside_probabilities.array,
+                                                                        leftedge->get_annotations().outside_probabilities_unary_temp.array);
+  };
+
+  function<void(Edge&,BinaryDaughter&)>  outside_and_marginal_binary = [](Edge & edge, BinaryDaughter & dtr) -> void {
+
+    auto * leftedge = dtr.left_daughter()->get_edge_ptr(dtr.get_rule()->get_rhs0());    
+    auto * rightedge= dtr.right_daughter()->get_edge_ptr(dtr.get_rule()->get_rhs1());
+    dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array,
+                                                                        leftedge->get_annotations().inside_probabilities.array,
+                                                                        rightedge->get_annotations().inside_probabilities.array,
+                                                                        leftedge->get_annotations().outside_probabilities.array,
+                                                                        rightedge->get_annotations().outside_probabilities.array);
+  };
+  
+  function<void(Edge&,LexicalDaughter&)>   outside_and_marginal_lexical = [](Edge & edge, LexicalDaughter & dtr) -> void {
+
+    dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array);
+  };
+
+  this->chart->opencells_apply([&](Cell & cell)
+  {
+      cell.apply_on_edges(& Edge::             prepare_outside_probability);
+      cell.apply_on_edges(outside_and_marginal_unary);
+      cell.apply_on_edges(& Edge::              adjust_outside_probability);
+      cell.apply_on_edges(outside_and_marginal_binary, outside_and_marginal_lexical);
+  }
+  );
+}
+
+
 
 void ParserCKYAllMinDivKB::extract_solution()
 {
   //  std::cout << "in extract" << std::endl;
 
-
+  // this calls ParserCKYAllMinDivKB::compute_outside_probabilities()
+  // and computes marginals for each daughter
   compute_inside_outside_probabilities();
-
+  
+  
   initialise_candidates();
 
   //  std::cout << "after init cand" << std::endl;
