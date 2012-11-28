@@ -45,10 +45,15 @@ public:
   typedef MaxRuleUpdater<MinDivProbabilityKB> Updater;
   
 private:
+  friend class ParserCKYAllMinDivKB;
 
   heap_type candidates;
   heap_type derivations;
 
+  double inside_prob;
+  double outside_prob;
+  double inside_unary_temp ;
+  double outside_unary_temp ;
 
   static double log_normalisation_factor;
   static unsigned size;
@@ -125,6 +130,8 @@ public:
 private:
   /** also computes marginals for each daughter */
   virtual void compute_outside_probabilities();
+  
+  void compute_inside_outside_q_probabilities();
 
   void initialise_candidates();
 

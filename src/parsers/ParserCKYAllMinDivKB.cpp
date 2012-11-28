@@ -212,6 +212,7 @@ void ParserCKYAllMinDivKB::compute_outside_probabilities()
     dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array,
                                                                         leftedge->get_annotations().inside_probabilities.array,
                                                                         leftedge->get_annotations().outside_probabilities_unary_temp.array);
+//     std::cout << dtr.mp << std::endl ;
   };
 
   function<void(Edge&,BinaryDaughter&)>  outside_and_marginal_binary = [](Edge & edge, BinaryDaughter & dtr) -> void {
@@ -230,16 +231,57 @@ void ParserCKYAllMinDivKB::compute_outside_probabilities()
     dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array);
   };
 
-  this->chart->opencells_apply([&](Cell & cell)
+  this->chart->opencells_apply_top_down([&](Cell & cell)
   {
       cell.apply_on_edges(& Edge::             prepare_outside_probability);
       cell.apply_on_edges(outside_and_marginal_unary);
       cell.apply_on_edges(& Edge::              adjust_outside_probability);
-      cell.apply_on_edges(outside_and_marginal_binary, outside_and_marginal_lexical);
+      cell.apply_on_edges(outside_and_marginal_binary, 
+                          outside_and_marginal_lexical);
   }
   );
 }
 
+
+void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
+{
+  function<void(Edge&)> reinit_q_inside_outside = [](Edge & edge) -> void {
+    ProbaModel & prob = edge.get_prob_model();
+    prob.inside_prob = prob.outside_prob = prob.inside_unary_temp = prob.outside_unary_temp = 0;
+  };
+  function<void(Edge&,UnaryDaughter&)> inside_unary = [](Edge & edge, UnaryDaughter & dtr) -> void {};
+    
+  function<void(Edge&,UnaryDaughter&)> outside_unary = [](Edge & edge, UnaryDaughter & dtr) -> void {
+    
+    auto * leftedge = dtr.left_daughter()->get_edge_ptr(dtr.get_rule()->get_rhs0());    
+    edge.get_prob_model().inside_prob += dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array,
+                                                               leftedge->get_annotations().inside_probabilities.array,
+                                                               leftedge->get_annotations().outside_probabilities_unary_temp.array);
+    //     std::cout << dtr.mp << std::endl ;
+  };
+  
+  function<void(Edge&,BinaryDaughter&)>  outside_and_marginal_binary = [](Edge & edge, BinaryDaughter & dtr) -> void {
+    
+    auto * leftedge = dtr.left_daughter()->get_edge_ptr(dtr.get_rule()->get_rhs0());    
+    auto * rightedge= dtr.right_daughter()->get_edge_ptr(dtr.get_rule()->get_rhs1());
+    dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array,
+                                                                        leftedge->get_annotations().inside_probabilities.array,
+                                                                        rightedge->get_annotations().inside_probabilities.array,
+                                                                        leftedge->get_annotations().outside_probabilities.array,
+                                                                        rightedge->get_annotations().outside_probabilities.array);
+  };
+  
+  function<void(Edge&,LexicalDaughter&)>   outside_and_marginal_lexical = [](Edge & edge, LexicalDaughter & dtr) -> void {
+    
+    dtr.mp = dtr.get_rule()->update_outside_annotations_return_marginal(edge.get_annotations().outside_probabilities.array);
+  };
+
+  
+  this->chart->opencells_apply_bottom_up([&](Cell & cell)
+  {
+    cell.apply_on_edges(reinit_q_inside_outside);
+  });
+}
 
 
 void ParserCKYAllMinDivKB::extract_solution()
