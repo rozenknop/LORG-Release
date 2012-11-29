@@ -257,20 +257,23 @@ public:
   void process(function<void(Edge &, BinaryDaughter &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
 
   void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
-
   void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
   void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
 
   void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
 
-  void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(ProbaModel &, Edge &, const UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(ProbaModel &, Edge &, const BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
 
-  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
-  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), d);}
-  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(get_prob_model(), d);}
 
+  void process(function<void(ProbaModel &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), d);}
+  
   void process(function<void(ProbaModel &)> f) {f(get_prob_model());}
 
   void process(function<void(Edge &)> f) { f(*this); }

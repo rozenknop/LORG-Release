@@ -176,6 +176,7 @@ public:
   {
     tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
                       [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
+//                         std::cerr << "blockedrange="<< (r.end() - r.begin()) << std::endl;
                         for (auto cell = r.begin(); cell < r.end(); ++cell) {
                           if(!(**cell).is_closed()) f(**cell);
                         }

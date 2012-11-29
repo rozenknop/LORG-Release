@@ -127,7 +127,7 @@ void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) con
     {
       this->process_cell(cell, beam_threshold);
     },
-    1
+    1 // start from span = 1 (i.e. 2 words !)
   );
 }
 

@@ -9,8 +9,6 @@
 
 
 
-
-
 class MinDivProbabilityKB
 {
 
@@ -37,6 +35,7 @@ private:
   double outside_unary_temp ;
 
   static double log_normalisation_factor;
+  static double normalisation_factor;
   static unsigned size;
 
 public:
@@ -46,8 +45,20 @@ public:
 
   inline static void set_size(unsigned k) {size = k;}
 
-  inline static void set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
-
+  inline static void   set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
+  inline static double get_log_normalisation_factor() {return log_normalisation_factor;};
+  inline static void   set_normalisation_factor(double lnf) {normalisation_factor = lnf;};
+  inline static double get_normalisation_factor() {return normalisation_factor;};
+  inline double & get_inside_prob() { return inside_prob; }
+  inline const double & get_inside_prob() const { return inside_prob; }
+  inline double & get_outside_prob() { return outside_prob; }
+  void set_outside_prob(double prob) {outside_prob = prob;}
+  inline const double & get_outside_prob() const { return outside_prob; }
+  inline double & get_inside_unary_temp() { return inside_unary_temp; }
+  inline const double & get_inside_unary_temp() const { return inside_unary_temp; }
+  inline double & get_outside_unary_temp() { return outside_unary_temp; }
+  inline const double & get_outside_unary_temp() const { return outside_unary_temp; }
+  
   inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
   inline packed_edge_probability& get(unsigned idx) { return derivations[idx]; }
 
@@ -63,6 +74,24 @@ public:
   inline unsigned n_deriv() const {return derivations.size();};
 
   inline bool has_solution(unsigned i) const {return i <derivations.size();}
+
+  inline void reinit_inside_outside(double val);
+
+  inline void update_inside_lexical(const LexicalDaughter& dtr);
+  inline void prepare_inside_unary();
+  inline void update_inside_unary(const UnaryDaughter& dtr);
+  inline void adjust_inside_unary();
+  inline void update_inside_binary(const BinaryDaughter& dtr);
+  
+  inline void update_outside_lexical(const LexicalDaughter& dtr);
+  inline void prepare_outside_unary();
+  inline void update_outside_unary(const UnaryDaughter& dtr);
+  inline void adjust_outside_unary();
+  inline void update_outside_binary(const BinaryDaughter& dtr);
+  
+  inline void update_q_lexical(LexicalDaughter& dtr);
+  inline void update_q_unary(UnaryDaughter& dtr);
+  inline void update_q_binary(BinaryDaughter& dtr);
 
 private:
   
@@ -113,8 +142,14 @@ private:
   /** also computes marginals for each daughter */
   virtual void compute_outside_probabilities();
   
+  /* computes inside-outside on q */
+  void compute_inside_q_probabilities();
+  void compute_outside_q_probabilities();
   void compute_inside_outside_q_probabilities();
 
+  /* computes q as marginal(p) / (inside(q)*outside(q)) */
+  void update_q();
+  
   void initialise_candidates();
 
   void extend_all_derivations();

@@ -173,15 +173,15 @@ void ParserCKY<MyGrammar>::remove_lex_rule(Lex* r)
 
   assert(word_id >= 0);
   words_to_rules[word_id].erase(std::remove(words_to_rules[word_id].begin(),
-					    words_to_rules[word_id].end(),r),
-				words_to_rules[word_id].end());
+                                            words_to_rules[word_id].end(),r),
+                                words_to_rules[word_id].end());
 }
 
 
 template<class MyGrammar>
 void ParserCKY<MyGrammar>::add_unary_rule(const Un& r,
-					  const std::vector<short>& blhs,
-					  const std::vector<short>& llhs)
+                                          const std::vector<short>& blhs,
+                                          const std::vector<short>& llhs)
 {
   static short start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 

@@ -15,6 +15,7 @@ common_sources = rules/Types4Rules.h rules/MetaProduction.h \
 	rules/Rule.cpp rules/Rule.h \
 	grammars/compact_binary_rules.h grammars/compact_binary_rules.cpp \
 	grammars/Grammar.h grammars/Grammar.cpp \
+	src/utils/threads.h \
 	utils/SymbolTable.cpp utils/SymbolTable.h \
 	utils/Tagger.h utils/Tagger.cpp \
 	utils/TokeniserFactory.h utils/TokeniserFactory.cpp\

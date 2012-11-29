@@ -17,11 +17,13 @@ struct MinDivBRule : public BRuleC2f {
                                                     std::vector<double>& left_out,
                                                     std::vector<double>& right_out) const;
 };
+
 struct MinDivURule : public URuleC2f {
   double update_outside_annotations_return_marginal(const std::vector<double>& up,
                                                     const std::vector<double>& in_left,
                                                     std::vector<double>& out_left) const;
 };
+
 struct MinDivLRule : public LexicalRuleC2f {
   double update_outside_annotations_return_marginal(const std::vector<double>& up) const;
 };
@@ -55,7 +57,9 @@ public:
                                                                 leftannot.inside_probabilities.array,
                                                                 rightannot.inside_probabilities.array,
                                                                 leftannot.outside_probabilities.array,
-                                                                rightannot.outside_probabilities.array);
+                                                                rightannot.outside_probabilities.array)
+    / MinDivProbabilityKB::get_normalisation_factor();
+//     std::cout << mp << " de " << MinDivProbabilityKB::get_normalisation_factor() << std::endl;
   }
 };
 
@@ -71,9 +75,9 @@ public:
     auto & leftannot = left_daughter()->get_edge(get_rule()->get_rhs0()).get_annotations();
     mp = RH::rule->update_outside_annotations_return_marginal(annotations.outside_probabilities.array,
                                                               leftannot.inside_probabilities.array,
-                                                              leftannot.outside_probabilities_unary_temp.array);
+                                                              leftannot.outside_probabilities_unary_temp.array)
+         / MinDivProbabilityKB::get_normalisation_factor();
   }
-  
 };
 
 class MinDivLexicalDaughter : public LexicalPackedEdgeDaughters<MinDivKBTypes>, public MinDivEdgeDaughterProbability
@@ -84,8 +88,16 @@ public:
   
   inline void outside_and_marginal(AnnotationInfo & annotations)
   {
-    mp = get_rule()->update_outside_annotations_return_marginal(annotations.outside_probabilities.array);
+    mp = get_rule()->update_outside_annotations_return_marginal(annotations.outside_probabilities.array)
+    / MinDivProbabilityKB::get_normalisation_factor();
+//     std::cout << mp << " de " << MinDivProbabilityKB::get_normalisation_factor() << std::endl;
   }
+  
+  inline void update_inside(MinDivKBTypes::Edge & edge) {
+    edge.get_prob_model().get_inside_prob() += q ;
+  };
+  
+  inline void update_outside(MinDivKBTypes::Edge &) {}    
 };
 
 #endif

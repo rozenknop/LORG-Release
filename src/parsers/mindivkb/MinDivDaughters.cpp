@@ -4,31 +4,7 @@
 
 #include "MinDivDaughters.h"
 
-#ifdef USE_THREADS
-
-#include <tbb/atomic.h>
-using tbb::atomic;
-
-inline void operator+=(atomic<double>& un, const double & deux)
-/**
- * @brief atomic += operator used for concurrent computations of outside probabilities
- *
- * @param un left value to be modified
- * @param deux additive term
- * @return void
- **/
-{
-  double oldx, newx ;
-  do {
-    oldx = un ;
-    newx = oldx+deux ;
-  } while (un.compare_and_swap(newx,oldx) != oldx);
-}
-
-#endif
-
-
-
+#include "utils/threads.h" // defines += operation on tbb::atomic<double>
 
 
 double
@@ -40,8 +16,8 @@ MinDivBRule::update_outside_annotations_return_marginal(const std::vector< doubl
 {
   double marginal = 0.;
   #ifdef USE_THREADS
-  std::vector<atomic<double>> & lo = *reinterpret_cast<std::vector<atomic<double>> *>(&left_out);
-  std::vector<atomic<double>> & ro = *reinterpret_cast<std::vector<atomic<double>> *>(&right_out);
+  std::vector<tbb::atomic<double>> & lo = *reinterpret_cast<std::vector<tbb::atomic<double>> *>(&left_out);
+  std::vector<tbb::atomic<double>> & ro = *reinterpret_cast<std::vector<tbb::atomic<double>> *>(&right_out);
   #else
   std::vector<double> & lo = left_out ;
   std::vector<double> & ro = right_out ;
