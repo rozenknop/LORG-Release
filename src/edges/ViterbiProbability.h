@@ -15,6 +15,9 @@ struct ViterbiTypes {
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
+  typedef BRuleC2f BRule;
+  typedef URuleC2f URule;
+  typedef LexicalRuleC2f LRule;
   typedef PackedEdge< ViterbiTypes > Edge ;
   typedef PCKYAllCell< ViterbiTypes > Cell ;
   typedef ChartCKY< ViterbiTypes > Chart ;

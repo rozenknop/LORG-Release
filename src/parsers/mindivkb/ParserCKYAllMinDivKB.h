@@ -2,33 +2,14 @@
 #ifndef _PARSERCKYALLMINDIVKB_H_
 #define _PARSERCKYALLMINDIVKB_H_
 
-#include "ParserCKYAll.h"
+#include "parsers/ParserCKYAll.h"
 #include "edges/MaxRuleUpdater.h"
 #include "emptystruct.h"
+#include "MinDivTypes.h"
 
-class MinDivProbabilityKB;
-class MinDivEdgeDaughterProbability;
 
-struct MinDivKBTypes {
-  typedef MinDivProbabilityKB EdgeProbability ;
-  typedef MinDivEdgeDaughterProbability EdgeDaughterProbability ;
-  typedef Word ChartWord ;
-  
-  typedef PackedEdge< MinDivKBTypes > Edge ;
-  typedef PCKYAllCell< MinDivKBTypes > Cell ;
-  typedef ChartCKY< MinDivKBTypes > Chart ;
-  typedef BinaryPackedEdgeDaughters<MinDivKBTypes> BinaryDaughter;
-  typedef UnaryPackedEdgeDaughters<MinDivKBTypes>  UnaryDaughter;
-  typedef LexicalPackedEdgeDaughters<MinDivKBTypes> LexicalDaughter;
-};
 
-struct MinDivEdgeDaughterProbability
-{
-  /// marginal probability on p (annotated forest)
-  double mp;
-  /// rule probability on q
-  double q;
-};
+
 
 class MinDivProbabilityKB
 {
@@ -103,6 +84,7 @@ private:
 
 
 
+#include "MinDivDaughters.h"
 
 
 class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivKBTypes>

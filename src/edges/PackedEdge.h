@@ -50,6 +50,10 @@ public:
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
 //   typedef PackedEdgeDaughters Daughters;
+  typedef typename Types::BRule BinaryRule;
+  typedef typename Types::URule UnaryRule;
+  typedef typename Types::LRule LexicalRule;
+  
   typedef typename Types::BinaryDaughter  BinaryDaughter;
   typedef typename Types::UnaryDaughter   UnaryDaughter;
   typedef typename Types::LexicalDaughter LexicalDaughter;
@@ -186,17 +190,17 @@ public:
      \brief build and add a daughter (binary, unary and lexical versions)
    */
   void add_daughters(Cell * left,
-                     Cell * right, const BRuleC2f* rule)
+                     Cell * right, const BinaryRule* rule)
   {
     binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 
-  void add_daughters(Cell * left, const URuleC2f* rule)
+  void add_daughters(Cell * left, const UnaryRule* rule)
   {
     unary_daughters.push_back(UnaryDaughter(left,rule));
   }
 
-  void add_daughters(const LexicalRuleC2f* rule, const Word* w)
+  void add_daughters(const LexicalRule* rule, const Word* w)
   {
     lexical_daughters.push_back(LexicalDaughter(rule, w));
   }
@@ -449,7 +453,7 @@ struct c2f_replace_struct_helper
   template <typename T>
   void operator ()(T& daughter) const
   {
-    daughter.set_rule(daughter.get_rule()->get(idx));
+    daughter.set_rule((typename T::Rule *)daughter.get_rule()->get(idx));
   }
 };
 

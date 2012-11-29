@@ -25,6 +25,9 @@ struct StringType {
   typedef typename std::string Cell;
   typedef emptystruct EdgeProbability;
   typedef emptystruct EdgeDaughterProbability;
+  typedef BRuleC2f BRule;
+  typedef URuleC2f URule;
+  typedef LexicalRuleC2f LRule;
   typedef PackedEdge<StringType> Edge;
   typedef BinaryPackedEdgeDaughters<StringType> BinaryDaughter;
   typedef UnaryPackedEdgeDaughters<StringType> UnaryDaughter;
@@ -35,6 +38,9 @@ struct StringMultipleType {
   typedef typename std::string Cell;
   typedef MaxRuleProbabilityMultiple EdgeProbability;
   typedef emptystruct EdgeDaughterProbability;
+  typedef BRuleC2f BRule;
+  typedef URuleC2f URule;
+  typedef LexicalRuleC2f LRule;
   typedef PackedEdge<StringMultipleType> Edge;
   typedef BinaryPackedEdgeDaughters<StringMultipleType> BinaryDaughter;
   typedef UnaryPackedEdgeDaughters<StringMultipleType> UnaryDaughter;

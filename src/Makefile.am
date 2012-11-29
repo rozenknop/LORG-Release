@@ -4,7 +4,7 @@ if WANT_LTR
 LIBS+= -lrt
 endif
 
-AM_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
+AM_CPPFLAGS = $(BOOST_CPPFLAGS) -I. -I${top_srcdir}/src
 #AM_LDFLAGS = $(BOOST_LDFLAGS)
 
 bin_PROGRAMS = simple_lorgparser twostage_lorgparser feature_extractor
@@ -101,7 +101,9 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	parsers/ParserCKYAllViterbi.h parsers/ParserCKYAllMaxVar.h \
 	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
 	parsers/ParserCKYAllMaxVar1B.h \
-	parsers/ParserCKYAllMinDivKB.h parsers/ParserCKYAllMinDivKB.cpp \
+	parsers/mindivkb/ParserCKYAllMinDivKB.h parsers/mindivkb/ParserCKYAllMinDivKB.cpp \
+	parsers/mindivkb/MinDivDaughters.h parsers/mindivkb/MinDivDaughters.cpp \
+	parsers/mindivkb/MinDivTypes.h \
 	parsers/ParserCKYAllFactory.h \
 	edges/ViterbiProbability.cpp \
 	edges/MaxRuleProbability1B.cpp \

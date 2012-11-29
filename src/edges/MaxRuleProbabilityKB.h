@@ -16,6 +16,9 @@ struct MaxRuleKBTypes {
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
+  typedef BRuleC2f BRule;
+  typedef URuleC2f URule;
+  typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRuleKBTypes > Edge ;
   typedef PCKYAllCell< MaxRuleKBTypes > Cell ;
   typedef ChartCKY< MaxRuleKBTypes > Chart ;

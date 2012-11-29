@@ -70,7 +70,6 @@ public:
   void update_outside_annotations(const std::vector<double>& up,
                                   double& left) const;
 
-  double update_outside_annotations_return_marginal(const std::vector<double>& up) const;
   /**
      \brief replace annotations with 0 if they're bel;ow threshold
      \param threshold the threshold

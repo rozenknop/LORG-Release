@@ -9,7 +9,7 @@
 #include "ParserCKYAllMaxVar1B.h"
 #include "ParserCKYAllMaxVarKB.h"
 #include "ParserCKYAllMaxVarMultiple.h"
-#include "ParserCKYAllMinDivKB.h"
+#include "mindivkb/ParserCKYAllMinDivKB.h"
 
 #include "ParserCKYAll.hpp"
 #include "grammars/GrammarAnnotated.hpp"

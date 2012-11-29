@@ -116,10 +116,13 @@ template<class Types>
 class ParserCKYAll_Impl : public ParserCKYAll
 {
 public:
-    typedef typename Types::Cell Cell;
-    typedef typename Types::Edge Edge;
-    typedef typename Types::EdgeProbability ProbaModel;
-    typedef typename Types::Chart Chart;
+  typedef typename Types::BRule BinaryRule;
+  typedef typename Types::URule UnaryRule;
+  typedef typename Types::LRule LexicalRule;
+  typedef typename Types::Edge Edge;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::EdgeProbability ProbaModel;
+  typedef typename Types::Chart Chart;
 
   /**
      \brief ParserCKYAll_Impl destructor

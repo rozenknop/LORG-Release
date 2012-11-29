@@ -111,7 +111,7 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
           //iterating through all the rules P -> L R, indexed by P, R and L fixed
           std::vector< const BRuleC2f* >::const_iterator bitr(same_rhs1_itr->_begin);
           for(; bitr != same_rhs1_itr->_end; ++bitr) {
-            result_cell.process_candidate(&left_cell,&right_cell,*bitr, LR);
+            result_cell.process_candidate(&left_cell,&right_cell,(BinaryRule*)*bitr, LR);
           }
         }
       }
@@ -203,7 +203,7 @@ struct processunary
   processunary(Cell& c, double L) : cell(c), L_inside(L) {};
   void operator()(const URuleC2f* r) const
   {
-    cell.process_candidate(r,L_inside);
+    cell.process_candidate((typename Cell::UnaryRule *)r,L_inside);
   }
 };
 

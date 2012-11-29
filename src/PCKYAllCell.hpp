@@ -36,7 +36,7 @@ PCKYAllCell<Types>::~PCKYAllCell()
 template<class Types>
 void PCKYAllCell<Types>::process_candidate(Cell * left,
                                             Cell * right,
-                                            const BRuleC2f* rule,
+                                            const BinaryRule* rule,
                                             double LR_inside)
 {
   Edge ** e = &edges[rule->get_lhs()];
@@ -52,7 +52,7 @@ void PCKYAllCell<Types>::process_candidate(Cell * left,
 }
 
 template<class Types>
-void PCKYAllCell<Types>::process_candidate(const URuleC2f* rule, double L_inside)
+void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double L_inside)
 {
   assert(rule);
   assert(rule->get_probability().size() > 0);

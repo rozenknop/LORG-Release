@@ -32,6 +32,9 @@ class PCKYAllCell {
 public:
   typedef typename Types::Edge Edge;
   typedef typename Types::Cell Cell;
+  typedef typename Types::BRule BinaryRule;
+  typedef typename Types::URule UnaryRule;
+  typedef typename Types::LRule LexicalRule;
   typedef typename Types::UnaryDaughter UnaryDaughter;
   typedef typename Types::BinaryDaughter BinaryDaughter;
   typedef typename Types::LexicalDaughter LexicalDaughter;
@@ -69,14 +72,14 @@ public:
      \brief insert a candidate edge in the cell from application of a binary rule
      \param
   */
-  void process_candidate(Cell* left, Cell* right, const BRuleC2f*, double LR_inside);
+  void process_candidate(Cell* left, Cell* right, const BinaryRule*, double LR_inside);
 
 
   /**
      \brief insert a candidate edge in the cell from application of a unary rule
      \param
   */
-  void process_candidate(const URuleC2f *, double);
+  void process_candidate(const UnaryRule *, double);
 
   /**
      \brief test if there's an edge of given lhs in the cell
@@ -277,10 +280,10 @@ void PCKYAllCell<Types>::add_word(const Word & word)
     Edge ** e = &edges[tag];
 
     if(*e) {
-      (*e)->add_daughters(static_cast<const LexicalRuleC2f*>(*it), &word);
+      (*e)->add_daughters(static_cast<const typename Types::LRule*>(*it), &word);
     }
     else {
-      *e = new Edge(LDaughters(static_cast<const LexicalRuleC2f*>(*it), &word));
+      *e = new Edge(LDaughters(static_cast<const typename Types::LRule*>(*it), &word));
     }
 
     (*e)->get_annotations().inside_probabilities.array[0] += static_cast<const LexicalRuleC2f*>(*it)->get_probability()[0];

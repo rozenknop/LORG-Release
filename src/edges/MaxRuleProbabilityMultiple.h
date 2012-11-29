@@ -22,6 +22,9 @@ struct MaxRuleMultipleTypes {
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
+  typedef BRuleC2f BRule;
+  typedef URuleC2f URule;
+  typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRuleMultipleTypes > Edge ;
   typedef PCKYAllCell< MaxRuleMultipleTypes > Cell ;
   typedef ChartCKY< MaxRuleMultipleTypes > Chart ;
