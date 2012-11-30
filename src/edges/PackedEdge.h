@@ -256,10 +256,14 @@ public:
   void process(function<void(Edge &, UnaryDaughter &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
   void process(function<void(Edge &, BinaryDaughter &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
 
+  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {for(const auto& d: get_lexical_daughters()) f(d, get_annotations());}
+  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_unary_daughters()) f(d, get_annotations()); }
+  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_binary_daughters()) f(d, get_annotations()); }
+
   void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
   void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
   void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
-
+  
   void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
 
   void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}

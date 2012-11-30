@@ -2,7 +2,7 @@
 #include "ChartCKY.h"
 #include "parsers/mindivkb/ParserCKYAllMinDivKB.h"
 
-#include "MinDivDaughters.h"
+#include "MinDivDaughters.hpp"
 
 #include "utils/threads.h" // defines += operation on tbb::atomic<double>
 

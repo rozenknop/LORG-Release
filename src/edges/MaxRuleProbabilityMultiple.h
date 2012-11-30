@@ -5,7 +5,7 @@
 
 #include "PackedEdgeProbability.h"
 #include "PackedEdge.h"
-#include "MaxRuleUpdater.h"
+#include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
 
@@ -41,7 +41,7 @@ private:
   typedef std::unordered_map<const PackedEdgeDaughters*,double> score_map_type;
   typedef std::unordered_map<const PackedEdgeDaughters*,unsigned> occ_map_type;
   typedef std::vector<packed_edge_probability_with_index> heap_type;
-  typedef MaxRuleUpdater<MaxRuleProbabilityMultiple> Updater;
+  typedef MaxRuleTreeLogProbaComputer<MaxRuleProbabilityMultiple> QInsideComputer;
 
   score_map_type scores;
   occ_map_type occ;
@@ -161,7 +161,7 @@ void MaxRuleProbabilityMultiple::write_scores(const PackedEdgeDaughters& dtr, do
 void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughter& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
-  double probability(Updater::update_maxrule_probability(a, dtr.get_rule(), log_normalisation_factor));
+  double probability(QInsideComputer::compute(a, dtr.get_rule(), log_normalisation_factor));
 
   if (probability > derivations[0].probability) {
     derivations[0].probability = probability;
@@ -178,7 +178,7 @@ void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughter & dtr
 
   Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
   if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
-    probability =  Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
+    probability =  QInsideComputer::compute(a, dtr, log_normalisation_factor);
   }
   // else {
   //   std::cout << "ERROR" << std::endl;
@@ -202,7 +202,7 @@ void MaxRuleProbabilityMultiple::update_binary(Edge& e, const BinaryDaughter& dt
   //calculate the probability for this edge -
   //if it's the best probability so far, update the best edge info
 
-  double probability = Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
+  double probability = QInsideComputer::compute(a, dtr, log_normalisation_factor);
 
   // if(std::isnan(probability))
   //   return;
@@ -326,7 +326,7 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryDaughter& dtr)
         const std::vector<std::vector<std::vector<double> > >& rule_probs =
           d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-        p.probability += Updater::update_maxrule_probability_simple(upannots[i],
+        p.probability += QInsideComputer::compute_simple(upannots[i],
                                                                                    get_log_normalisation_factor(i),
                                                                                    leftannots[i],
                                                                                    rightannots[i],
@@ -381,7 +381,7 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryDaughter & dtr)
           const std::vector<std::vector<double> >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
+          p.probability += QInsideComputer::compute_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rule_probs);
@@ -566,7 +566,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
           const std::vector<std::vector<std::vector<double> > >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
+          p.probability += QInsideComputer::compute_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rightannots[i],
@@ -609,7 +609,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
           const std::vector<std::vector<std::vector<double> > >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
+          p.probability += QInsideComputer::compute_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rightannots[i],
@@ -664,7 +664,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
           const std::vector<std::vector<double> >& rule_probs =
             d->get_rule()->get_coarser(upannots.size() - i - 1)->get_probability();
 
-          p.probability += Updater::update_maxrule_probability_simple(upannots[i],
+          p.probability += QInsideComputer::compute_simple(upannots[i],
                                                                                      get_log_normalisation_factor(i),
                                                                                      leftannots[i],
                                                                                      rule_probs);

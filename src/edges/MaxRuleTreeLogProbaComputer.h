@@ -1,35 +1,39 @@
-// -*- mode: c++ -*-
-#ifndef _MAXRULE_FUNCTIONS_H_
-#define _MAXRULE_FUNCTIONS_H_
+// // -*- mode: c++ -*-
+#ifndef _MAXRULEUPDATER_H_
+#define _MAXRULEUPDATER_H_
+
 
 #include "PCKYAllCell.h"
 
-namespace maxrule_function
+#include <numeric>
+#include <math.h>
+
+template<class ProbaModel>
+class MaxRuleTreeLogProbaComputer
 {
-  
-  template < class P >
-  double update_maxrule_probability (const AnnotationInfo & up_annotations,
-                                     const typename P::BinaryDaughters & dtr,
-                                     double normalisation_factor,
-                                     unsigned left_idx =0, unsigned right_idx = 0)
+public:
+  typedef typename ProbaModel::Edge Edge ;
+  typedef typename Edge::LexicalDaughter LexicalDaughter;
+  typedef typename Edge::UnaryDaughter UnaryDaughter;
+  typedef typename Edge::BinaryDaughter BinaryDaughter;
+
+  static double compute (const AnnotationInfo & up_annotations,
+                                            const BinaryDaughter & dtr,
+                                            double normalisation_factor,
+                                            unsigned left_idx =0, unsigned right_idx = 0)
   {
     //    std::cout << left_idx << " : " << right_idx << std::endl;
     //    std::cout << *(dtr.get_rule()) << std::endl;
     
-    const P & left =
-    dtr.left_daughter ()->get_edge (dtr.get_rule ()->get_rhs0 ());
-    const P & right =
-    dtr.right_daughter ()->get_edge (dtr.get_rule ()->get_rhs1 ());
+    const Edge & left  = dtr.left_daughter ()->get_edge (dtr.get_rule ()->get_rhs0 ());
+    const Edge & right = dtr.right_daughter ()->get_edge (dtr.get_rule ()->get_rhs1 ());
     
     double probability = 0.0;
     
-    const scaled_array & left_inside =
-    left.get_annotations ().inside_probabilities;
-    const scaled_array & right_inside =
-    right.get_annotations ().inside_probabilities;
+    const scaled_array & left_inside  = left.get_annotations ().inside_probabilities;
+    const scaled_array & right_inside = right.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
-    const std::vector < std::vector < std::vector < double >>>&rule_probs =
-    dtr.get_rule ()->get_probability ();
+    const std::vector<std::vector<std::vector<double >>> & rule_probs = dtr.get_rule ()->get_probability ();
     
     
     // std::cout << "up_outside " ;
@@ -82,8 +86,8 @@ namespace maxrule_function
     
     
     double res = (std::log (probability) - normalisation_factor)
-    + left.get_prob_model().get (left_idx).probability
-    + right.get_prob_model().get (right_idx).probability;
+                 + left.get_prob_model().get (left_idx).probability
+                 + right.get_prob_model().get (right_idx).probability;
     
     //assert(res <= 0);
     
@@ -107,29 +111,24 @@ namespace maxrule_function
     
   }
   
-  template < class P >
-  void compute_best_indexes (const AnnotationInfo & up_annotations,
-                             const typename P::BinaryDaughters & dtrs,
-                             double normalisation_factor,
-                             unsigned &left_idx, unsigned &right_idx)
+  static void compute_best_indexes (const AnnotationInfo & up_annotations,
+                                    const BinaryDaughter & dtrs,
+                                    double normalisation_factor,
+                                    unsigned &left_idx, unsigned &right_idx)
   {
-    const P & left =
-    dtrs.left_daughter ()->get_edge (dtrs.get_rule ()->get_rhs0 ());
-    const P & right =
-    dtrs.right_daughter ()->get_edge (dtrs.get_rule ()->get_rhs1 ());
+    const Edge & left  = dtrs.left_daughter ()->get_edge (dtrs.get_rule ()->get_rhs0 ());
+    const Edge & right = dtrs.right_daughter ()->get_edge (dtrs.get_rule ()->get_rhs1 ());
     
-    const scaled_array & left_inside =
-    left.get_annotations ().inside_probabilities;
-    const scaled_array & right_inside =
-    right.get_annotations ().inside_probabilities;
+    const scaled_array & left_inside  = left.get_annotations ().inside_probabilities;
+    const scaled_array & right_inside = right.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
     const std::vector < std::vector < std::vector < double >>>&rule_probs =
     dtrs.get_rule ()->get_probability ();
     
     double max_prob = -std::numeric_limits < double >::infinity ();
-    double base =
-    -normalisation_factor + left.get_prob_model().get (0).probability +
-    right.get_prob_model().get (0).probability;
+    double base = - normalisation_factor 
+                  +  left.get_prob_model().get (0).probability
+                  + right.get_prob_model().get (0).probability;
     
     for (unsigned i = 0; i < rule_probs.size (); ++i)
     {
@@ -152,9 +151,7 @@ namespace maxrule_function
         {
           if (!right.valid_prob_at (k))
             continue;
-          double contrib =
-          std::log (right_inside.array[k]) +
-          std::log (rule_probs_ij[k]) + contrib_j;
+          double contrib = std::log(right_inside.array[k]) + std::log(rule_probs_ij[k]) + contrib_j;
           
           if (contrib > max_prob)
           {
@@ -167,22 +164,18 @@ namespace maxrule_function
     }
   }
   
-  template < class P >
-  double update_maxrule_probability (const AnnotationInfo & up_annotations,
-                                     const typename P::UnaryDaughters & dtrs,
-                                     double normalisation_factor,
-                                     unsigned left_idx = 0)
+  static double compute (const AnnotationInfo & up_annotations,
+                                            const UnaryDaughter & dtrs,
+                                            double normalisation_factor,
+                                            unsigned left_idx = 0)
   {
     double probability = 0;
     
-    const P & left =
-    (dtrs.left_daughter ())->get_edge (dtrs.get_rule ()->get_rhs0 ());
+    const Edge & left = (dtrs.left_daughter ())->get_edge (dtrs.get_rule ()->get_rhs0 ());
     
-    const scaled_array & left_inside =
-    left.get_annotations ().inside_probabilities;
+    const scaled_array & left_inside = left.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
-    const std::vector < std::vector < double >>&rule_probs =
-    dtrs.get_rule ()->get_probability ();
+    const std::vector < std::vector < double >>&rule_probs = dtrs.get_rule ()->get_probability ();
     
     for (unsigned i = 0; i < rule_probs.size (); ++i)
     {
@@ -201,14 +194,13 @@ namespace maxrule_function
     
     //FIXME: this should not happen because chart is clean ???
     // only relevant in kmax parsing
-    if (			//probability != 0
-	 //     &&
-	 left.get_prob_model().n_deriv () != 0)
-      {
+    if (      //probability != 0
+      //     &&
+      left.get_prob_model().n_deriv () != 0)
+    {
         
-        double res =
-        (std::log (probability) - normalisation_factor) +
-        left.get_prob_model().get (left_idx).probability;
+      double res = (std::log(probability) - normalisation_factor) +
+                   left.get_prob_model().get (left_idx).probability;
         // assert(res <= 0);
         
         if (res > 0)
@@ -234,25 +226,22 @@ namespace maxrule_function
         return -std::numeric_limits < double >::infinity ();
   }
   
-  template < class P >
-  void compute_best_indexes (const AnnotationInfo & up_annotations,
-                             const typename P::UnaryDaughters & dtrs,
-                             double normalisation_factor,
-                             unsigned &left_idx)
+  static void compute_best_indexes (const AnnotationInfo & up_annotations,
+                                    const UnaryDaughter & dtrs,
+                                    double normalisation_factor,
+                                    unsigned &left_idx)
   {
-    const P & left =
+    const Edge & left =
     dtrs.left_daughter ()->get_edge (dtrs.get_rule ()->get_rhs0 ());
     
-    const scaled_array & left_inside =
-    left.get_annotations ().inside_probabilities;
+    const scaled_array & left_inside = left.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
-    const std::vector < std::vector < double >>&rule_probs =
-    dtrs.get_rule ()->get_probability ();
+    const std::vector < std::vector < double >>&rule_probs = dtrs.get_rule ()->get_probability ();
     
     double max_prob = -std::numeric_limits < double >::infinity ();
     
-    double base =
-    -normalisation_factor + left.get_prob_model().get (0).probability;
+    double base = - normalisation_factor 
+                  + left.get_prob_model().get (0).probability;
     
     
     for (unsigned i = 0; i < rule_probs.size (); ++i)
@@ -277,9 +266,9 @@ namespace maxrule_function
     }
   }
   
-  double update_maxrule_probability (const AnnotationInfo & up_annotations,
-                                     const LexicalRuleC2f * rule_ptr,
-                                     double normalisation_factor)
+  static double compute (const AnnotationInfo & up_annotations,
+                                            const LexicalRuleC2f * rule_ptr,
+                                            double normalisation_factor)
   {
     double probability = 0.0;
     
@@ -318,16 +307,13 @@ namespace maxrule_function
   }
   
   
-  template < class P >
-  double update_maxrule_probability_simple (const AnnotationInfo & up_annotations,
+  static  double compute_simple (const AnnotationInfo & up_annotations,
                                             double normalisation_factor,
                                             const AnnotationInfo &
                                             left_annotations,
                                             const AnnotationInfo &
                                             right_annotations,
-                                            const std::vector <
-                                            std::vector < std::vector <
-                                            double > > >&rule_probs)
+                                            const std::vector<std::vector<std::vector<double>>>&rule_probs)
   {
     double probability = 0.0;
     
@@ -399,8 +385,7 @@ namespace maxrule_function
     
   }
   
-  template < class P >
-  double update_maxrule_probability_simple (const AnnotationInfo & up_annotations,
+  static double compute_simple (const AnnotationInfo & up_annotations,
                                             double normalisation_factor,
                                             const AnnotationInfo &
                                             left_annotations,
@@ -435,20 +420,12 @@ namespace maxrule_function
     //    left.get_prob_model().n_deriv() != 0
     //    ) {
       
-    double res = (std::log (probability) - normalisation_factor);
-    return (res > 0) ? 0 : res;
-    // }
-    // else
-    //   return - std::numeric_limits<double>::infinity();
+      double res = (std::log (probability) - normalisation_factor);
+      return (res > 0) ? 0 : res;
+      // }
+      // else
+      //   return - std::numeric_limits<double>::infinity();
   }
+};
 
-
-} // namespace
-
-
-
-
-
-
-#endif /* _MAXRULE_FUNCTIONS_H_ */
-// kate: indent-mode cstyle; indent-width 2; replace-tabs on; 
+#endif /* _MAXRULEPROBABILITY_H_ */

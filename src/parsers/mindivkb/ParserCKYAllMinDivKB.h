@@ -3,7 +3,6 @@
 #define _PARSERCKYALLMINDIVKB_H_
 
 #include "parsers/ParserCKYAll.h"
-#include "edges/MaxRuleUpdater.h"
 #include "emptystruct.h"
 #include "MinDivTypes.h"
 
@@ -21,8 +20,7 @@ public:
   typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
   typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
   typedef typename MinDivKBTypes::LexicalDaughter LexicalDaughter;
-  typedef MaxRuleUpdater<MinDivProbabilityKB> Updater;
-  
+
 private:
   friend class ParserCKYAllMinDivKB;
 
@@ -62,14 +60,12 @@ public:
   inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
   inline packed_edge_probability& get(unsigned idx) { return derivations[idx]; }
 
-
-  inline void update_lexical(Edge& e, const LexicalDaughter& dtr);
-  inline void update_unary(Edge& e, const UnaryDaughter& dtr);
-  inline void update_binary(Edge& e, const BinaryDaughter& dtr);
-  inline void finalize();
+  template<class TDaughter>
+  inline void update_best(const TDaughter& dtr);
+  inline void finalize_best();
   
-  inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
-  void extend_derivation(Edge*, unsigned, bool) ;
+  inline void find_succ(packed_edge_probability_with_index& pep, bool licence_unaries);
+  void extend_derivation(unsigned, bool) ;
 
   inline unsigned n_deriv() const {return derivations.size();};
 
@@ -123,7 +119,6 @@ class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivKBTypes>
   typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
   typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
   typedef typename MinDivKBTypes::LexicalDaughter LexicalDaughter;
-  typedef MaxRuleUpdater<MinDivProbabilityKB> Updater;
 
 private:
   unsigned k;
@@ -150,6 +145,8 @@ private:
   /* computes q as marginal(p) / (inside(q)*outside(q)) */
   void update_q();
   
+  /* filling edge probability structures with "best" pointers */
+  void fill_bests();
   void initialise_candidates();
 
   void extend_all_derivations();

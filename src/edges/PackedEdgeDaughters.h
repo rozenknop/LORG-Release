@@ -88,14 +88,14 @@ public:
     );
   }
   
-  inline void update_inside_annotations(AnnotationInfo & annotations) {
+  inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(RH::rule != NULL);
     RH::rule->update_inside_annotations(annotations.inside_probabilities.array,
                                         left->get_edge(RH::rule->get_rhs0()).get_annotations().inside_probabilities.array,
                                         right->get_edge(RH::rule->get_rhs1()).get_annotations().inside_probabilities.array);
   }
   
-  inline void update_outside_annotations(AnnotationInfo & annotations)
+  inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
     auto * leftedge = left->get_edge_ptr(RH::rule->get_rhs0());
     auto * rightedge= right->get_edge_ptr(RH::rule->get_rhs1());
@@ -140,12 +140,12 @@ public:
       left->get_edge_ptr(RH::get_rule()->get_rhs0()) == nullptr
     );
   }
-  inline void update_inside_annotations(AnnotationInfo & annotations) {
+  inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(RH::rule != NULL);
     RH::rule->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,
                                         left->get_edge(RH::rule->get_rhs0()).get_annotations().inside_probabilities.array);
   }
-  inline void update_outside_annotations(AnnotationInfo & annotations)
+  inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
     RH::rule->update_outside_annotations(annotations.outside_probabilities.array,
                                          left->get_edge(RH::rule->get_rhs0()).get_annotations().outside_probabilities_unary_temp.array);
@@ -181,7 +181,7 @@ public:
   inline bool is_lexical() const {return true;}
   inline const Word* get_word() const {return word;}
   
-  inline void update_inside_annotations(AnnotationInfo & annotations) {
+  inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(RH::rule != NULL);
     RH::rule->update_inside_annotations(annotations.inside_probabilities.array);
   }

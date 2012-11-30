@@ -6,7 +6,7 @@
 
 #include "PackedEdgeProbability.h"
 #include "PackedEdge.h"
-#include "MaxRuleUpdater.h"
+#include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
 
@@ -37,7 +37,7 @@ public:
   typedef typename MaxRule1BTypes::UnaryDaughter UnaryDaughter;
   typedef typename MaxRule1BTypes::BinaryDaughter BinaryDaughter;
   typedef typename MaxRule1BTypes::LexicalDaughter LexicalDaughter;
-  typedef MaxRuleUpdater<MaxRuleProbability1B> Updater;
+  typedef MaxRuleTreeLogProbaComputer<MaxRuleProbability1B> QInsideComputer;
 
 private:
   packed_edge_probability best;
@@ -70,7 +70,7 @@ inline void MaxRuleProbability1B::update_lexical(Edge & edge,  const LexicalDaug
     
     //std::cout << "update with " << *rule << std::endl;
     
-    double probability = Updater::update_maxrule_probability(edge.get_annotations(), rule, log_normalisation_factor);
+    double probability = QInsideComputer::compute(edge.get_annotations(), rule, log_normalisation_factor);
     
     if (probability > best.probability) {
         best.probability = probability;
@@ -85,7 +85,7 @@ inline void MaxRuleProbability1B::update_unary (Edge & e, const UnaryDaughter & 
 
   Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
   if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
-    probability =  Updater::update_maxrule_probability(e.get_annotations(), dtr, log_normalisation_factor);
+    probability =  QInsideComputer::compute(e.get_annotations(), dtr, log_normalisation_factor);
   }
 
   if (probability > best.probability) {
@@ -97,7 +97,7 @@ inline void MaxRuleProbability1B::update_unary (Edge & e, const UnaryDaughter & 
 inline void
 MaxRuleProbability1B::update_binary (Edge & e, const BinaryDaughter & dtr)
 {
-  double probability = Updater::update_maxrule_probability(e.get_annotations(), dtr, log_normalisation_factor);
+  double probability = QInsideComputer::compute(e.get_annotations(), dtr, log_normalisation_factor);
 
   if (probability > best.probability)
     {

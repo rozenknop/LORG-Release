@@ -94,16 +94,17 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	utils/data_parsers/BURuleInputParser.cpp utils/data_parsers/BURuleInputParser.h \
 	utils/data_parsers/AnnotHistoriesParser.h utils/data_parsers/AnnotHistoriesParser.cpp \
 	edges/PackedEdge.h edges/PackedEdgeDaughters.h edges/PackedEdgeProbability.h \
-	edges/ViterbiProbability.h edges/maxrule_functions.h \
-	edges/MaxRuleProbability.h edges/MaxRuleProbabilityKB.h \
+	edges/ViterbiProbability.h \
+	edges/MaxRuleProbabilityKB.h \
 	edges/BestProbability.h \
 	edges/MaxRuleProbabilityMultiple.h \
+	edges/MaxRuleTreeLogProbaComputer.h \
 	PCKYAllCell.h parsers/ParserCKYAll.h parsers/ParserCKYAll.hpp \
 	parsers/ParserCKYAllViterbi.h parsers/ParserCKYAllMaxVar.h \
 	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
 	parsers/ParserCKYAllMaxVar1B.h \
 	parsers/mindivkb/ParserCKYAllMinDivKB.h parsers/mindivkb/ParserCKYAllMinDivKB.cpp \
-	parsers/mindivkb/MinDivDaughters.h parsers/mindivkb/MinDivDaughters.cpp \
+	parsers/mindivkb/MinDivDaughters.h parsers/mindivkb/MinDivDaughters.cpp parsers/mindivkb/MinDivDaughters.hpp \
 	parsers/mindivkb/MinDivTypes.h \
 	parsers/ParserCKYAllFactory.h \
 	edges/ViterbiProbability.cpp \

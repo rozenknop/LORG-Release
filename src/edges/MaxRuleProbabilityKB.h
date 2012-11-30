@@ -4,7 +4,7 @@
 
 #include "PackedEdgeProbability.h"
 #include "PackedEdge.h"
-#include "MaxRuleUpdater.h"
+#include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
 
@@ -39,7 +39,7 @@ public:
   typedef typename MaxRuleKBTypes::UnaryDaughter UnaryDaughter;
   typedef typename MaxRuleKBTypes::BinaryDaughter BinaryDaughter;
   typedef typename MaxRuleKBTypes::LexicalDaughter LexicalDaughter;
-  typedef MaxRuleUpdater<MaxRuleProbabilityKB> Updater;
+  typedef MaxRuleTreeLogProbaComputer<MaxRuleProbabilityKB> QInsideComputer;
   
 private:
 
@@ -102,7 +102,7 @@ void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughter& dtr)
   assert(rule != NULL);
 
   packed_edge_probability_with_index pep;
-  pep.probability = Updater::update_maxrule_probability(a, rule, log_normalisation_factor);
+  pep.probability = QInsideComputer::compute(a, rule, log_normalisation_factor);
 
 //    std::cout << "lexical " << pep.probability << std::endl;
   assert(pep.probability <=0);
@@ -125,7 +125,7 @@ void MaxRuleProbabilityKB::update_unary(Edge& e, const UnaryDaughter& dtr)
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
   //  std::cout << "before ump" << std::endl;
-  pep.probability= Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
+  pep.probability= QInsideComputer::compute(a, dtr, log_normalisation_factor);
 
 //    std::cout << "unary "<< pep.probability << std::endl;
   assert(pep.probability <=0);
@@ -146,7 +146,7 @@ void MaxRuleProbabilityKB::update_binary(Edge& e, const BinaryDaughter& dtr)
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
 
-  pep.probability= Updater::update_maxrule_probability(a, dtr, log_normalisation_factor);
+  pep.probability= QInsideComputer::compute(a, dtr, log_normalisation_factor);
 
   //  std::cout << candidates.size() << std::endl;
 //   std::cout << "binary " << pep.probability << std::endl;
@@ -294,7 +294,7 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
 
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
-      p.probability = Updater::update_maxrule_probability(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
+      p.probability = QInsideComputer::compute(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
 
       assert(p.probability <= 0);
 
@@ -321,7 +321,7 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
 
       packed_edge_probability_with_index p(pep);
       p.right_index = nextright;
-      p.probability = Updater::update_maxrule_probability(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
+      p.probability = QInsideComputer::compute(edge->get_annotations(), *d, log_normalisation_factor, p.left_index, p.right_index);
 
       assert(p.probability <= 0);
 
@@ -356,7 +356,7 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
       //        std::cout << "un extending" << std::endl;
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
-      p.probability = Updater::update_maxrule_probability(edge->get_annotations(), *d, log_normalisation_factor, p.left_index);
+      p.probability = QInsideComputer::compute(edge->get_annotations(), *d, log_normalisation_factor, p.left_index);
 
       assert(p.probability <= 0);
 

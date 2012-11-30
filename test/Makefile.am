@@ -16,8 +16,7 @@ common_sources = ../src/Bracketing.h \
     ../src/edges/AnnotationInfo.h \
     ../src/edges/BinaryTrainingTree.h \
     ../src/edges/Edge.h \
-    ../src/edges/maxrule_functions.h \
-    ../src/edges/MaxRuleProbability.h \
+    ../src/edges/MaxRuleLogInsideComputer.h \
     ../src/edges/MaxRuleProbabilityKB.h \
     ../src/edges/MaxRuleProbabilityMultiple.h \
     ../src/edges/PackedEdge.h \

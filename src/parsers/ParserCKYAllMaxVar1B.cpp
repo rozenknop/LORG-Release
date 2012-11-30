@@ -35,8 +35,8 @@ void ParserCKYAllMaxRule1B::extract_solution()
 
 void ParserCKYAllMaxRule1B::calculate_chart_specific_rule_probabilities_and_best_edge()
 {
-  double sentence_probability = std::log(get_sentence_probability());
-  MaxRuleProbability1B::set_log_normalisation_factor(sentence_probability);
+  double sentence_log_probability = std::log(get_sentence_probability());
+  MaxRuleProbability1B::set_log_normalisation_factor(sentence_log_probability);
   ParserCKYAllMaxRule::calculate_maxrule_probabilities();
 }
 
