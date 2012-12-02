@@ -133,6 +133,12 @@ private:
   };
 
 };
+inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityMultiple & prob)
+{
+  return out << "(MaxRuleMulltipleProb: " << &prob << ")";
+}
+
+
 
 const double& MaxRuleProbabilityMultiple::get_log_normalisation_factor(unsigned i)
 {

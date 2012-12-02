@@ -16,10 +16,6 @@ std::ostream & MaxRuleProbabilityKB::operator>> (std::ostream & out) const
 }
 
 
-inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityKB& p)
-{
-  return p >> out ;
-}
 
 
 #endif /* _MAXRULEPROBABILITYKB_CPP_ */

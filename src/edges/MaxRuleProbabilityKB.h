@@ -59,6 +59,9 @@ public:
 
   inline static void set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
 
+  inline const heap_type & get_candidates() const { return candidates; }
+  inline const heap_type & get_derivations() const { return derivations; }
+
   inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
   inline packed_edge_probability& get(unsigned idx) { return derivations[idx]; }
 
@@ -93,6 +96,11 @@ private:
     inline std::ostream& operator>>(std::ostream& out) const;
 };
 
+
+inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityKB & prob)
+{
+  return out << "((MaxRuleKBProb: " << &prob << "): nb_deriv." << prob.get_derivations().size() << " nb_candid." << prob.get_candidates().size() << ")";
+}
 
 
 void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughter& dtr)

@@ -2,7 +2,7 @@
 #ifndef PCKYALLCELL_HPP
 #define PCKYALLCELL_HPP
 
-#include "PCKYAllCell.h"
+#include "./PCKYAllCell.h"
 #include "edges/AnnotationInfo.h"
 
 #include <cassert>
@@ -457,13 +457,14 @@ void PCKYAllCell<Types>::change_rules_resize(unsigned new_size, unsigned finer_i
 template<class Types>
 std::ostream& operator<<(std::ostream& out, const PCKYAllCell<Types>& cell)
 {
+  out << "(cell: span=" << cell.get_end() - cell.get_begin() << ", beg=" << cell.get_begin() << " :"<< std::endl;
   int nb_entries = 0;
   for(unsigned i = 0; i < cell.max_size ; ++i)
     if(cell.edges[i]) {
       ++nb_entries;
-      out << i << ":" << *cell.edges[i] << std::endl;
+      out << " " << i << ":" << *cell.edges[i] << std::endl;
     }
-  return out << "filled entries: " << nb_entries;
+  return out << "filled entries: " << nb_entries << ")";
 }
 
 template<class Types>

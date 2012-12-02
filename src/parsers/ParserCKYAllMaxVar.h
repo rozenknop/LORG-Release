@@ -40,10 +40,12 @@ public:
      this->chart->opencells_apply_bottom_up(
       [](Cell & cell)
       {
+//       std::cout << "filling cell " << &cell << " : ======================================================" << cell << std::endl;
         cell.apply_on_edges (toFunc(&ProbaModel::update_lexical),
                              toFunc (&ProbaModel::update_binary));
         cell.apply_on_edges (toFunc(&ProbaModel::update_unary),
                              toFunc (&ProbaModel::finalize));
+//       std::cout << "best filled for cell " << &cell << " : " << cell << std::endl;
       }
     );
   }

@@ -252,6 +252,10 @@ private:
                     bool append_annot, bool outpu_forms) const;
 
 public:
+  void process(function<void(const LexicalDaughter &)> f) const {for(const auto& d: get_lexical_daughters()) f(d);}
+  void process(function<void(const UnaryDaughter &)> f) const { for(const auto& d: get_unary_daughters()) f(d); }
+  void process(function<void(const BinaryDaughter &)> f) const { for(const auto& d: get_binary_daughters()) f(d); }
+
   void process(function<void(Edge &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
   void process(function<void(Edge &, UnaryDaughter &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
   void process(function<void(Edge &, BinaryDaughter &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
@@ -284,7 +288,9 @@ public:
   
   template<typename Function, typename... OtherFunctions>
   void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
-  void apply() {}
+  void apply() const {}
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
 };
 
 
@@ -772,7 +778,11 @@ bool PackedEdge<Types>::has_solution(unsigned i) const
 template<class OPEP>
 std::ostream& operator<<(std::ostream& out, const PackedEdge<OPEP>& edge)
 {
-  return out << edge.get_annotations().get_inside(0) << " (" << edge.best << ") ";
+  out << "(edge: " << &edge << ": inside(0): " << edge.get_annotations().get_inside(0) << " best:" << edge.best;
+  edge.apply(std::function<void(const typename OPEP::LexicalDaughter&)>([&out](const typename OPEP::LexicalDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
+  edge.apply(std::function<void(const typename OPEP::BinaryDaughter&)>([&out](const typename OPEP::BinaryDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
+  edge.apply(std::function<void(const typename OPEP::UnaryDaughter&)>([&out](const typename OPEP::UnaryDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
+  return out << ") ";
 }
 
 #endif /*PACKEDEDGE_H_*/

@@ -58,6 +58,24 @@ ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(Cell &)> 
   }
 }
 
+template<class Types>
+void
+ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(const Cell &)> f) const
+{
+  unsigned sent_size=get_size();
+  for (signed span = sent_size-1; span >= 0; --span) {
+    unsigned end_of_begin=sent_size-span;
+    
+    for (unsigned begin=0; begin < end_of_begin; ++begin) {
+      unsigned end = begin + span ;
+      //std::cout << '(' << begin << ',' << end << ')' << std::endl;
+      
+      Cell& cell = access(begin,end);
+      if(!cell.is_closed()) f(cell);
+    }
+  }
+}
+
 #ifndef USE_THREADS
 
 template<class Types>
@@ -369,11 +387,27 @@ public:
   
   template<class Types>
   ostream & ChartCKY<Types>::to_stream(ostream & s) const {
-    opencells_apply_top_down_nothread( [&s](Cell & cell){
+    s << "(begin chart:"<< this << ")" << std::endl;
+    opencells_apply_top_down_nothread( [&s](const Cell & cell){
       s << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
       s << cell << std::endl;
     } );
+    s << "(end   chart "<< this << ")" << std::endl;
     return s;
+  }
+  
+#include <sstream>
+
+  template<class Types>
+  std::string ChartCKY<Types>::toString() const {
+    std::string ret;
+    std::ostringstream stream(ret);
+    opencells_apply_top_down_nothread( [&stream](const Cell & cell){
+      
+      stream << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
+      stream << cell << std::endl;
+    } );
+    return ret;
   }
   
   //#include "utils/SymbolTable.h"

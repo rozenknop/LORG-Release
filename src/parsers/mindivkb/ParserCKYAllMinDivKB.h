@@ -38,10 +38,13 @@ private:
 
 public:
 
-  MinDivProbabilityKB() :  candidates(), derivations() {candidates.reserve(50);};
+  MinDivProbabilityKB() :  candidates(), derivations(), inside_prob(0), outside_prob(0), inside_unary_temp(0), outside_unary_temp(0) {candidates.reserve(50);};
   ~MinDivProbabilityKB() {};
 
   inline static void set_size(unsigned k) {size = k;}
+  
+  inline const heap_type & get_candidates() const { return candidates; }
+  inline const heap_type & get_derivations() const { return derivations; }
 
   inline static void   set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
   inline static double get_log_normalisation_factor() {return log_normalisation_factor;};
@@ -107,6 +110,10 @@ private:
     inline std::ostream& operator>>(std::ostream& out) const;
 };
 
+inline std::ostream& operator<<(std::ostream& out, const MinDivProbabilityKB & prob)
+{
+  return out << "((MinDivProb: " << &prob << "): nb_deriv." << prob.get_derivations().size() << " nb_candid." << prob.get_candidates().size() << ")";
+}
 
 
 #include "MinDivDaughters.h"
@@ -124,32 +131,54 @@ private:
   unsigned k;
 
 public:
-  ParserCKYAllMinDivKB(std::vector<AGrammar*>& cgs,
+  inline ParserCKYAllMinDivKB(std::vector<AGrammar*>& cgs,
                        const std::vector<double>& p, double b_t,
                        const annot_descendants_type& annot_descendants_,
                        bool accurate_, unsigned min_beam, int stubborn, unsigned k_);
 
-  ~ParserCKYAllMinDivKB() {};
+  inline ~ParserCKYAllMinDivKB() {};
 
   void extract_solution();
 
 private:
   /** also computes marginals for each daughter */
-  virtual void compute_outside_probabilities();
+  inline virtual void compute_outside_probabilities();
   
   /* computes inside-outside on q */
-  void compute_inside_q_probabilities();
-  void compute_outside_q_probabilities();
-  void compute_inside_outside_q_probabilities();
+  inline void compute_inside_q_probabilities();
+  inline void compute_outside_q_probabilities();
+  inline void compute_inside_outside_q_probabilities();
 
   /* computes q as marginal(p) / (inside(q)*outside(q)) */
-  void update_q();
+  inline void update_q();
   
   /* filling edge probability structures with "best" pointers */
-  void fill_bests();
-  void initialise_candidates();
+  inline void fill_bests();
+  inline void initialise_candidates();
 
-  void extend_all_derivations();
+  inline void extend_all_derivations();
 };
+
+
+
+
+
+
+inline ParserCKYAllMinDivKB::ParserCKYAllMinDivKB(std::vector<AGrammar*>& cgs,
+                                             const std::vector<double>& p, double b_t,
+                                             const annot_descendants_type& annot_descendants_,
+                                             bool accurate_, unsigned min_beam, int stubborn, unsigned k_)
+: ParserCKYAll_Impl<MinDivKBTypes>(cgs, p, b_t, annot_descendants_, accurate_, min_beam, stubborn) , k(k_)
+{
+  // this is not in the super class because maxn parsing uses a
+  //different mapping
+  //create the coarse-to-fine map
+  this->create_coarse_to_fine_mapping(this->grammars);
+
+  Edge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
+}
+
+
+
 
 #endif /* _PARSERCKYALLMINDIVKB_H_ */

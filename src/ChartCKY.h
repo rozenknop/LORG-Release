@@ -92,6 +92,7 @@ public:
   bool is_valid(int start_symbol) const;
 
   ostream & to_stream(ostream & s) const;
+  std::string toString() const ;
 
   void opencells_apply( std::function<void(Cell &)> f );
   void opencells_apply_nothread( std::function<void(Cell &)> f );
@@ -99,6 +100,7 @@ public:
   void opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span=0 );
   void opencells_apply_top_down( std::function<void(Cell &)> f );
   void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
+  void opencells_apply_top_down_nothread( std::function<void(const Cell &)> f ) const;
 
   std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
 };

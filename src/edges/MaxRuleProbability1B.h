@@ -61,6 +61,12 @@ public:
   inline bool has_solution(unsigned i) const {return i == 0;} ;
 };
 
+inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbability1B & prob)
+{
+  return out << "((MaxRule1BProb: " << &prob << ")";
+}
+
+
 
 
 
