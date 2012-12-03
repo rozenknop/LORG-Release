@@ -61,6 +61,7 @@ public:
 protected:
   Cell * left;
   Cell * right;
+//   friend class Types::Edge ;
 public:
   BinaryPackedEdgeDaughters(Cell *le, Cell *ri, const typename Types::BRule * ru) :
     PackedEdgeDaughters(), RH(ru), left(le),right(ri)

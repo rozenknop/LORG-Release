@@ -62,5 +62,7 @@ struct BlockTimer {
   }
 };
 
+#define BLOCKTIMING( nom ) Timer __timer__(nom); BlockTimer __bt__(__timer__);
+
 #endif
  

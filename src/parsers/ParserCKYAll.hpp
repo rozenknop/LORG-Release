@@ -54,7 +54,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
 
     //init
     {
-      BlockTimer bt(timinit);
+//       BlockTimer bt(timinit);
       bool beam_short = chart->get_size() >= min_length_beam;
       chart->opencells_apply([&](Cell& cell){
         if(!cell.is_empty()) {
@@ -73,7 +73,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
     }
     //actual cky is here
     {
-      BlockTimer bt(timcky);
+//       BlockTimer bt(timcky);
       process_internal_rules(beam_threshold);
     }
     if(ntries == 0)
@@ -94,31 +94,41 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
                                               Cell& right_cell,
                                               Cell& result_cell) const
 {
-  static std::vector<vector_rhs0>::const_iterator brules_begin(brules->_begin);
-  static std::vector<vector_rhs0>::const_iterator brules_end(brules->_end);
-
-  //iterating through all the rules P -> L R, indexed by L
-  for(std::vector<vector_rhs0>::const_iterator same_rhs0_itr(brules_begin);
-      same_rhs0_itr != brules_end; ++same_rhs0_itr) {
-
-    // is L present in left_cell ?
-    if(left_cell.exists_edge(same_rhs0_itr->rhs0)) {
-
-      double LR1 = left_cell.get_edge(same_rhs0_itr->rhs0).get_annotations().inside_probabilities.array[0];
-      //iterating through all the rules P -> L R, indexed by R, L fixed
-      for (std::vector<vector_rhs1>::const_iterator same_rhs1_itr(same_rhs0_itr->_begin);
-           same_rhs1_itr != same_rhs0_itr->_end; ++same_rhs1_itr) {
-
-        // is R present in right_cell ?
-        if(right_cell.exists_edge(same_rhs1_itr->rhs1)) {
-
-
-          double LR = LR1 * right_cell.get_edge(same_rhs1_itr->rhs1).get_annotations().inside_probabilities.array[0];
-
-          //iterating through all the rules P -> L R, indexed by P, R and L fixed
-          std::vector< const BRuleC2f* >::const_iterator bitr(same_rhs1_itr->_begin);
-          for(; bitr != same_rhs1_itr->_end; ++bitr) {
-            result_cell.process_candidate(&left_cell,&right_cell,(BinaryRule*)*bitr, LR);
+  {
+//     static Timer tim("get_candidates counting");
+//     BlockTimer bt(tim);
+    // count the number of daughters to create
+//     std::vector<int> nb_rules(result_cell.get_max_size(), 0);
+//     for (const auto & same_rhs0_rules: brules) {
+//       if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
+//         for(const auto & same_rhs: same_rhs0_rules) {
+//           if (right_cell.exists_edge(same_rhs.rhs1)) {
+//             for(const auto & rule: same_rhs) {
+//               ++ nb_rules[rule->get_lhs()];
+//             }
+//           }
+//         }
+//       }
+//     }
+//     // create daughters
+//     result_cell.reserve_binary_daughters(nb_rules);
+  }  
+  {
+//     static Timer tim("get_candidates creating");
+//     BlockTimer bt(tim);
+    //iterating through all the rules P -> L R, indexed by L
+    for (const auto & same_rhs0_rules: brules) {
+      if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
+        double LR1 = left_cell.get_edge(same_rhs0_rules.rhs0).get_annotations().inside_probabilities.array[0];
+        //iterating through all the rules P -> L R, indexed by R, L fixed
+        for(const auto & same_rhs: same_rhs0_rules) {
+          if (right_cell.exists_edge(same_rhs.rhs1)) {
+            double LR = LR1 * right_cell.get_edge(same_rhs.rhs1).get_annotations().inside_probabilities.array[0];
+            
+            //iterating through all the rules P -> L R, indexed by P, R and L fixed
+            for(const auto & rule: same_rhs) {
+              result_cell.process_candidate(&left_cell,&right_cell, rule, LR);
+            }
           }
         }
       }
@@ -150,7 +160,7 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
 
   //application of binary rules
   {
-    BlockTimer bt(timbin);
+//     BlockTimer bt(timbin);
     for (unsigned m = begin; m < end; ++m) {
       // m is the mid-point
       Cell& left_cell = chart->access(begin,m);
@@ -164,7 +174,7 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
   }
   //unary rules
   {
-    BlockTimer bt(timun);
+//     BlockTimer bt(timun);
     add_unary_internal(cell, isroot);
   }
   {

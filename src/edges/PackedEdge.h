@@ -82,15 +82,20 @@ public:
     this->local_resize_annotations(1);
   }
 
+  void reserve_binary_daughters(int size) 
+  {
+    binary_daughters.reserve(size);
+  }
+
   /**
      \brief Constructor
      \param ped daughters to add
   */
     PackedEdge(const BinaryDaughter& ped)
   {
-    static Timer tim("Constructor PackedEdge(BinaryDaughter)");
-    BlockTimer bt(tim);
-    binary_daughters.reserve(50);
+//     static Timer tim("Constructor PackedEdge(BinaryDaughter)");
+//     BlockTimer bt(tim);
+//     binary_daughters.reserve(2230);
     binary_daughters.push_back(ped);
     this->local_resize_annotations(1);
   }
@@ -196,8 +201,8 @@ public:
   void add_daughters(Cell * left,
                      Cell * right, const BinaryRule* rule)
   {
-    static Timer tim("PackedEdge add_daughters(binary)");
-    BlockTimer bt(tim);
+//     static Timer tim("PackedEdge add_daughters(binary)");
+//     BlockTimer bt(tim);
     binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 

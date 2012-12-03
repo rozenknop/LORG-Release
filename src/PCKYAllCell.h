@@ -69,6 +69,14 @@ public:
 
 
   /**
+   * @brief reserve space for binary daughters
+   *
+   * @param  a vector of int : number of binary daughters to allocate for each edge
+   * @return void
+   **/
+  void reserve_binary_daughters(const std::vector<int> &);
+  
+  /**
      \brief insert a candidate edge in the cell from application of a binary rule
      \param
   */

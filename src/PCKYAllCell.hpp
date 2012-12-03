@@ -34,21 +34,40 @@ PCKYAllCell<Types>::~PCKYAllCell()
 }
 
 template<class Types>
+void PCKYAllCell<Types>::reserve_binary_daughters(const std::vector<int> & counts)
+{
+  for(int i=counts.size()-1; i>=0; --i) {
+    if (counts[i]!=0) {
+      Edge * & e = edges[i] ;
+      if (e == nullptr) e = new Edge;
+      e->reserve_binary_daughters(counts[i]);
+    }
+  }
+}
+
+template<class Types>
 void PCKYAllCell<Types>::process_candidate(Cell * left,
                                             Cell * right,
                                             const BinaryRule* rule,
                                             double LR_inside)
 {
-  Edge ** e = &edges[rule->get_lhs()];
+  Edge * & e = edges[rule->get_lhs()];
 
-  if(*e)
-    (*e)->add_daughters(left,right,rule);
+  if(e)
+    e->add_daughters(left,right,rule);
   else {
-    *e = new Edge(BinaryDaughter(left,right,rule));
+    e = new Edge(BinaryDaughter(left,right,rule));
+//     e->reserve_binary_daughters(10*(end-begin+1));
   }
 
 
-  (*e)->get_annotations().inside_probabilities.array[0] += LR_inside * rule->get_probability()[0][0][0];
+  e->get_annotations().inside_probabilities.array[0] += LR_inside * rule->get_probability()[0][0][0];
+  
+//   static unsigned int maxdtr = 0 ;
+//   if (e->get_binary_daughters().size() > maxdtr * (end-begin+1)) {maxdtr=e->get_binary_daughters().size();
+//     std::cout << "max bin dtr : " << (maxdtr) << " maxdtr/(end-begin) = " << maxdtr << "/(" << end << "-" << begin << ") = " << maxdtr/(end-begin) << std::endl;
+//   }
+
 }
 
 template<class Types>

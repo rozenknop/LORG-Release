@@ -71,12 +71,12 @@ int TwoStageLorgParseApp::run()
             }
             // parse, aka create the coarse forest
             {
-              BlockTimer bt(timpar);
+//               BlockTimer bt(timpar);
               parser->parse(start_symbol);
             }
             //use intermediate grammars to prune the chart
             {
-              BlockTimer bt(timbeam);
+//               BlockTimer bt(timbeam);
               parser->beam_c2f(start_symbol);
             }
             // extract best solution with the finest grammar
