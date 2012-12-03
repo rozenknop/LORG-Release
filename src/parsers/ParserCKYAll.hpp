@@ -34,7 +34,6 @@ ParserCKYAll_Impl<Types>::~ParserCKYAll_Impl()
 template <class Types>
 void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
 {
-  static Timer timinit("parse_init"), timcky("process_internal_rules");
   int ntries = stubbornness;
   double beam_threshold = prior_beam_threshold;
 
@@ -54,7 +53,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
 
     //init
     {
-//       BlockTimer bt(timinit);
+      //               BLOCKTIMING("parse_init");
       bool beam_short = chart->get_size() >= min_length_beam;
       chart->opencells_apply([&](Cell& cell){
         if(!cell.is_empty()) {
@@ -73,7 +72,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
     }
     //actual cky is here
     {
-//       BlockTimer bt(timcky);
+      //               BLOCKTIMING("process_internal_rules");
       process_internal_rules(beam_threshold);
     }
     if(ntries == 0)
@@ -94,28 +93,26 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
                                               Cell& right_cell,
                                               Cell& result_cell) const
 {
-  {
-//     static Timer tim("get_candidates counting");
-//     BlockTimer bt(tim);
+  //   {
+    //               BLOCKTIMING("get_candidates counting");
     // count the number of daughters to create
-//     std::vector<int> nb_rules(result_cell.get_max_size(), 0);
-//     for (const auto & same_rhs0_rules: brules) {
-//       if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
-//         for(const auto & same_rhs: same_rhs0_rules) {
-//           if (right_cell.exists_edge(same_rhs.rhs1)) {
-//             for(const auto & rule: same_rhs) {
-//               ++ nb_rules[rule->get_lhs()];
-//             }
-//           }
-//         }
-//       }
-//     }
-//     // create daughters
-//     result_cell.reserve_binary_daughters(nb_rules);
-  }  
+    //     std::vector<int> nb_rules(result_cell.get_max_size(), 0);
+    //     for (const auto & same_rhs0_rules: brules) {
+      //       if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
+        //         for(const auto & same_rhs: same_rhs0_rules) {
+          //           if (right_cell.exists_edge(same_rhs.rhs1)) {
+            //             for(const auto & rule: same_rhs) {
+              //               ++ nb_rules[rule->get_lhs()];
+            //             }
+            //           }
+            //         }
+            //       }
+            //     }
+            //     // create daughters
+            //     result_cell.reserve_binary_daughters(nb_rules);
+            //   }  
   {
-//     static Timer tim("get_candidates creating");
-//     BlockTimer bt(tim);
+    //               BLOCKTIMING("get_candidates creating");
     //iterating through all the rules P -> L R, indexed by L
     for (const auto & same_rhs0_rules: brules) {
       if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
@@ -151,7 +148,6 @@ void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) con
 template <class Types>
 void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) const
 {
-  static Timer timbin("process_cell binary"), timun("process_cell unary"), timadj("process_cell adjust_inside_probability"), timpru("process_cell pruning");
   const unsigned & begin = cell.get_begin();
   const unsigned & end   = cell.get_end();
   const bool & isroot = cell.get_top();
@@ -160,7 +156,7 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
 
   //application of binary rules
   {
-//     BlockTimer bt(timbin);
+    // BLOCKTIMING("process_cell binary");
     for (unsigned m = begin; m < end; ++m) {
       // m is the mid-point
       Cell& left_cell = chart->access(begin,m);
@@ -174,17 +170,17 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
   }
   //unary rules
   {
-//     BlockTimer bt(timun);
+    // BLOCKTIMING("process_cell unary");
     add_unary_internal(cell, isroot);
   }
   {
-    //     BlockTimer bt(timadj);
+    // BLOCKTIMING("process_cell adjust_inside_probability");
     cell.adjust_inside_probability();
   }
   // pruning
   if(chart->get_size() >= min_length_beam)
   {
-    //     BlockTimer bt(timpru);
+    // BLOCKTIMING("process_cell beam");
     cell.beam(priors, beam_threshold);
   }
   // if(cell.is_closed())

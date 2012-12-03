@@ -41,23 +41,18 @@ void ParserCKYAllMaxRuleKB::extend_all_derivations()
 
 void ParserCKYAllMaxRuleKB::extract_solution()
 {
-//   static Timer inout("compute_inside_outside_probabilities");
-//   static Timer incan("initialize_candidates");
-//   static Timer extal("extend_all_derivations");
-  //  std::cout << "in extract" << std::endl;
-
   {
-//     BlockTimer bt(inout);
+    //     BLOCKTIMING("compute_inside_outside_probabilities");
     compute_inside_outside_probabilities();
   }
   {
-//     BlockTimer bt(incan);
+//     BLOCKTIMING("initialize_candidates");
     initialise_candidates();
   }
   //  std::cout << "after init cand" << std::endl;
 
   {
-//     BlockTimer bt(extal);
+//     BLOCKTIMING("extend_all_derivations");
     extend_all_derivations();
   }
 }

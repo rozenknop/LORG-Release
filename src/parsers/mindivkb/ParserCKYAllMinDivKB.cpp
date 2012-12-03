@@ -9,16 +9,12 @@
 
 void ParserCKYAllMinDivKB::extract_solution()
 {
-//   static Timer inout("compute_inside_outside_probabilities");
-//   static Timer incan("initialize_candidates");
-//   static Timer extal("extend_all_derivations");
-  
   //  std::cout << "in extract" << std::endl;
 
   // this calls ParserCKYAllMinDivKB::compute_outside_probabilities()
   // and computes marginals for each daughter
   {
-//     BlockTimer bt(inout);
+    //     BLOCKTIMING("compute_inside_outside_probabilities");
     compute_inside_outside_probabilities();
   }
 //   // initialises q_insides and q_outsides to 1
@@ -40,7 +36,7 @@ void ParserCKYAllMinDivKB::extract_solution()
   // compute the probability of the best subtree starting at each edge daughter
   // and initialize structures "candidates" and "derivations" of the edge
   {
-//     BlockTimer bt(incan);
+    //     BLOCKTIMING("initialise_candidates");
     initialise_candidates();
   }
   //  std::cout << "after init cand" << std::endl;
@@ -48,7 +44,7 @@ void ParserCKYAllMinDivKB::extract_solution()
   // complete structures "derivations" of the edge
   // from structures "candidates"
   {
-//     BlockTimer bt(extal);
+    //     BLOCKTIMING("extend_all_derivations");
     extend_all_derivations();
   }
 }

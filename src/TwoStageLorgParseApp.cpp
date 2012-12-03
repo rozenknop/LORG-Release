@@ -58,36 +58,35 @@ int TwoStageLorgParseApp::run()
                     std::clog << "<" << i->get_form() << ">";
                 std::clog << "\n";
             }*/
-            static Timer timtag("tagger"), timini("initialise_chart"), timpar("parse"), timbeam("beam_c2f"), timext("extract_solution"), timget("get_parses");
             //tag sentence
             {
-              //               BlockTimer bt(timtag);
+              //               BLOCKTIMING("tagger");
               tagger.tag(sentence);
             }
             // create and initialise chart
             {
-              //               BlockTimer bt(timini);
+              //               BLOCKTIMING("initialise_chart");
               parser->initialise_chart(sentence, brackets);
             }
             // parse, aka create the coarse forest
             {
-//               BlockTimer bt(timpar);
+              //               BLOCKTIMING("parse");
               parser->parse(start_symbol);
             }
             //use intermediate grammars to prune the chart
             {
-//               BlockTimer bt(timbeam);
+              //               BLOCKTIMING("beam_c2f");
               parser->beam_c2f(start_symbol);
             }
             // extract best solution with the finest grammar
             if(parser->is_chart_valid(start_symbol))
             {
-              //               BlockTimer bt(timext);
+              //               BLOCKTIMING("extract_solution");
               parser->extract_solution();
             }
             if(parser->is_chart_valid(start_symbol))
             {
-              //               BlockTimer bt(timget);  
+              //               BLOCKTIMING("get_parses");
               parser->get_parses(start_symbol, kbest, always_output_forms, output_annotations, best_trees);
             }
         }
