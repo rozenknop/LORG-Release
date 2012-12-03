@@ -215,6 +215,25 @@ void URule::update_outside_annotations(const std::vector<double>& up,
   }
 }
 
+double URule::update_outside_annotations_return_marginal(const std::vector< double >& up, 
+                                                               const std::vector< double >& in_left, 
+                                                               std::vector< double >& out_left) 
+const
+{
+  double marginal = 0.0;
+  for(unsigned short i = 0 ; i < probabilities.size();++i) {
+    if(up[i] == LorgConstants::NullProba) continue;
+    const std::vector<double>& dim_i = probabilities[i];
+    for(unsigned short j = 0 ; j < dim_i.size();++j) {
+      if(out_left[j] == LorgConstants::NullProba) continue;
+      double delta = up[i] * dim_i[j] ;
+      out_left[j] += delta ;
+      marginal += delta * in_left[j] ;
+    }
+  }
+  return marginal;
+}
+
 void URule::compact()
 {
   //get rid of lines of zeros

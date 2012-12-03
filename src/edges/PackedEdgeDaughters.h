@@ -65,6 +65,8 @@ public:
   BinaryPackedEdgeDaughters(Cell *le, Cell *ri, const typename Types::BRule * ru) :
     PackedEdgeDaughters(), RH(ru), left(le),right(ri)
   {};
+//   BinaryPackedEdgeDaughters(BinaryPackedEdgeDaughters&& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
+//   BinaryPackedEdgeDaughters(const BinaryPackedEdgeDaughters& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
 
   ~BinaryPackedEdgeDaughters() {};
 

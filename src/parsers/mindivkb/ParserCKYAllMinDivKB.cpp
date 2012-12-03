@@ -3,17 +3,24 @@
 #define _PARSERCKYALLMINDIVKB_CPP_
 
 #include "ParserCKYAllMinDivKB.h"
+#include <utils/tick_count.h>
 
 
 
 void ParserCKYAllMinDivKB::extract_solution()
 {
+//   static Timer inout("compute_inside_outside_probabilities");
+//   static Timer incan("initialize_candidates");
+//   static Timer extal("extend_all_derivations");
+  
   //  std::cout << "in extract" << std::endl;
 
   // this calls ParserCKYAllMinDivKB::compute_outside_probabilities()
   // and computes marginals for each daughter
-  compute_inside_outside_probabilities();
-  
+  {
+//     BlockTimer bt(inout);
+    compute_inside_outside_probabilities();
+  }
 //   // initialises q_insides and q_outsides to 1
 //   function<void(MinDivProbabilityKB&)> reinit_1 = [](MinDivProbabilityKB&p){p.reinit_inside_outside(1.0);};
 //   this->chart->opencells_apply([&](Cell & cell)
@@ -32,13 +39,18 @@ void ParserCKYAllMinDivKB::extract_solution()
   
   // compute the probability of the best subtree starting at each edge daughter
   // and initialize structures "candidates" and "derivations" of the edge
-  initialise_candidates();
-
+  {
+//     BlockTimer bt(incan);
+    initialise_candidates();
+  }
   //  std::cout << "after init cand" << std::endl;
 
   // complete structures "derivations" of the edge
   // from structures "candidates"
-  extend_all_derivations();
+  {
+//     BlockTimer bt(extal);
+    extend_all_derivations();
+  }
 }
 
 

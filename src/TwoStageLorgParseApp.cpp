@@ -12,12 +12,7 @@
 
 #include "parsers/ParserCKYAll.h"
 
-#ifdef USE_THREADS
-#include <tbb/tick_count.h>
-using tbb::tick_count;
-#else
 #include "utils/tick_count.h"
-#endif
 
 
 TwoStageLorgParseApp::TwoStageLorgParseApp() : LorgParseApp(), parser(NULL)
@@ -63,25 +58,38 @@ int TwoStageLorgParseApp::run()
                     std::clog << "<" << i->get_form() << ">";
                 std::clog << "\n";
             }*/
-
+            static Timer timtag("tagger"), timini("initialise_chart"), timpar("parse"), timbeam("beam_c2f"), timext("extract_solution"), timget("get_parses");
             //tag sentence
-            tagger.tag(sentence);
-
+            {
+              //               BlockTimer bt(timtag);
+              tagger.tag(sentence);
+            }
             // create and initialise chart
-            parser->initialise_chart(sentence, brackets);
-
+            {
+              //               BlockTimer bt(timini);
+              parser->initialise_chart(sentence, brackets);
+            }
             // parse, aka create the coarse forest
-            parser->parse(start_symbol);
-
+            {
+              BlockTimer bt(timpar);
+              parser->parse(start_symbol);
+            }
             //use intermediate grammars to prune the chart
-            parser->beam_c2f(start_symbol);
-
+            {
+              BlockTimer bt(timbeam);
+              parser->beam_c2f(start_symbol);
+            }
             // extract best solution with the finest grammar
             if(parser->is_chart_valid(start_symbol))
+            {
+              //               BlockTimer bt(timext);
               parser->extract_solution();
-
+            }
             if(parser->is_chart_valid(start_symbol))
-                parser->get_parses(start_symbol, kbest, always_output_forms, output_annotations, best_trees);
+            {
+              //               BlockTimer bt(timget);  
+              parser->get_parses(start_symbol, kbest, always_output_forms, output_annotations, best_trees);
+            }
         }
         parse_solution * p_typed =
           parse_solution::factory.create_object(output_format,

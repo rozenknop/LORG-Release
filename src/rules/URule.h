@@ -99,6 +99,9 @@ public:
   void update_outside_annotations(const std::vector<double>& up,
                                   std::vector<double>& left) const;
 
+  double update_outside_annotations_return_marginal(const std::vector<double>& up,
+                                                    const std::vector<double>& in_left,
+                                                    std::vector<double>& out_left) const;
   /**
      \brief removes useless zeros from probability vector
   */

@@ -11,7 +11,6 @@
 
 #ifdef USE_THREADS
 #include <tbb/parallel_for.h>
-#include <tbb/tick_count.h>
 #include <tbb/blocked_range.h>
 #include <tbb/task_scheduler_init.h>
 #endif

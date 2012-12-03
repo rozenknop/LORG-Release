@@ -29,9 +29,12 @@ ParserCKYAll_Impl<Types>::~ParserCKYAll_Impl()
     }
 }
 
+#include "utils/tick_count.h"
+
 template <class Types>
 void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
 {
+  static Timer timinit("parse_init"), timcky("process_internal_rules");
   int ntries = stubbornness;
   double beam_threshold = prior_beam_threshold;
 
@@ -50,25 +53,29 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
 
 
     //init
-    bool beam_short = chart->get_size() >= min_length_beam;
-    chart->opencells_apply([&](Cell& cell){
-      if(!cell.is_empty()) {
-        this->add_unary_init(cell,cell.get_top());
-        cell.adjust_inside_probability();
+    {
+      BlockTimer bt(timinit);
+      bool beam_short = chart->get_size() >= min_length_beam;
+      chart->opencells_apply([&](Cell& cell){
+        if(!cell.is_empty()) {
+          this->add_unary_init(cell,cell.get_top());
+          cell.adjust_inside_probability();
 
-        // prevent short sentences from being skipped ...
-        if(beam_short)
-          cell.beam(priors, beam_threshold);
+          // prevent short sentences from being skipped ...
+          if(beam_short)
+            cell.beam(priors, beam_threshold);
 
-        // if(cell.is_closed())
-          //   std::cout << "(" << i << "," <<j << ") is closed" << std::endl;
+          // if(cell.is_closed())
+            //   std::cout << "(" << i << "," <<j << ") is closed" << std::endl;
+        }
       }
+      );
     }
-    );
-
     //actual cky is here
-    process_internal_rules(beam_threshold);
-
+    {
+      BlockTimer bt(timcky);
+      process_internal_rules(beam_threshold);
+    }
     if(ntries == 0)
       break;
 
@@ -134,6 +141,7 @@ void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) con
 template <class Types>
 void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) const
 {
+  static Timer timbin("process_cell binary"), timun("process_cell unary"), timadj("process_cell adjust_inside_probability"), timpru("process_cell pruning");
   const unsigned & begin = cell.get_begin();
   const unsigned & end   = cell.get_end();
   const bool & isroot = cell.get_top();
@@ -141,25 +149,34 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
   // look for all possible new edges
 
   //application of binary rules
-  for (unsigned m = begin; m < end; ++m) {
-    // m is the mid-point
-    Cell& left_cell = chart->access(begin,m);
-    if(!left_cell.is_closed()) {
-      Cell& right_cell = chart->access(m+1,end);
-      if( !right_cell.is_closed())
-        get_candidates(left_cell,right_cell,cell);
+  {
+    BlockTimer bt(timbin);
+    for (unsigned m = begin; m < end; ++m) {
+      // m is the mid-point
+      Cell& left_cell = chart->access(begin,m);
+      if(!left_cell.is_closed()) {
+        Cell& right_cell = chart->access(m+1,end);
+        if( !right_cell.is_closed())
+          get_candidates(left_cell,right_cell,cell);
+      }
     }
+    //  std::cout << result_cell << std::endl;
   }
-  //  std::cout << result_cell << std::endl;
-
   //unary rules
-  add_unary_internal(cell, isroot);
-  cell.adjust_inside_probability();
-
+  {
+    BlockTimer bt(timun);
+    add_unary_internal(cell, isroot);
+  }
+  {
+    //     BlockTimer bt(timadj);
+    cell.adjust_inside_probability();
+  }
   // pruning
   if(chart->get_size() >= min_length_beam)
+  {
+    //     BlockTimer bt(timpru);
     cell.beam(priors, beam_threshold);
-
+  }
   // if(cell.is_closed())
   //   std::cout << "(" << begin << "," << end << ") is closed" << std::endl;
 }

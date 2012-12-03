@@ -25,7 +25,6 @@
 
 #ifdef USE_THREADS
 #include <tbb/parallel_for.h>
-#include <tbb/tick_count.h>
 #include <tbb/blocked_range.h>
 using namespace tbb;
 #endif

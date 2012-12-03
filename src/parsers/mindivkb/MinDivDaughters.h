@@ -45,7 +45,8 @@ struct MinDivEdgeDaughterProbability
 class MinDivBinaryDaughter : public BinaryPackedEdgeDaughters<MinDivKBTypes>, public MinDivEdgeDaughterProbability
 {
 public:
-  inline MinDivBinaryDaughter(Cell *le, Cell *ri, const MinDivBRule * ru) : BinaryPackedEdgeDaughters<MinDivKBTypes>(le,ri,ru) {}
+//   MinDivBinaryDaughter(const MinDivBinaryDaughter&&other) : BinaryPackedEdgeDaughters<MinDivKBTypes>(other) {left=other.left; right=other.right; rule=other.rule;}
+  inline MinDivBinaryDaughter(Cell *le, Cell *ri, const MinDivKBTypes::BRule * ru) : BinaryPackedEdgeDaughters<MinDivKBTypes>(le,ri,ru) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {BinaryPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
   inline void update_outside_annotations(AnnotationInfo & annotations) const {BinaryPackedEdgeDaughters<MinDivKBTypes>::update_outside_annotations(annotations);}
 
@@ -56,7 +57,7 @@ public:
 class MinDivUnaryDaughter : public UnaryPackedEdgeDaughters<MinDivKBTypes>, public MinDivEdgeDaughterProbability
 {
 public:
-  inline MinDivUnaryDaughter(Cell *le, const MinDivURule * ru) : UnaryPackedEdgeDaughters<MinDivKBTypes>(le,ru) {}
+  inline MinDivUnaryDaughter(Cell *le, const MinDivKBTypes::URule * ru) : UnaryPackedEdgeDaughters<MinDivKBTypes>(le,ru) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {UnaryPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
   inline void update_outside_annotations(AnnotationInfo & annotations) const {UnaryPackedEdgeDaughters<MinDivKBTypes>::update_outside_annotations(annotations);}
 
@@ -67,7 +68,7 @@ public:
 class MinDivLexicalDaughter : public LexicalPackedEdgeDaughters<MinDivKBTypes>, public MinDivEdgeDaughterProbability
 {
 public:
-  inline MinDivLexicalDaughter(const MinDivLRule * ru, const Word* w) : LexicalPackedEdgeDaughters<MinDivKBTypes>(ru,w) {}
+  inline MinDivLexicalDaughter(const MinDivKBTypes::LRule * ru, const Word* w) : LexicalPackedEdgeDaughters<MinDivKBTypes>(ru,w) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {LexicalPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
 
   inline void outside_and_marginal(AnnotationInfo & annotations);

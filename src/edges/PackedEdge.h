@@ -29,6 +29,7 @@
 
 #include "utils/lorg_functional.h"
 #include "utils/hash_impl.h"
+#include <utils/tick_count.h>
 
 
 typedef std::pair< int, unsigned> asymb;
@@ -87,6 +88,9 @@ public:
   */
     PackedEdge(const BinaryDaughter& ped)
   {
+    static Timer tim("Constructor PackedEdge(BinaryDaughter)");
+    BlockTimer bt(tim);
+    binary_daughters.reserve(50);
     binary_daughters.push_back(ped);
     this->local_resize_annotations(1);
   }
@@ -192,6 +196,8 @@ public:
   void add_daughters(Cell * left,
                      Cell * right, const BinaryRule* rule)
   {
+    static Timer tim("PackedEdge add_daughters(binary)");
+    BlockTimer bt(tim);
     binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 

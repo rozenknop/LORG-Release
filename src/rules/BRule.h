@@ -125,7 +125,11 @@ public:
                                   const std::vector<double>& right_in,
                                   std::vector<double>& left_out,
                                   std::vector<double>& right_out) const;
-
+  double update_outside_annotations_return_marginal(const std::vector< double >& up_out, 
+                                                  const std::vector< double >& left_in, 
+                                                  const std::vector< double >& right_in, 
+                                                  std::vector< double >& left_out, 
+                                                  std::vector< double >& right_out) const;
   /**
      \brief removes useless zeros from probability vector
   */

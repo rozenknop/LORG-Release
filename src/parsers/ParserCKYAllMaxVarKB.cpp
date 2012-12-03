@@ -4,7 +4,7 @@
 
 #include "ParserCKYAllMaxVarKB.h"
 #include "ParserCKYAll.hpp"
-
+#include "utils/tick_count.h"
 
 ParserCKYAllMaxRuleKB::ParserCKYAllMaxRuleKB(std::vector<AGrammar*>& cgs,
                                              const std::vector<double>& p, double b_t,
@@ -41,16 +41,25 @@ void ParserCKYAllMaxRuleKB::extend_all_derivations()
 
 void ParserCKYAllMaxRuleKB::extract_solution()
 {
+//   static Timer inout("compute_inside_outside_probabilities");
+//   static Timer incan("initialize_candidates");
+//   static Timer extal("extend_all_derivations");
   //  std::cout << "in extract" << std::endl;
 
-
-  compute_inside_outside_probabilities();
-
-  initialise_candidates();
-
+  {
+//     BlockTimer bt(inout);
+    compute_inside_outside_probabilities();
+  }
+  {
+//     BlockTimer bt(incan);
+    initialise_candidates();
+  }
   //  std::cout << "after init cand" << std::endl;
 
-  extend_all_derivations();
+  {
+//     BlockTimer bt(extal);
+    extend_all_derivations();
+  }
 }
 
 

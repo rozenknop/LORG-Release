@@ -64,6 +64,19 @@ void LexicalRule::update_outside_annotations(const std::vector<double>& up,
   //  left += std::inner_product(probabilities.begin(), probabilities.end(), up.begin(), 0.0);
 }
 
+double LexicalRule::update_outside_annotations_return_marginal(const std::vector< double >& up) const
+{
+  double marginal = 0;
+  for(unsigned i = 0 ; i < probabilities.size();++i) {
+    if(up[i] == LorgConstants::NullProba) continue;
+    //if( up[i] == 0 ||      probabilities[i] == 0) continue;
+    double delta = up[i] * probabilities[i];
+    marginal += delta;
+  }
+  return marginal;
+}
+
+
 void LexicalRule::remove_unlikely_annotations(const double& threshold)
 {
   for(unsigned i = 0; i < probabilities.size(); ++i) {
