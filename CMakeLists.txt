@@ -6,6 +6,13 @@ set (Lorg_VERSION_MAJOR 1)
 set (Lorg_VERSION_MINOR 0)
 
 
+# profiling
+option(PROFILING "Enable gprof gmon.out generation" off)
+if (PROFILING)
+        add_definitions(-pg)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+endif (PROFILING)
+
 # Boost nécessaire
 find_package(Boost 1.46 COMPONENTS regex program_options system filesystem thread unit_test_framework REQUIRED)
 link_directories ( ${Boost_LIBRARY_DIRS} )

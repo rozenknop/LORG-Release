@@ -14,11 +14,19 @@
   \class ParserCKYBest
   \brief represents a parsing device for probabilistic cfgs using the cky algorithm
 */
-class ParserCKYBest : public ParserCKY< Grammar<Rule,Rule,Rule> >
+
+struct SimpleBestTypes {
+  typedef Word ChartWord ;
+  typedef PCKYBestCell Cell ;
+  typedef ChartCKY< SimpleBestTypes > Chart ;
+};
+
+
+class ParserCKYBest : public ParserCKY< Grammar<Rule,Rule,Rule> >, public SimpleBestTypes
 {
 public:
-  typedef PCKYBestCell Cell;
-  typedef ChartCKY<Cell, Word> Chart;
+//   typedef PCKYBestCell Cell;
+//   typedef ChartCKY<SimpleBestTypes> Chart;
   typedef Grammar<Rule,Rule,Rule> SimpleGrammar;
   typedef ParserCKY<SimpleGrammar> Parser;
 

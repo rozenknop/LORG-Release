@@ -64,8 +64,8 @@ std::ostream& operator<<(std::ostream& out, const BRule& rule)
 }
 
 void BRule::update_inside_annotations(std::vector<double>& up,
-				      const std::vector<double>& left,
-				      const std::vector<double>& right) const
+                                      const std::vector<double>& left,
+                                      const std::vector<double>& right) const
 {
   for(size_t i = 0 ; i < probabilities.size();++i) {
     if(up[i] == LorgConstants::NullProba) continue;
@@ -73,8 +73,8 @@ void BRule::update_inside_annotations(std::vector<double>& up,
       if(left[j] == LorgConstants::NullProba || left[j] == 0.0) continue;
       double inner = 0.0;
       for(size_t k = 0 ; k < probabilities[i][j].size();++k) {
-	if(right[k] == LorgConstants::NullProba || right[k] == 0.0) continue;
-	inner += right[k] * probabilities[i][j][k];
+        if(right[k] == LorgConstants::NullProba || right[k] == 0.0) continue;
+        inner += right[k] * probabilities[i][j][k];
       }
       //std::cout << *this << " " << up[i] << " " << i<< std::endl;
       up[i] += left[j] * inner;
@@ -98,28 +98,7 @@ void BRule::update_inside_annotations(std::vector<double>& up,
 
 
 
-#ifdef USE_THREADS
-
-#include <tbb/atomic.h>
-using tbb::atomic;
-
-inline void operator+=(atomic<double>& un, const double & deux)
-/**
- * @brief atomic += operator used for concurrent computations of outside probabilities
- *
- * @param un left value to be modified
- * @param deux additive term
- * @return void
- **/
-{
-  double oldx, newx ;
-  do {
-    oldx = un ;
-    newx = oldx+deux ;
-  } while (un.compare_and_swap(newx,oldx) != oldx);
-}
-
-#endif
+#include "utils/threads.h"
 
 void BRule::update_outside_annotations(const std::vector<double>& up_out,
                                        const std::vector<double>& left_in,
@@ -156,6 +135,53 @@ void BRule::update_outside_annotations(const std::vector<double>& up_out,
       if(lo[j] != LorgConstants::NullProba) lo[j] += up_out[i] * temp4left;
     }
   }
+}
+
+#include "utils/threads.h" // defines += operation on tbb::atomic<double>
+
+
+double
+BRule::update_outside_annotations_return_marginal(const std::vector< double >& up_out, 
+                                                        const std::vector< double >& left_in, 
+                                                        const std::vector< double >& right_in, 
+                                                        std::vector< double >& left_out, 
+                                                        std::vector< double >& right_out) const
+{
+  double marginal = 0.;
+  #ifdef USE_THREADS
+  std::vector<tbb::atomic<double>> & lo = *reinterpret_cast<std::vector<tbb::atomic<double>> *>(&left_out);
+  std::vector<tbb::atomic<double>> & ro = *reinterpret_cast<std::vector<tbb::atomic<double>> *>(&right_out);
+  #else
+  std::vector<double> & lo = left_out ;
+  std::vector<double> & ro = right_out ;
+  #endif
+  for(unsigned short i = 0; i < probabilities.size(); ++i) {
+    if(up_out[i] == LorgConstants::NullProba || up_out[i] == 0.0) continue;
+    const std::vector<std::vector<double> >& dim_i = probabilities[i];
+    for(unsigned short j = 0; j < dim_i.size(); ++j) {
+      const std::vector<double>& dim_j = dim_i[j];
+      double temp4left = 0.0;
+      double factor4right = 0.0;
+      if(left_in[j] != LorgConstants::NullProba) factor4right = up_out[i] * left_in[j];
+      for(unsigned short k = 0; k < dim_j.size(); ++k) {
+        const double& t = dim_j[k];
+        // if(right_in[k] != LorgConstants::NullProba) temp4left += right_in[k] * t;
+        // if(right_out[k] != LorgConstants::NullProba) right_out[k] += factor4right * t;
+        
+        // I and O are always Null at the same time
+        if(right_in[k] != LorgConstants::NullProba) {
+          temp4left += right_in[k] * t;
+          ro[k] += factor4right * t;
+        }
+      }
+      if(lo[j] != LorgConstants::NullProba) {
+        double delta_left = up_out[i] * temp4left;
+        lo[j] += delta_left;
+        marginal += delta_left * left_in[j];
+      }
+    }
+  }
+  return marginal ;
 }
 
 void BRule::remove_unlikely_annotations(const double& threshold)

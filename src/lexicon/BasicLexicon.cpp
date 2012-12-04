@@ -1,15 +1,9 @@
 #include "BasicLexicon.h"
 
 #ifdef USE_THREADS
-
-#include <tbb/tick_count.h>
-using tbb::tick_count;
 #include <tbb/parallel_reduce.h>
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
-
-#else
-#include "utils/tick_count.h"
 #endif
 
 

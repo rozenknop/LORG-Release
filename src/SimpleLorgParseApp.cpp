@@ -6,6 +6,8 @@
 
 #include "utils/data_parsers/RuleInputParser.h"
 
+#include "ChartCKY.hpp"
+
 template<>
 Grammar<Rule, Rule, Rule>::Grammar(const std::string& filename)
 {
@@ -79,10 +81,10 @@ int SimpleLorgParseApp::run()
                                       ++count,
                                       s.size(),
                                       solutions,
-			        (verbose) ? (clock() - sent_start) / double(CLOCKS_PER_SEC) : 0,
-               verbose, comments, false);
+                                      (verbose) ? (clock() - sent_start) / double(CLOCKS_PER_SEC) : 0,
+                                      verbose, comments, false);
 
- *out << unix_parse_solution(p)	 << '\n';
+    *out << unix_parse_solution(p)	 << '\n';
 
     delete best_tree;
     s.clear();
