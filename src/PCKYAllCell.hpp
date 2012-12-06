@@ -137,12 +137,7 @@ void PCKYAllCell<Types>::clean()
   bool all_null = true;
   for(auto & edge : edges)
     if(not edge.is_closed()) {
-      std::vector<UnaryDaughter >& udaughters = edge.get_unary_daughters();
-      if(udaughters.capacity() != udaughters.size()) {
-        std::vector<UnaryDaughter> tmp;
-        tmp.swap(udaughters);
-        udaughters.insert(udaughters.begin(), tmp.begin(), tmp.end());
-      }
+      edge.get_unary_daughters().shrink_to_fit();
       all_null = false ;
     }
 
@@ -150,7 +145,6 @@ void PCKYAllCell<Types>::clean()
   if(all_null)
     {
       closed = true;
-      clear();
     }
 }
 
@@ -443,8 +437,7 @@ std::ostream& operator<<(std::ostream& out, const PCKYAllCell<Types>& cell)
 template<class Types>
 void PCKYAllCell<Types>::clear()
 {
-  closed = false;
-  for (Edge & edge: edges) { edge = Edge(); }
+  edges = std::vector<Edge>(max_size);
 }
 
 

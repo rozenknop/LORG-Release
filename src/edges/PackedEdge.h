@@ -505,15 +505,16 @@ void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 template <class Types>
 void PackedEdge<Types>::clean_invalidated_binaries()
 {
-  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughter::points_towards_invalid_edges)), binary_daughters.end());
-
-
+  binary_daughters
+  . erase(std::remove_if(binary_daughters.begin(),
+                         binary_daughters.end(),
+                         toFunc(& BinaryDaughter::points_towards_invalid_edges)),
+          binary_daughters.end());
   // Reclaim memory !
-  if(binary_daughters.capacity() != binary_daughters.size()) {
-    decltype(binary_daughters) tmp;
-    tmp.swap(binary_daughters);
-    binary_daughters.insert(binary_daughters.begin(), tmp.begin(), tmp.end());
-  }
+  binary_daughters
+  . shrink_to_fit() ;
+
+  assert(binary_daughters.capacity() == binary_daughters.size());
 }
 
 

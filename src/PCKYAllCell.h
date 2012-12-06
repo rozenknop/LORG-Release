@@ -46,13 +46,7 @@ public:
      to use the created cell will result in segfault !
      You have to call init first
   */
-  PCKYAllCell() : closed(true) {};
-
-  /**
-     \brief Constructor
-     \param cl true if closed
-  */
-  PCKYAllCell(bool cl);
+  PCKYAllCell() : edges(max_size), closed(true) {};
 
   /**
      \brief destructor
@@ -275,7 +269,7 @@ inline
 void PCKYAllCell<Types>::add_word(const Word & word)
 {
   typedef typename Types::LexicalDaughter LDaughters;
-
+  assert(edges.size() == max_size);
   for(std::vector<const MetaProduction*>::const_iterator it(word.get_rules().begin());
       it != word.get_rules().end(); ++it)
   {
