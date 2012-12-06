@@ -59,4 +59,6 @@ public:
   bool has_solution(unsigned i) const {return i == 0;} ;
 };
 
+std::ostream& operator<<(std::ostream& out, const ViterbiProbability & prob);
+
 #endif /* _VITERBIPROBABILITY_H_ */

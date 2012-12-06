@@ -60,33 +60,34 @@ int TwoStageLorgParseApp::run()
             }*/
             //tag sentence
             {
-              //               BLOCKTIMING("tagger");
+//                             BLOCKTIMING("tagger");
               tagger.tag(sentence);
             }
             // create and initialise chart
             {
-              //               BLOCKTIMING("initialise_chart");
+//                             BLOCKTIMING("initialise_chart");
               parser->initialise_chart(sentence, brackets);
             }
+            
             // parse, aka create the coarse forest
             {
-              //               BLOCKTIMING("parse");
+//                             BLOCKTIMING("parse");
               parser->parse(start_symbol);
             }
             //use intermediate grammars to prune the chart
             {
-              //               BLOCKTIMING("beam_c2f");
+//                             BLOCKTIMING("beam_c2f");
               parser->beam_c2f(start_symbol);
             }
             // extract best solution with the finest grammar
             if(parser->is_chart_valid(start_symbol))
             {
-              //               BLOCKTIMING("extract_solution");
+//                             BLOCKTIMING("extract_solution");
               parser->extract_solution();
             }
             if(parser->is_chart_valid(start_symbol))
             {
-              //               BLOCKTIMING("get_parses");
+//                             BLOCKTIMING("get_parses");
               parser->get_parses(start_symbol, kbest, always_output_forms, output_annotations, best_trees);
             }
         }

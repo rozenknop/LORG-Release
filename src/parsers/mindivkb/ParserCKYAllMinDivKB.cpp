@@ -122,13 +122,12 @@ inline void MinDivProbabilityKB::find_succ(packed_edge_probability_with_index& p
     const BinaryDaughter * d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
     //extend to the left
-    unsigned left_pos = d->get_rule()->get_rhs0();
-    Edge* left  = d->left_daughter()->get_edge_ptr(left_pos);
+    Edge& left  = d->left_daughter() ;
     unsigned nextleft = pep.left_index + 1;
-    left->get_prob_model().extend_derivation(nextleft+1,true);
+    left.get_prob_model().extend_derivation(nextleft+1,true);
 
     // we haven't reached the expected number of solutions
-    if(nextleft < left->get_prob_model().n_deriv()) {
+    if(nextleft < left.get_prob_model().n_deriv()) {
 
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
@@ -147,13 +146,12 @@ inline void MinDivProbabilityKB::find_succ(packed_edge_probability_with_index& p
     }
 
     //extend to the right
-    unsigned right_pos = d->get_rule()->get_rhs1();
-    Edge* right = d->right_daughter()->get_edge_ptr(right_pos);
+    Edge& right = d->right_daughter();
     unsigned nextright = pep.right_index + 1;
 
-    right->get_prob_model().extend_derivation(nextright+1,true);
+    right.get_prob_model().extend_derivation(nextright+1,true);
 
-    if(nextright < right->get_prob_model().n_deriv()) {
+    if(nextright < right.get_prob_model().n_deriv()) {
       //        std::cout << "bin extending on the right" << std::endl;
 
 
@@ -184,13 +182,12 @@ inline void MinDivProbabilityKB::find_succ(packed_edge_probability_with_index& p
 
 
     //extend to the left
-    unsigned left_pos = d->get_rule()->get_rhs0();
-    Edge* left  = d->left_daughter()->get_edge_ptr(left_pos);
+    Edge& left  = d->left_daughter();
     unsigned nextleft = pep.left_index + 1;
 
-    left->get_prob_model().extend_derivation(nextleft+1, false);
+    left.get_prob_model().extend_derivation(nextleft+1, false);
 
-    if(nextleft < left->get_prob_model().n_deriv() ) {
+    if(nextleft < left.get_prob_model().n_deriv() ) {
       //        std::cout << "un extending" << std::endl;
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
@@ -224,7 +221,7 @@ inline void ParserCKYAllMinDivKB::extend_all_derivations()
   for (unsigned i = 2; i <= k; ++i)
   {
     //      std::cout << "before extend" << std::endl;
-    chart->get_root().get_edge(start_symbol).get_prob_model().extend_derivation(i,true);
+    root.get_edge(start_symbol).get_prob_model().extend_derivation(i,true);
   }
 }
 
@@ -259,15 +256,15 @@ inline void MinDivProbabilityKB::update_inside_binary(const BinaryDaughter& dtr)
 {
   inside_prob += (
     dtr.q 
-    * dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().inside_prob
-    * dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1()).get_prob_model().inside_prob
+    * dtr.left_daughter().get_prob_model().inside_prob
+    * dtr.right_daughter().get_prob_model().inside_prob
   );
 }
 inline void MinDivProbabilityKB::update_inside_unary(const UnaryDaughter& dtr)
 {
   inside_prob += (
     dtr.q
-    * dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().inside_unary_temp
+    * dtr.left_daughter().get_prob_model().inside_unary_temp
     );
 }
 inline void MinDivProbabilityKB::prepare_inside_unary()
@@ -302,26 +299,26 @@ inline void ParserCKYAllMinDivKB::compute_inside_q_probabilities()
 inline void MinDivProbabilityKB::update_outside_binary(const BinaryDaughter& dtr)
 {
   #ifdef USE_THREADS
-  tbb::atomic<double> * left  = (tbb::atomic<double> *) &dtr. left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().outside_prob;
-  tbb::atomic<double> * right = (tbb::atomic<double> *) &dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1()).get_prob_model().outside_prob;
+  tbb::atomic<double> * left  = (tbb::atomic<double> *) &dtr. left_daughter().get_prob_model().outside_prob;
+  tbb::atomic<double> * right = (tbb::atomic<double> *) &dtr.right_daughter().get_prob_model().outside_prob;
   #else
-  double * left  = &dtr. left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().outside_prob;
-  double * right = &dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1()).get_prob_model().outside_prob;
+  double * left  = &dtr. left_daughter().get_prob_model().outside_prob;
+  double * right = &dtr.right_daughter().get_prob_model().outside_prob;
   #endif
   *left += (
     outside_prob
     * dtr.q 
-    * dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1()).get_prob_model().inside_prob
+    * dtr.right_daughter().get_prob_model().inside_prob
   );
   *right += (
     outside_prob
     * dtr.q 
-    * dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().inside_prob
+    * dtr.left_daughter().get_prob_model().inside_prob
   );
 }
 inline void MinDivProbabilityKB::update_outside_unary(const UnaryDaughter& dtr)
 {
-  dtr. left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().outside_unary_temp += (
+  dtr. left_daughter().get_prob_model().outside_unary_temp += (
     outside_prob
     * dtr.q
   );
@@ -389,7 +386,7 @@ inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
   if (outside_prob != LorgConstants::NullProba)
     dtr.q = dtr.mp / (
       outside_prob
-      * dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().inside_prob
+      * dtr.left_daughter().get_prob_model().inside_prob
     );
 }
 inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
@@ -397,8 +394,8 @@ inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
   if (outside_prob != LorgConstants::NullProba)
     dtr.q = dtr.mp / (
       outside_prob
-      * dtr. left_daughter()->get_edge(dtr.get_rule()->get_rhs0()).get_prob_model().inside_prob
-      * dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1()).get_prob_model().inside_prob
+      * dtr. left_daughter().get_prob_model().inside_prob
+      * dtr.right_daughter().get_prob_model().inside_prob
     );
 }
 

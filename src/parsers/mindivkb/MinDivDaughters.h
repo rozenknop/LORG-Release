@@ -46,7 +46,7 @@ class MinDivBinaryDaughter : public BinaryPackedEdgeDaughters<MinDivKBTypes>, pu
 {
 public:
 //   MinDivBinaryDaughter(const MinDivBinaryDaughter&&other) : BinaryPackedEdgeDaughters<MinDivKBTypes>(other) {left=other.left; right=other.right; rule=other.rule;}
-  inline MinDivBinaryDaughter(Cell *le, Cell *ri, const MinDivKBTypes::BRule * ru) : BinaryPackedEdgeDaughters<MinDivKBTypes>(le,ri,ru) {}
+  inline MinDivBinaryDaughter(Edge & le, Edge & ri, const MinDivKBTypes::BRule * ru) : BinaryPackedEdgeDaughters<MinDivKBTypes>(le,ri,ru) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {BinaryPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
   inline void update_outside_annotations(AnnotationInfo & annotations) const {BinaryPackedEdgeDaughters<MinDivKBTypes>::update_outside_annotations(annotations);}
 
@@ -57,7 +57,9 @@ public:
 class MinDivUnaryDaughter : public UnaryPackedEdgeDaughters<MinDivKBTypes>, public MinDivEdgeDaughterProbability
 {
 public:
-  inline MinDivUnaryDaughter(Cell *le, const MinDivKBTypes::URule * ru) : UnaryPackedEdgeDaughters<MinDivKBTypes>(le,ru) {}
+  //inline MinDivUnaryDaughter(MinDivUnaryDaughter && o) : UnaryPackedEdgeDaughters<MinDivKBTypes>(o.left, o.rule) {mp=o.mp; q=o.q;}
+//   inline MinDivUnaryDaughter & operator=(MinDivUnaryDaughter && o) { *this = std::move(o); return *this; }
+  inline MinDivUnaryDaughter(Edge & le, const MinDivKBTypes::URule * ru) : UnaryPackedEdgeDaughters<MinDivKBTypes>(le,ru) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {UnaryPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
   inline void update_outside_annotations(AnnotationInfo & annotations) const {UnaryPackedEdgeDaughters<MinDivKBTypes>::update_outside_annotations(annotations);}
 

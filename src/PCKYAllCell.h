@@ -46,13 +46,8 @@ public:
      to use the created cell will result in segfault !
      You have to call init first
   */
-  PCKYAllCell() : edges(nullptr), closed(true) {};
-
-  /**
-     \brief Constructor
-     \param cl true if closed
-  */
-  PCKYAllCell(bool cl);
+  PCKYAllCell();
+  PCKYAllCell(const PCKYAllCell<Types> &);
 
   /**
      \brief destructor
@@ -80,7 +75,7 @@ public:
      \brief insert a candidate edge in the cell from application of a binary rule
      \param
   */
-  void process_candidate(Cell* left, Cell* right, const BinaryRule*, double LR_inside);
+  void process_candidate(Edge & left, Edge & right, const BinaryRule*, double LR_inside);
 
 
   /**
@@ -179,10 +174,11 @@ public:
     }
   }
 
-  unsigned get_max_size() const { return max_size; }
+  inline static unsigned get_max_size() { return max_size; }
 
 private:
-  Edge ** edges;
+  //   std::vector<Edge> edges;
+  Edge * edges;
   bool closed;
   unsigned begin;
   unsigned end;
@@ -191,6 +187,11 @@ private:
   static unsigned max_size;
 };
 
+template<class Edge>
+Edge * begin(Edge e[]) { return e; }
+
+template<class Edge>
+Edge * end(Edge e[]) { return (e+Edge::Cell::get_max_size()); }
 
 template<class Types>
 inline
@@ -198,7 +199,7 @@ bool PCKYAllCell<Types>::exists_edge(int label) const
 {
   assert(label >= 0);
   assert(label < (int) max_size);
-  return (edges[label] != nullptr);
+  return (not edges[label].is_closed());
 }
 
 
@@ -211,7 +212,7 @@ bool PCKYAllCell<Types>::is_empty() const
 
   for (unsigned i = 0; i < max_size; ++i)
     {
-      if(edges[i])
+      if(not edges[i].is_closed())
         return false;
     }
   return true;
@@ -222,8 +223,8 @@ template<class Types>
 inline
 void PCKYAllCell<Types>::init(bool cl, unsigned b, unsigned e, bool t)
 {
-  begin = b; end = e; top = t;
-  reinit(cl);
+  begin = b; end = e; top = t; closed = cl;
+//   reinit(cl);
 }
 
 template<class Types>
@@ -231,10 +232,7 @@ inline
 void PCKYAllCell<Types>::reinit(bool cl)
 {
   if(!(closed = cl)) {
-    edges =  new Edge * [max_size];
-    memset(edges, 0, max_size * sizeof(Edge*));
-    //   for(unsigned i = 0; i < max_size;++i)
-    //     edges[i]=NULL;
+    clear();
   }
 }
 
@@ -259,7 +257,7 @@ const typename Types::Edge& PCKYAllCell<Types>::get_edge(int i) const
   //assert( i < (int) max_size);
   assert(i>=0 && i < (int) max_size);
 
-  return *edges[i];
+  return edges[i];
 }
 
 template<class Types>
@@ -270,34 +268,8 @@ typename Types::Edge& PCKYAllCell<Types>::get_edge(int i)
   //assert( i < (int) max_size);
   assert(i>=0 && i < (int) max_size);
 
-  return *edges[i];
+  return edges[i];
 }
-
-template<class Types>
-inline
-void PCKYAllCell<Types>::add_word(const Word & word)
-{
-  typedef typename Types::LexicalDaughter LDaughters;
-
-  for(std::vector<const MetaProduction*>::const_iterator it(word.get_rules().begin());
-      it != word.get_rules().end(); ++it) {
-    // std::cout <<*(static_cast<const LexicalRule*>(*it)) << std::endl;
-
-    int tag = (*it)->get_lhs();
-
-    Edge ** e = &edges[tag];
-
-    if(*e) {
-      (*e)->add_daughters(static_cast<const typename Types::LRule*>(*it), &word);
-    }
-    else {
-      *e = new Edge(LDaughters(static_cast<const typename Types::LRule*>(*it), &word));
-    }
-
-    (*e)->get_annotations().inside_probabilities.array[0] += static_cast<const LexicalRuleC2f*>(*it)->get_probability()[0];
-  }
-}
-
 
 
 template<class Types>

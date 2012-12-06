@@ -38,7 +38,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
   double beam_threshold = prior_beam_threshold;
 
   do {
-
+    
     //clear only when first try was a failure
     if(ntries != stubbornness) {
       chart->prepare_retry();
@@ -58,6 +58,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
       chart->opencells_apply([&](Cell& cell){
         if(!cell.is_empty()) {
           this->add_unary_init(cell,cell.get_top());
+          //           std::cout << cell << std::endl;
           cell.adjust_inside_probability();
 
           // prevent short sentences from being skipped ...
@@ -115,16 +116,18 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
     //               BLOCKTIMING("get_candidates creating");
     //iterating through all the rules P -> L R, indexed by L
     for (const auto & same_rhs0_rules: brules) {
-      if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
-        double LR1 = left_cell.get_edge(same_rhs0_rules.rhs0).get_annotations().inside_probabilities.array[0];
+      Edge & left_edge = left_cell.get_edge(same_rhs0_rules.rhs0) ;
+      if (not left_edge.is_closed()) {
+        double LR1 = left_edge.get_annotations().inside_probabilities.array[0];
         //iterating through all the rules P -> L R, indexed by R, L fixed
         for(const auto & same_rhs: same_rhs0_rules) {
-          if (right_cell.exists_edge(same_rhs.rhs1)) {
-            double LR = LR1 * right_cell.get_edge(same_rhs.rhs1).get_annotations().inside_probabilities.array[0];
+          Edge & right_edge = right_cell.get_edge(same_rhs.rhs1);
+          if (not right_edge.is_closed()) {
+            double LR = LR1 * right_edge.get_annotations().inside_probabilities.array[0];
             
             //iterating through all the rules P -> L R, indexed by P, R and L fixed
             for(const auto & rule: same_rhs) {
-              result_cell.process_candidate(&left_cell,&right_cell, rule, LR);
+              result_cell.process_candidate(left_edge,right_edge, rule, LR);
             }
           }
         }
@@ -148,6 +151,7 @@ void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) con
 template <class Types>
 void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) const
 {
+//   BLOCKTIMING("ParserCKYAll_Impl<Types>::process_cell");
   const unsigned & begin = cell.get_begin();
   const unsigned & end   = cell.get_end();
   const bool & isroot = cell.get_top();
@@ -198,8 +202,10 @@ void ParserCKYAll_Impl<Types>::add_unary_init(Cell& cell, bool isroot) const
 
   for(std::vector<short>::const_iterator unary_rhs_itr(unary_rhs_itr_begin); unary_rhs_itr != unary_rhs_itr_end; ++unary_rhs_itr) {
 
-    if (cell.exists_edge(*unary_rhs_itr))
+    if (cell.exists_edge(*unary_rhs_itr)) {
+//       BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_init");
       process_unary(cell,*unary_rhs_itr, isroot);
+    }
   }
 }
 
@@ -207,13 +213,14 @@ template <class Types>
 inline
 void ParserCKYAll_Impl<Types>::add_unary_internal(Cell& cell, bool isroot) const
 {
-
   //for each unary rule set in the grammar [sets made up of all unary rules with a particular rhs being a lhs of a binary rule]
   std::vector<short>::const_iterator unary_rhs_itr_end = unary_rhs_from_binary.end();
   for(std::vector<short>::const_iterator unary_rhs_itr = unary_rhs_from_binary.begin();unary_rhs_itr!=unary_rhs_itr_end;++unary_rhs_itr) {
 
-    if (cell.exists_edge(*unary_rhs_itr))
+    if (cell.exists_edge(*unary_rhs_itr)) {
+      //BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_internal");
       process_unary(cell,*unary_rhs_itr,isroot);
+    }
   }
 }
 
@@ -234,6 +241,7 @@ struct processunary
 template <class Types>
 void ParserCKYAll_Impl<Types>::process_unary(Cell& cell, int lhs, bool isroot) const
 {
+  //BLOCKTIMING("ParserCKYAll_Impl<Types>::process_unary");
   const std::vector<const URuleC2f*>& rules = isroot ?
                                               unary_rhs_2_rules_toponly[lhs] :
                                               unary_rhs_2_rules_notop[lhs];

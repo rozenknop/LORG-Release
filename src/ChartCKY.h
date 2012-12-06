@@ -32,13 +32,11 @@ public:
   typedef typename Types::ChartWord MyWord;
 
 private:
-  Cell ** chart; ///< the chart itself
+  std::vector<Cell> the_cells; ///< the chart itself
+//   Cell ** chart; ///< pointers on each column of the chart
   unsigned size;     ///< the size of the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
-  #ifdef USE_THREADS
-  std::vector<Cell *> vcells;
-  #endif
 
   // prevents unwanted conversions
   ChartCKY(const ChartCKY&);
@@ -69,9 +67,11 @@ public:
      \return a cell (may segfault if coordinates are out of bounds)
   */
 
-  Cell& access(unsigned start, unsigned end) const;
+  const Cell& access(unsigned start, unsigned end) const;
+  Cell& access(unsigned start, unsigned end);
 
-  Cell& get_root() const;
+  inline const Cell& get_root() const;
+  Cell& get_root();
 
   PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations) const;
 

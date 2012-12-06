@@ -38,7 +38,7 @@ protected:
      \brief replace rules with their followers according to the defined mapping
      and reset annotations to zero (and resize thme to 1)
    */
-  void change_rules_reset() const;
+  void change_rules_reset();
 
   /**
      \brief replace rules with their followers + size_grammar (to skip intermediate grammars)

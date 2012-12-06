@@ -49,7 +49,6 @@ public:
   BRule(short l, short rhs0, short rhs1, const vector_3d& probs);
 
 
-  bool is_lexical() const {return false;}
 
   /**
      \brief returns attribute rhs0
@@ -90,7 +89,15 @@ public:
   /**
      \brief -> always false
    */
-  bool is_unary() const;
+  inline bool is_lexical() const {return false;}
+  /**
+     \brief -> always false
+   */
+  inline bool is_unary() const {return false;}
+  /**
+     \brief -> always true
+   */
+  inline bool is_binary() const {return true;}
 
 
   /**
@@ -187,12 +194,6 @@ inline
 void BRule::set_probability(unsigned short a, unsigned short b, unsigned short c, const double& value)
 {
   probabilities[a][b][c]=value;
-}
-
-inline
-bool BRule::is_unary() const
-{
-  return false;
 }
 
 inline
