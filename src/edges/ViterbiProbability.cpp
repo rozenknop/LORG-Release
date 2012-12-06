@@ -24,7 +24,7 @@ void ViterbiProbability::update_unary(Edge& edge, const UnaryDaughter& dtr)
   const AnnotationInfo& a = edge.get_annotations();
   const std::vector<std::vector<double> >& rule_probs = dtr.get_rule()->get_probability();
 
-  const Edge& left = (dtr.left_daughter())->get_edge(dtr.get_rule()->get_rhs0());
+  const Edge& left = dtr.left_daughter();
 
   for (unsigned i = 0; i < rule_probs.size(); ++i) {
     if(!a.valid_prob_at(i, LorgConstants::NullProba)) continue;
@@ -47,8 +47,8 @@ void ViterbiProbability::update_binary(Edge& edge, const BinaryDaughter& dtr)
   const AnnotationInfo& a = edge.get_annotations();
   const std::vector<std::vector<std::vector<double> > >& rule_probs = dtr.get_rule()->get_probability();
 
-  const Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
-  const Edge& right = dtr.right_daughter()->get_edge(dtr.get_rule()->get_rhs1());
+  const Edge& left  = dtr.left_daughter();
+  const Edge& right = dtr.right_daughter();
 
   for (unsigned i = 0; i < rule_probs.size(); ++i) {
     if(!a.valid_prob_at(i, LorgConstants::NullProba)) continue;

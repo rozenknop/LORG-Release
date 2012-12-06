@@ -115,16 +115,18 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
     //               BLOCKTIMING("get_candidates creating");
     //iterating through all the rules P -> L R, indexed by L
     for (const auto & same_rhs0_rules: brules) {
-      if (left_cell.exists_edge(same_rhs0_rules.rhs0)) {
-        double LR1 = left_cell.get_edge(same_rhs0_rules.rhs0).get_annotations().inside_probabilities.array[0];
+      Edge & left_edge = left_cell.get_edge(same_rhs0_rules.rhs0) ;
+      if (not left_edge.is_closed()) {
+        double LR1 = left_edge.get_annotations().inside_probabilities.array[0];
         //iterating through all the rules P -> L R, indexed by R, L fixed
         for(const auto & same_rhs: same_rhs0_rules) {
-          if (right_cell.exists_edge(same_rhs.rhs1)) {
-            double LR = LR1 * right_cell.get_edge(same_rhs.rhs1).get_annotations().inside_probabilities.array[0];
+          Edge & right_edge = right_cell.get_edge(same_rhs.rhs1);
+          if (not right_edge.is_closed()) {
+            double LR = LR1 * right_edge.get_annotations().inside_probabilities.array[0];
             
             //iterating through all the rules P -> L R, indexed by P, R and L fixed
             for(const auto & rule: same_rhs) {
-              result_cell.process_candidate(&left_cell,&right_cell, rule, LR);
+              result_cell.process_candidate(left_edge,right_edge, rule, LR);
             }
           }
         }

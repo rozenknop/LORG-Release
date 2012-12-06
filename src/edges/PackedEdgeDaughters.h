@@ -56,14 +56,17 @@ class BinaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<
 {
 public:
   typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+  typedef typename Types::Edge * EdgePtr ;
   typedef typename Types::BRule Rule;
   typedef RuleHolder<Rule> RH;
 protected:
-  Cell * left;
-  Cell * right;
+  Edge& left;
+  Edge& right;
 //   friend class Types::Edge ;
 public:
-  BinaryPackedEdgeDaughters(Cell *le, Cell *ri, const typename Types::BRule * ru) :
+  inline BinaryPackedEdgeDaughters & operator=(BinaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
+  BinaryPackedEdgeDaughters(Edge& le, Edge& ri, const typename Types::BRule * ru) :
     PackedEdgeDaughters(), RH(ru), left(le),right(ri)
   {};
 //   BinaryPackedEdgeDaughters(BinaryPackedEdgeDaughters&& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
@@ -74,39 +77,32 @@ public:
   inline bool is_binary() const {return true;}
   inline bool is_lexical() const {return false;}
 
-  inline Cell * left_daughter() const  {return left;}
-  inline Cell * right_daughter() const {return right;}
+  inline Edge& left_daughter() const  {return left;}
+  inline Edge& right_daughter() const {return right;}
 
   inline bool operator==(const BinaryPackedEdgeDaughters& other)
   {
     return RH::rule == other.rule && left == other.left && right ==other.right;
   }
-  inline bool points_towards_invalid_cells() const
+  inline bool points_towards_invalid_edges() const
   {
-    return (
-      left->is_closed() or 
-      left->get_edge_ptr(RH::get_rule()->get_rhs0()) == nullptr or
-      right->is_closed() or
-      right->get_edge_ptr(RH::get_rule()->get_rhs1()) == nullptr
-    );
+    return left.is_closed() or right.is_closed() ;
   }
   
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(RH::rule != NULL);
     RH::rule->update_inside_annotations(annotations.inside_probabilities.array,
-                                        left->get_edge(RH::rule->get_rhs0()).get_annotations().inside_probabilities.array,
-                                        right->get_edge(RH::rule->get_rhs1()).get_annotations().inside_probabilities.array);
+                                        left.get_annotations().inside_probabilities.array,
+                                        right.get_annotations().inside_probabilities.array);
   }
   
   inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
-    auto * leftedge = left->get_edge_ptr(RH::rule->get_rhs0());
-    auto * rightedge= right->get_edge_ptr(RH::rule->get_rhs1());
     RH::rule->update_outside_annotations(annotations.outside_probabilities.array,
-                                     leftedge->get_annotations().inside_probabilities.array,
-                                     rightedge->get_annotations().inside_probabilities.array,
-                                     leftedge->get_annotations().outside_probabilities.array,
-                                     rightedge->get_annotations().outside_probabilities.array);
+                                        left.get_annotations().inside_probabilities.array,
+                                        right.get_annotations().inside_probabilities.array,
+                                        left.get_annotations().outside_probabilities.array,
+                                        right.get_annotations().outside_probabilities.array);
   }
 };
 
@@ -120,13 +116,17 @@ class UnaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<t
 {
 public:
   typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+  typedef typename Types::Edge * EdgePtr ;
   typedef typename Types::URule Rule;
   typedef RuleHolder<Rule> RH;
 protected:
-  Cell * left;
+  Edge & left;
 
 public:
-  UnaryPackedEdgeDaughters(Cell *le, const Rule * ru) :
+  inline UnaryPackedEdgeDaughters & operator=(UnaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
+  
+  UnaryPackedEdgeDaughters(Edge & le, const Rule * ru) :
     PackedEdgeDaughters(), RH(ru), left(le)
   {};
 
@@ -134,24 +134,21 @@ public:
 
   inline bool is_binary() const {return false;}
   inline bool is_lexical() const {return false;}
-  inline Cell * left_daughter() const  {return left;}
+  inline Edge& left_daughter() const  {return left;}
   
-  inline bool points_towards_invalid_cells() const
+  inline bool points_towards_invalid_edges() const
   {
-    return (
-      left->is_closed() or 
-      left->get_edge_ptr(RH::get_rule()->get_rhs0()) == nullptr
-    );
+    return left.is_closed();
   }
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(RH::rule != NULL);
     RH::rule->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,
-                                        left->get_edge(RH::rule->get_rhs0()).get_annotations().inside_probabilities.array);
+                                        left.get_annotations().inside_probabilities.array);
   }
   inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
     RH::rule->update_outside_annotations(annotations.outside_probabilities.array,
-                                         left->get_edge(RH::rule->get_rhs0()).get_annotations().outside_probabilities_unary_temp.array);
+                                         left.get_annotations().outside_probabilities_unary_temp.array);
   }
 };
 

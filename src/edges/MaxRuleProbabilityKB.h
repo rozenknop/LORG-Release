@@ -292,13 +292,12 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
     const BinaryDaughter* d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
     //extend to the left
-    unsigned left_pos = d->get_rule()->get_rhs0();
-    Edge* left  = d->left_daughter()->get_edge_ptr(left_pos);
+    Edge& left  = d->left_daughter();
     unsigned nextleft = pep.left_index + 1;
-    left->extend_derivation(nextleft+1,true);
+    left.extend_derivation(nextleft+1,true);
 
     // we haven't reached the expected number of solutions
-    if(nextleft < left->get_prob_model().n_deriv()) {
+    if(nextleft < left.get_prob_model().n_deriv()) {
 
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;
@@ -317,13 +316,12 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
     }
 
     //extend to the right
-    unsigned right_pos = d->get_rule()->get_rhs1();
-    Edge* right = d->right_daughter()->get_edge_ptr(right_pos);
+    Edge& right = d->right_daughter();
     unsigned nextright = pep.right_index + 1;
 
-    right->extend_derivation(nextright+1,true);
+    right.extend_derivation(nextright+1,true);
 
-    if(nextright < right->get_prob_model().n_deriv()) {
+    if(nextright < right.get_prob_model().n_deriv()) {
       //        std::cout << "bin extending on the right" << std::endl;
 
 
@@ -354,13 +352,12 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
 
 
     //extend to the left
-    unsigned left_pos = d->get_rule()->get_rhs0();
-    Edge* left  = d->left_daughter()->get_edge_ptr(left_pos);
+    Edge& left  = d->left_daughter();
     unsigned nextleft = pep.left_index + 1;
 
-    left->extend_derivation(nextleft+1, false);
+    left.extend_derivation(nextleft+1, false);
 
-    if(nextleft < left->get_prob_model().n_deriv() ) {
+    if(nextleft < left.get_prob_model().n_deriv() ) {
       //        std::cout << "un extending" << std::endl;
       packed_edge_probability_with_index p(pep);
       p.left_index = nextleft;

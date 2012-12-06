@@ -79,6 +79,7 @@ public:
   */
   PackedEdge()
   {
+    closed = false ;
     this->local_resize_annotations(1);
   }
 
@@ -94,6 +95,7 @@ public:
     PackedEdge(const BinaryDaughter& ped)
   {
     //               BLOCKTIMING("Constructor PackedEdge(BinaryDaughter)");
+    closed = false ;
     binary_daughters.push_back(ped);
     this->local_resize_annotations(1);
   }
@@ -104,6 +106,7 @@ public:
   */
   PackedEdge(const UnaryDaughter& ped)
   {
+    closed = false ;
     unary_daughters.push_back(ped);
     this->local_resize_annotations(1);
   }
@@ -114,6 +117,7 @@ public:
   */
   PackedEdge(const LexicalDaughter& ped)
   {
+    closed = false ;
     lexical_daughters.push_back(ped);
     this->local_resize_annotations(1);
   }
@@ -196,14 +200,14 @@ public:
   /**
      \brief build and add a daughter (binary, unary and lexical versions)
    */
-  void add_daughters(Cell * left,
-                     Cell * right, const BinaryRule* rule)
+  void add_daughters(Edge & left,
+                     Edge & right, const BinaryRule* rule)
   {
     //               BLOCKTIMING("PackedEdge add_daughters(binary)");
     binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 
-  void add_daughters(Cell * left, const UnaryRule* rule)
+  void add_daughters(Edge & left, const UnaryRule* rule)
   {
     unary_daughters.push_back(UnaryDaughter(left,rule));
   }
@@ -243,7 +247,9 @@ public:
 
   bool has_solution(unsigned i) const ;
 
-
+  bool is_closed() const { return closed or (binary_daughters.empty() and unary_daughters.empty() and lexical_daughters.empty()); }
+  void close() { closed=true; binary_daughters.clear(); unary_daughters.clear(); lexical_daughters.clear(); }
+  
 protected :
   bvector binary_daughters;    ///< set of possible daughters
   uvector unary_daughters;     ///< set of possible daughters
@@ -252,6 +258,7 @@ protected :
 
   static PathMatrix unary_chains;
 
+  bool closed;
 
 private:
   ProbaModel best;
@@ -498,7 +505,7 @@ void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 template <class Types>
 void PackedEdge<Types>::clean_invalidated_binaries()
 {
-  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughter::points_towards_invalid_cells)), binary_daughters.end());
+  binary_daughters.erase(std::remove_if(binary_daughters.begin(), binary_daughters.end(), toFunc(& BinaryDaughter::points_towards_invalid_edges)), binary_daughters.end());
 
 
   // Reclaim memory !
@@ -644,9 +651,9 @@ PtbPsTree * PackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, bool ap
 
       const BinaryDaughter * daughters =  static_cast<const BinaryDaughter*>(best.get(ith_deriv).dtrs);
       int rhs0 = daughters->get_rule()->get_rhs0();
-      daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
+      daughters->left_daughter().to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
       int rhs1 = daughters->get_rule()->get_rhs1();
-      daughters->right_daughter()->get_edge(rhs1).to_ptbpstree(*tree, pos, rhs1, best.get(ith_deriv).get_right_index(), append_annot, output_forms);
+      daughters->right_daughter().to_ptbpstree(*tree, pos, rhs1, best.get(ith_deriv).get_right_index(), append_annot, output_forms);
     }
     else {
 
@@ -660,7 +667,7 @@ PtbPsTree * PackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, bool ap
                   std::make_pair(daughters->get_rule()->get_rhs0(), best.get(ith_deriv).get_left_index()),
                   append_annot);
       int rhs0 = daughters->get_rule()->get_rhs0();
-      daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
+      daughters->left_daughter().to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
     }
 
     return tree;
@@ -732,11 +739,11 @@ void PackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
       const BinaryDaughter * daughters =  static_cast<const BinaryDaughter*>(best.get(index).dtrs);
 
       int rhs0 = daughters->get_rule()->get_rhs0();
-      daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(tree, pos, rhs0,
-                                                              best.get(index).get_left_index(), append_annot, output_forms);
+      daughters->left_daughter().to_ptbpstree(tree, pos, rhs0,
+                                              best.get(index).get_left_index(), append_annot, output_forms);
       int rhs1 = daughters->get_rule()->get_rhs1();
-      daughters->right_daughter()->get_edge(rhs1).to_ptbpstree(tree, pos, rhs1,
-                                                         best.get(index).get_right_index(), append_annot, output_forms);
+      daughters->right_daughter().to_ptbpstree(tree, pos, rhs1,
+                                               best.get(index).get_right_index(), append_annot, output_forms);
     } // if(best.get(index).dtrs->is_binary())
     else { //unary branching
 
@@ -762,8 +769,8 @@ void PackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
 
       int rhs0 = daughters->get_rule()->get_rhs0();
       //      std::cout << *daughters->get_rule() << std::endl;
-      daughters->left_daughter()->get_edge(rhs0).to_ptbpstree(tree, pos, rhs0,
-                                                              best.get(index).get_left_index(), append_annot, output_forms);
+      daughters->left_daughter().to_ptbpstree(tree, pos, rhs0,
+                                              best.get(index).get_left_index(), append_annot, output_forms);
     }
 
   }
