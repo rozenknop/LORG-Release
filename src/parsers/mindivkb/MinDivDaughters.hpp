@@ -35,7 +35,7 @@ inline double MinDivBinaryDaughter::tree_log_proba(unsigned left_idx, unsigned r
 inline void MinDivUnaryDaughter::outside_and_marginal(AnnotationInfo & annotations)
 {
   auto & leftannot = left_daughter().get_annotations();
-  q = mp = RH::rule->update_outside_annotations_return_marginal(annotations.outside_probabilities.array,
+  q = mp = get_rule()->update_outside_annotations_return_marginal(annotations.outside_probabilities.array,
                                                                 leftannot.inside_probabilities.array,
                                                                 leftannot.outside_probabilities_unary_temp.array)
   / MinDivProbabilityKB::get_normalisation_factor();

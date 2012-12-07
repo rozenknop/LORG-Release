@@ -11,39 +11,37 @@ class Word;
 //class PCKYAllCell;
 
 /**
-   \class RuleHolder
-   \brief a class with an attribute rule
- */
-template<class MyRule>
-class RuleHolder
-{
-public:
-  typedef MyRule ruletype;
-protected:
-  const MyRule * rule;
-public:
-  typedef MyRule rule_type;
-  RuleHolder(const MyRule * r = 0) : rule(r) {};
-  ~RuleHolder() {};
-  inline const MyRule * get_rule() const {return rule;}
-  inline void set_rule(const MyRule * r) {rule = r;}
-};
-
-
-/**
    \class PackedEdgeDaughters
    \brief represents a branching of possible daughters
 */
 
 class PackedEdgeDaughters
 {
+protected:
+  const AnnotatedRule * rule;
 
 public:
-  PackedEdgeDaughters()  {};
-
-  virtual bool is_binary() const =0;
-  virtual bool is_lexical() const =0;
+  PackedEdgeDaughters(const AnnotatedRule * r = 0) : rule(r) {};
   ~PackedEdgeDaughters() {};
+
+  inline bool is_unary() const {return get_rule()->is_unary();}
+  inline bool is_binary() const {return get_rule()->is_binary();}
+  inline bool is_lexical() const {return get_rule()->is_lexical();}
+
+// protected:
+  inline const AnnotatedRule * get_rule() const {return rule;}
+  inline void set_rule(const AnnotatedRule * r) {rule = r;}
+
+};
+
+
+
+template<class Rule>
+class TypedRulePackedEdgeDaughters : public PackedEdgeDaughters
+{
+public:
+  TypedRulePackedEdgeDaughters (const Rule * r) : PackedEdgeDaughters(r) {}
+  inline const Rule * get_rule() const {return (Rule*) rule;}
 };
 
 
@@ -52,14 +50,15 @@ public:
    \brief represents a binary branching of possible daughters + a binary rule
 */
 template<class Types>
-class BinaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<typename Types::BRule>
+class BinaryPackedEdgeDaughters : public TypedRulePackedEdgeDaughters<typename Types::BRule>
 {
 public:
+  typedef TypedRulePackedEdgeDaughters<typename Types::BRule> Parent;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
   typedef typename Types::Edge * EdgePtr ;
   typedef typename Types::BRule Rule;
-  typedef RuleHolder<Rule> RH;
+
 protected:
   EdgePtr left;
   EdgePtr right;
@@ -67,15 +66,12 @@ protected:
 public:
 //   inline BinaryPackedEdgeDaughters & operator=(BinaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
   BinaryPackedEdgeDaughters(Edge& le, Edge& ri, const typename Types::BRule * ru) :
-    PackedEdgeDaughters(), RH(ru), left(&le),right(&ri)
+    Parent(ru), left(&le),right(&ri)
   {};
 //   BinaryPackedEdgeDaughters(BinaryPackedEdgeDaughters&& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
 //   BinaryPackedEdgeDaughters(const BinaryPackedEdgeDaughters& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
 
   ~BinaryPackedEdgeDaughters() {};
-
-  inline bool is_binary() const {return true;}
-  inline bool is_lexical() const {return false;}
 
 //   inline const Edge& left_daughter() const  {return *left;}
 //   inline const Edge& right_daughter() const {return *right;}
@@ -84,7 +80,7 @@ public:
 
   inline bool operator==(const BinaryPackedEdgeDaughters& other)
   {
-    return RH::rule == other.rule && left == other.left && right ==other.right;
+    return Parent::rule == other.rule && left == other.left && right ==other.right;
   }
   inline bool points_towards_invalid_edges() const
   {
@@ -92,15 +88,15 @@ public:
   }
   
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
-    assert(RH::rule != NULL);
-    RH::rule->update_inside_annotations(annotations.inside_probabilities.array,
+    assert(Parent::rule != NULL);
+    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
                                         left->get_annotations().inside_probabilities.array,
                                         right->get_annotations().inside_probabilities.array);
   }
   
   inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
-    RH::rule->update_outside_annotations(annotations.outside_probabilities.array,
+    Parent::get_rule()->update_outside_annotations(annotations.outside_probabilities.array,
                                         left->get_annotations().inside_probabilities.array,
                                         right->get_annotations().inside_probabilities.array,
                                         left->get_annotations().outside_probabilities.array,
@@ -114,14 +110,15 @@ public:
    \brief represents a unary branching (!) + a unary rule
 */
 template<class Types>
-class UnaryPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<typename Types::URule>
+class UnaryPackedEdgeDaughters : public TypedRulePackedEdgeDaughters<typename Types::URule>
 {
 public:
+  typedef TypedRulePackedEdgeDaughters<typename Types::URule> Parent;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
   typedef typename Types::Edge * EdgePtr ;
   typedef typename Types::URule Rule;
-  typedef RuleHolder<Rule> RH;
+
 protected:
   EdgePtr left;
 
@@ -129,7 +126,7 @@ public:
 //   inline UnaryPackedEdgeDaughters & operator=(UnaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
   
   UnaryPackedEdgeDaughters(Edge & le, const Rule * ru) :
-    PackedEdgeDaughters(), RH(ru), left(&le)
+    Parent(ru), left(&le)
   {};
 
   ~UnaryPackedEdgeDaughters() {};
@@ -144,13 +141,13 @@ public:
     return left->is_closed();
   }
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
-    assert(RH::rule != NULL);
-    RH::rule->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,
+    assert(Parent::rule != NULL);
+    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,
                                         left->get_annotations().inside_probabilities.array);
   }
   inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
-    RH::rule->update_outside_annotations(annotations.outside_probabilities.array,
+    Parent::get_rule()->update_outside_annotations(annotations.outside_probabilities.array,
                                          left->get_annotations().outside_probabilities_unary_temp.array);
   }
 };
@@ -161,11 +158,11 @@ public:
    \brief represents a zero-ary branching (!) + a lexical rule
 */
 template<class Types>
-class LexicalPackedEdgeDaughters : public PackedEdgeDaughters, public RuleHolder<typename Types::LRule>
+class LexicalPackedEdgeDaughters : public TypedRulePackedEdgeDaughters<typename Types::LRule>
 {
 public:
   typedef typename Types::LRule Rule;
-  typedef RuleHolder<Rule> RH;
+  typedef TypedRulePackedEdgeDaughters<typename Types::LRule> Parent;
 
   protected:
   const Word* word;
@@ -174,7 +171,7 @@ public:
 
 public:
   LexicalPackedEdgeDaughters(const Rule * ru, const Word* w) :
-  PackedEdgeDaughters(), RH(ru), word(w),
+  Parent(ru), word(w),
     relaxation(0)
   {};
 
@@ -185,8 +182,8 @@ public:
   inline const Word* get_word() const {return word;}
   
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
-    assert(RH::rule != NULL);
-    RH::rule->update_inside_annotations(annotations.inside_probabilities.array);
+    assert(Parent::get_rule() != NULL);
+    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array);
   }
 };
 

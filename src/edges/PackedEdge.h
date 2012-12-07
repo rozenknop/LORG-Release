@@ -485,6 +485,7 @@ struct c2f_replace_struct_helper
   }
 };
 
+
 template <class Types>
 void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 {
@@ -505,65 +506,28 @@ void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 template <class Types>
 void PackedEdge<Types>::clean_invalidated_binaries()
 {
-  std::cout << binary_daughters.size()  << " <= " << binary_daughters.capacity() << std::endl;
-  auto it = binary_daughters.begin();
-  while (it != binary_daughters.end()) {
-    if (it->points_towards_invalid_edges()) {
-      if (it!=binary_daughters.end()-1)
-        *it = *(binary_daughters.end()-1);
-      binary_daughters.pop_back();
-    }
-    else
-      ++it;
-  }
-//   auto removed_begin = std::remove_if(binary_daughters.begin(),
-//                          binary_daughters.end(),
-//                          toFunc(& BinaryDaughter::points_towards_invalid_edges));
-//   binary_daughters
-//   . erase(removed_begin, binary_daughters.end());
+  BLOCKTIMING("PackedEdge<Types>::clean_invalidated_binaries()");
+
+//   auto it = binary_daughters.begin();
+//   auto removed_begin = binary_daughters.end();
+//   while (it != removed_begin) {
+//     if (it->points_towards_invalid_edges())
+//       *it = *(--removed_begin);
+//     else
+//       ++it;
+//   }
+
+  auto removed_begin = std::remove_if(binary_daughters.begin(),
+                         binary_daughters.end(),
+                         toFunc(& BinaryDaughter::points_towards_invalid_edges));
+
+  binary_daughters . erase(removed_begin, binary_daughters.end());
+
   // Reclaim memory !
-  
-  std::cout << binary_daughters.size()  << " <= " << binary_daughters.capacity() << std::endl;
-  if (binary_daughters.size() != binary_daughters.capacity())
-    binary_daughters
-    . shrink_to_fit() ;
-//   decltype(binary_daughters)(binary_daughters).swap(binary_daughters);
-  std::cout << binary_daughters.size()  << " <= " << binary_daughters.capacity() << std::endl;
+  binary_daughters . shrink_to_fit() ;
+  //   decltype(binary_daughters)(binary_daughters).swap(binary_daughters);
 
   assert(binary_daughters.capacity() == binary_daughters.size());
-class Tout {
-public:
-  double * prob;
-  Tout() { prob = (double*) this ; }
-};
-
-class Rien : public Tout {
-public:
-  int * i ;
-  Rien(int & i) : i(&i){}
-  //Rien(Rien && r) : i(r.i) { *this = move(r) ; }
-  //Rien & operator=(Rien && r) { *this = move(r); return *this;}
-};
-
-{
-  using namespace std;
-  vector<Rien> x;
-  vector<Rien> v;
-  vector<Rien> w;
-  for (int i=0; i<29; ++i) {
-    x.push_back(Rien(i));
-    v.push_back(Rien(i));
-    w.push_back(Rien(i));
-  }
-  for (int i=0; i<22; i++) {
-    v.pop_back();
-  }
-  cout << v.capacity() << endl;
-  v.shrink_to_fit();
-  //vector<Rien>(v).swap(v);
-  cout << v.capacity() << endl;
-  //  cout << vv.capacity() << endl;
-}
 }
 
 

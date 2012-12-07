@@ -40,13 +40,15 @@ struct tick_count {
 #endif
 
 #include <iostream>
+#include <tbb/atomic.h>
 
 struct Timer {
   std::string name;
   double cumul;
-  unsigned iter ;
+  tbb::atomic<unsigned> iter ;
   
-  Timer(std::string n) : name(n), cumul(0.0f), iter(0) {}
+  Timer(std::string n) : name(n), cumul(0.0f) {iter = 0;}
+  ~Timer() {print();}
   void print() { std::cout << "timer " << name << " iter. " << iter << " -> cumul=" << cumul << std::endl; } 
 };
 
@@ -58,7 +60,6 @@ struct BlockTimer {
   ~BlockTimer() {
     accu.iter++;
     accu.cumul += (tick_count::now() - start).seconds() ;
-    accu.print();
   }
 };
 

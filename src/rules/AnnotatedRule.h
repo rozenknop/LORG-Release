@@ -21,6 +21,7 @@ public:
   virtual ~AnnotatedRule() {};
   virtual bool is_lexical() const=0;
   virtual bool is_unary() const=0;
+  virtual bool is_binary() const=0;
 
   static bool continue_with_cell (int split_size, int index,int, const std::map<int,std::set<int> > & );
 };

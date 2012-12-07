@@ -40,8 +40,6 @@ public:
   URule(short l, short rhs0, const std::vector< std::vector<double> > & probs);
 
 
-  bool is_lexical() const {return false;}
-
   /**
      \brief returns attribute rhs0
   */
@@ -71,9 +69,19 @@ public:
   std::vector< std::vector<double> >& get_probability();
 
   /**
+     \brief -> always false
+   */
+  inline bool is_lexical() const {return false;}
+  /**
      \brief -> always true
    */
-  bool is_unary() const;
+  inline bool is_unary() const {return true;}
+  /**
+     \brief -> always false
+   */
+  inline bool is_binary() const {return false;}
+
+
 
   /**
      \brief smooth probabilities *over all* lhs annotations
@@ -152,13 +160,6 @@ void URule::set_probability(unsigned short a, unsigned short b, const double& va
   if(b>=probabilities[a].size()) {probabilities[a].resize(b+1,0);}
   probabilities[a][b]=value;
 }
-
-inline
-bool URule::is_unary() const
-{
-  return true;
-}
-
 
 inline
 const std::vector< std::vector<double> >& URule::get_probability() const
