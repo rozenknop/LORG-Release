@@ -58,7 +58,7 @@ class MinDivUnaryDaughter : public UnaryPackedEdgeDaughters<MinDivKBTypes>, publ
 {
 public:
   //inline MinDivUnaryDaughter(MinDivUnaryDaughter && o) : UnaryPackedEdgeDaughters<MinDivKBTypes>(o.left, o.rule) {mp=o.mp; q=o.q;}
-  inline MinDivUnaryDaughter & operator=(MinDivUnaryDaughter && o) { *this = std::move(o); return *this; }
+//   inline MinDivUnaryDaughter & operator=(MinDivUnaryDaughter && o) { *this = std::move(o); return *this; }
   inline MinDivUnaryDaughter(Edge & le, const MinDivKBTypes::URule * ru) : UnaryPackedEdgeDaughters<MinDivKBTypes>(le,ru) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {UnaryPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
   inline void update_outside_annotations(AnnotationInfo & annotations) const {UnaryPackedEdgeDaughters<MinDivKBTypes>::update_outside_annotations(annotations);}
