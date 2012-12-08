@@ -14,7 +14,69 @@
 // #define OPENCELLS_APPLY_CHART_TASK
 
 
+// assume that words in sentence are in left to right direction (start in ascending direction)
 template<class Types>
+ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) : size(find_last_in_sentence(s)), sentence(s), brackets(bs)
+{
+  Cell::set_max_size(grammar_size);
+  {
+    //       BLOCKTIMING("ChartCKY<Types>::ChartCKY theCells.assign");
+    nb_cells = (size*(size+1))/2;
+    unsigned nb_edges = nb_cells*grammar_size;
+    //       the_cells.assign(nbcells, protoCell);
+    the_cells = (Cell*) new char[nb_cells*sizeof(Cell)];
+    the_edges = (Edge*) new char[nb_edges*sizeof(Edge)];
+    std::fill((char*)the_cells, (char*)(the_cells+nb_cells), 0);
+    std::fill((char*)the_edges, (char*)(the_edges+nb_edges), 0);
+  }
+//     chart = new Cell * [size];
+
+  Edge * edge = the_edges;
+  for(unsigned i = 0; i < size; ++i) {
+    
+    //    std::cout << "i: " << i << std::endl;
+    {
+      //         BLOCKTIMING("ChartCKY<Types>::ChartCKY chart[i] = line_start;");
+//         chart[i] = line_start;//new Cell[size-i];
+    }
+//     for(unsigned j = i; j < size;++j, edge+=grammar_size) {
+//       //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
+//       Cell& cell = access(i,j);
+//       struct cell_close_helper
+//       {
+//         const bracketing& brackets;
+//         cell_close_helper(const bracketing& b) : brackets(b) {}
+//         bool operator()(const bracketing& other) const
+//         {
+//           return brackets.overlap(other);
+//         }
+//       };
+    for(unsigned j = i; j < size;++j, edge+=grammar_size) {
+      //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
+      Cell& cell = access(i,j);
+      bool close = brackets.end() != std::find_if(brackets.begin(),brackets.end(),
+                                                  [&](const bracketing & other){return bracketing(i,i+j).overlap(other);}) ;
+      cell.init(close, i, j, edge, i==0 and j==size-1);
+    }
+  }
+  
+  for (unsigned i = 0; i < sentence.size(); ++i)
+  {
+    //       BLOCKTIMING("ChartCKY<Types>::ChartCKY add_word");
+    // todo: proper error handling
+    if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
+      std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
+    
+    access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
+  }    
+//     std::cout << "Chart is built and intialised" << std::endl;
+//     std::cout << *this << std::endl; std::cout.flush();
+}
+
+  
+  
+  
+  template<class Types>
 void
 ChartCKY<Types>::opencells_apply_nothread( std::function<void(Cell &)> f)
 {
@@ -70,7 +132,7 @@ ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(const Cel
       unsigned end = begin + span ;
       //std::cout << '(' << begin << ',' << end << ')' << std::endl;
       
-      Cell& cell = access(begin,end);
+      const Cell& cell = access(begin,end);
       if(!cell.is_closed()) f(cell);
     }
   }
@@ -192,8 +254,8 @@ public:
   void
   ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
-    tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell>::iterator>(the_cells.begin(), the_cells.end()),
-                      [&f](const tbb::blocked_range<typename std::vector<Cell>::iterator>& r){
+    tbb::parallel_for(tbb::blocked_range<Cell *>(the_cells, the_cells+nb_cells),
+                      [&f](const tbb::blocked_range<Cell *>& r){
 //                         std::cerr << "blockedrange="<< (r.end() - r.begin()) << std::endl;
                         for (auto cell = r.begin(); cell < r.end(); ++cell) {
                           if(!cell->is_closed()) f(*cell);
@@ -443,20 +505,15 @@ public:
   template<class Types>
   ChartCKY<Types>::~ChartCKY()
   {
+    opencells_apply([](Cell&cell){cell.Cell::~Cell();});
+//     for (unsigned i=0; i<nb_cells * Cell::get_max_size(); ++i) {if (not the_edges[i].is_closed()) the_edges[i].Edge::~Edge();}
+    delete [] (char*) the_cells;
+    delete [] (char*) the_edges;
+
 //     for(unsigned i = 0; i < size; ++i)
 //       delete[] chart[i];
 //     delete[] chart;
   }
-  
-  struct cell_close_helper
-  {
-    const bracketing& brackets;
-    cell_close_helper(const bracketing& b) : brackets(b) {}
-    bool operator()(const bracketing& other) const
-    {
-      return brackets.overlap(other);
-    }
-  };
   
   
   template<class Types>
@@ -517,50 +574,6 @@ public:
   
   
   
-  // assume that words in sentence are in left to right direction (start in ascending direction)
-  template<class Types>
-  ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) :
-//   chart(NULL),
-  size(find_last_in_sentence(s)),
-  sentence(s),
-  brackets(bs)
-  {
-    Cell::set_max_size(grammar_size);
-    Cell protoCell;
-    {
-      //       BLOCKTIMING("ChartCKY<Types>::ChartCKY theCells.assign");
-      the_cells.assign((size*(size+1))/2, protoCell);
-    }
-//     chart = new Cell * [size];
-
-    Cell * line_start = &the_cells[0];
-    for(unsigned i = 0; i < size; ++i) {
-      
-      //    std::cout << "i: " << i << std::endl;
-      {
-        //         BLOCKTIMING("ChartCKY<Types>::ChartCKY chart[i] = line_start;");
-//         chart[i] = line_start;//new Cell[size-i];
-      }
-      for(unsigned j = i; j < size;++j,++line_start) {
-        //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
-        Cell& cell = access(i,j);
-        bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
-        cell.init(close, i, j, i==0 and j==size-1);
-      }
-    }
-    
-    for (unsigned i = 0; i < sentence.size(); ++i)
-    {
-      //       BLOCKTIMING("ChartCKY<Types>::ChartCKY add_word");
-      // todo: proper error handling
-      if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
-        std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
-      
-      access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
-    }    
-//     std::cout << "Chart is built and intialised" << std::endl;
-//     std::cout << *this << std::endl; std::cout.flush();
-  }
   
   
   
@@ -606,7 +619,8 @@ public:
       
       // regular chart cells
       for(unsigned j = 1; j < size-i;++j) {
-        bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
+        bool close = brackets.end() != std::find_if(brackets.begin(),brackets.end(),
+                                                    [&](const bracketing & other){return bracketing(i,i+j).overlap(other);}) ;
         access(i,i+j)/*chart[i][j]*/.reinit(close);
       }
     }

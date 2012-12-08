@@ -188,7 +188,7 @@ public:
 
   }
 
-  void clean() { delete chart; chart = NULL;}
+  void clean() { delete chart; chart = nullptr;}
 
 
  private:
