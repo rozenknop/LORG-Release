@@ -151,7 +151,7 @@ void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) con
 template <class Types>
 void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) const
 {
-  BLOCKTIMING("ParserCKYAll_Impl<Types>::process_cell");
+//   BLOCKTIMING("ParserCKYAll_Impl<Types>::process_cell");
   const unsigned & begin = cell.get_begin();
   const unsigned & end   = cell.get_end();
   const bool & isroot = cell.get_top();
@@ -203,7 +203,7 @@ void ParserCKYAll_Impl<Types>::add_unary_init(Cell& cell, bool isroot) const
   for(std::vector<short>::const_iterator unary_rhs_itr(unary_rhs_itr_begin); unary_rhs_itr != unary_rhs_itr_end; ++unary_rhs_itr) {
 
     if (cell.exists_edge(*unary_rhs_itr)) {
-      BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_init");
+//       BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_init");
       process_unary(cell,*unary_rhs_itr, isroot);
     }
   }
@@ -218,7 +218,7 @@ void ParserCKYAll_Impl<Types>::add_unary_internal(Cell& cell, bool isroot) const
   for(std::vector<short>::const_iterator unary_rhs_itr = unary_rhs_from_binary.begin();unary_rhs_itr!=unary_rhs_itr_end;++unary_rhs_itr) {
 
     if (cell.exists_edge(*unary_rhs_itr)) {
-      BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_internal");
+      //BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_internal");
       process_unary(cell,*unary_rhs_itr,isroot);
     }
   }
@@ -241,7 +241,7 @@ struct processunary
 template <class Types>
 void ParserCKYAll_Impl<Types>::process_unary(Cell& cell, int lhs, bool isroot) const
 {
-  BLOCKTIMING("ParserCKYAll_Impl<Types>::process_unary");
+  //BLOCKTIMING("ParserCKYAll_Impl<Types>::process_unary");
   const std::vector<const URuleC2f*>& rules = isroot ?
                                               unary_rhs_2_rules_toponly[lhs] :
                                               unary_rhs_2_rules_notop[lhs];

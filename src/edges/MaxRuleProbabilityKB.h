@@ -105,7 +105,7 @@ inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityKB & 
 
 void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughter& dtr)
 {
-   BLOCKTIMING("MaxRuleProbabilityKB::update_lexical");
+   //BLOCKTIMING("MaxRuleProbabilityKB::update_lexical");
  const AnnotationInfo & a = e.get_annotations();
   const LexicalRuleC2f* rule = dtr.get_rule();
   assert(rule != NULL);
@@ -130,7 +130,7 @@ void MaxRuleProbabilityKB::update_lexical(Edge& e, const LexicalDaughter& dtr)
 
 void MaxRuleProbabilityKB::update_unary(Edge& e, const UnaryDaughter& dtr)
 {
-  BLOCKTIMING("MaxRuleProbabilityKB::update_unary");
+  //BLOCKTIMING("MaxRuleProbabilityKB::update_unary");
   const AnnotationInfo & a = e.get_annotations();
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;
@@ -152,7 +152,7 @@ void MaxRuleProbabilityKB::update_unary(Edge& e, const UnaryDaughter& dtr)
 
 void MaxRuleProbabilityKB::update_binary(Edge& e, const BinaryDaughter& dtr)
 {
-  BLOCKTIMING("MaxRuleProbabilityKB::update_binary");
+  //BLOCKTIMING("MaxRuleProbabilityKB::update_binary");
   const AnnotationInfo & a = e.get_annotations();
   packed_edge_probability_with_index pep;
   pep.dtrs = &dtr;

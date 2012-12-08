@@ -19,10 +19,44 @@ using std::function;
 template<class Types>
 unsigned PCKYAllCell<Types>::max_size = 0;
 
+template<class Types>
+PCKYAllCell<Types>::PCKYAllCell() {
+  edges = (Edge*) new char[max_size*sizeof(Edge)];
+  clear();
+//   std::cout << "PCKYAllCell empty constructor of " << this << std::endl;
+  
+}
+
+template<class Types>
+PCKYAllCell<Types>::PCKYAllCell( const PCKYAllCell<Types> & o )
+{
+  edges = (Edge*) new char[max_size*sizeof(Edge)];
+  memcpy(edges, o.edges, max_size*sizeof(Edge));
+//   std::copy(&(o.edges), &(o.edges)+1, &edges);
+//   std::cout << "size of edges = " << edges.size() << " " << edges.capacity() <<  " " << max_size << std:: endl;
+//   memcpy(e, o.edges.data(), max_size*sizeof(Edge));
+  
+//   std::cout << "copy constructor of " << this << " from " << &o << std::endl;
+//   *this = o ;
+//   memcpy(this, &o, sizeof(PCKYAllCell<Types>));
+
+}
+
+template<class Types>
+void PCKYAllCell<Types>::clear()
+{
+  static Edge protoEdge;
+//   edges.assign(max_size, protoEdge);
+  std::fill(edges, edges+max_size, protoEdge);
+}
+
+
+
 
 template<class Types>
 PCKYAllCell<Types>::~PCKYAllCell()
 {
+  delete [] (char*)edges;
 }
 
 template<class Types>
@@ -51,7 +85,8 @@ void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double L_insid
 {
   assert(rule);
   assert(rule->get_probability().size() > 0);
-
+  static int i = 0;
+  ++i;
 
   Edge & e = edges[rule->get_lhs()];
   e.add_daughters(edges[rule->get_rhs0()],rule);
@@ -64,11 +99,13 @@ inline
 void PCKYAllCell<Types>::add_word(const Word & word)
 {
   typedef typename Types::LexicalDaughter LDaughters;
-  assert(edges.size() == max_size);
+//   assert(edges.size() == max_size);
   for(const auto & rule : word.get_rules())
   {
     const typename Types::LRule* r = static_cast<const typename Types::LRule*>(rule);
     int tag = rule->get_lhs();
+    if (0==edges[tag].get_annotations().get_size())
+      edges[tag].local_resize_annotations(1);
     edges[tag].add_daughters(r, &word);
     edges[tag].get_annotations().inside_probabilities.array[0] += r->get_probability()[0];
   }
@@ -386,7 +423,7 @@ template<class Types>
 void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_annotations,
                                               const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current)
 {
-  for(size_t i=0; i<edges.size(); ++i) {
+  for(size_t i=0; i<max_size; ++i) {
     Edge & edge = edges[i];
     if(not edge.is_closed()) {
       
@@ -444,13 +481,6 @@ std::ostream& operator<<(std::ostream& out, const PCKYAllCell<Types>& cell)
     }
   return out << "filled entries: " << nb_entries << ")";
 }
-
-template<class Types>
-void PCKYAllCell<Types>::clear()
-{
-  edges = std::vector<Edge>(max_size);
-}
-
 
 
 #endif //PCKYALLCELL_HPP

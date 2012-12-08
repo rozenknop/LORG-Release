@@ -46,7 +46,8 @@ public:
      to use the created cell will result in segfault !
      You have to call init first
   */
-  PCKYAllCell() : edges(max_size), closed(true) {};
+  PCKYAllCell();
+  PCKYAllCell(const PCKYAllCell<Types> &);
 
   /**
      \brief destructor
@@ -173,10 +174,11 @@ public:
     }
   }
 
-  unsigned get_max_size() const { return max_size; }
+  inline static unsigned get_max_size() { return max_size; }
 
 private:
-  std::vector<Edge> edges;
+  //   std::vector<Edge> edges;
+  Edge * edges;
   bool closed;
   unsigned begin;
   unsigned end;
@@ -185,6 +187,11 @@ private:
   static unsigned max_size;
 };
 
+template<class Edge>
+Edge * begin(Edge e[]) { return e; }
+
+template<class Edge>
+Edge * end(Edge e[]) { return (e+Edge::Cell::get_max_size()); }
 
 template<class Types>
 inline
@@ -216,8 +223,8 @@ template<class Types>
 inline
 void PCKYAllCell<Types>::init(bool cl, unsigned b, unsigned e, bool t)
 {
-  begin = b; end = e; top = t;
-  reinit(cl);
+  begin = b; end = e; top = t; closed = cl;
+//   reinit(cl);
 }
 
 template<class Types>

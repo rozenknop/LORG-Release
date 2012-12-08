@@ -32,13 +32,11 @@ public:
   typedef typename Types::ChartWord MyWord;
 
 private:
-  Cell ** chart; ///< the chart itself
+  std::vector<Cell> the_cells; ///< the chart itself
+  Cell ** chart; ///< pointers on each line of the chart
   unsigned size;     ///< the size of the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
-  #ifdef USE_THREADS
-  std::vector<Cell *> vcells;
-  #endif
 
   // prevents unwanted conversions
   ChartCKY(const ChartCKY&);

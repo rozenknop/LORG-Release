@@ -79,53 +79,27 @@ public:
   */
   PackedEdge()
   {
+//      std::cout << "PackedEdge empty constructor of " << this << std::endl; std::cout.flush();
+    closed = true ;
+//     this->local_resize_annotations(1);
+  }
+
+  PackedEdge(const PackedEdge<Types> &o)
+  {
+//     std::cout << "PackedEdge copy constructor of " << this << " from " << &o << std::endl; std::cout.flush();
     closed = true ;
     this->local_resize_annotations(1);
   }
-
+  
   void reserve_binary_daughters(int size) 
   {
     binary_daughters.reserve(size);
   }
 
   /**
-     \brief Constructor
-     \param ped daughters to add
-  */
-    PackedEdge(const BinaryDaughter& ped)
-  {
-    //               BLOCKTIMING("Constructor PackedEdge(BinaryDaughter)");
-    closed = false ;
-    binary_daughters.push_back(ped);
-    this->local_resize_annotations(1);
-  }
-
-  /**
-     \brief Constructor
-     \param ped daughters to add
-  */
-  PackedEdge(const UnaryDaughter& ped)
-  {
-    closed = false ;
-    unary_daughters.push_back(ped);
-    this->local_resize_annotations(1);
-  }
-
-  /**
-     \brief Constructor
-     \param ped daughters to add
-  */
-  PackedEdge(const LexicalDaughter& ped)
-  {
-    closed = false ;
-    lexical_daughters.push_back(ped);
-    this->local_resize_annotations(1);
-  }
-
-  /**
      \brief Destructor
   */
-  ~PackedEdge()  {}
+  //   ~PackedEdge()  {assert(false);}
 
 
   /**
@@ -204,19 +178,28 @@ public:
                      Edge & right, const BinaryRule* rule)
   {
     //               BLOCKTIMING("PackedEdge add_daughters(binary)");
-    closed = false;
+    if (closed) {
+      closed = false;
+      local_resize_annotations(1);
+    }
     binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 
   void add_daughters(Edge & left, const UnaryRule* rule)
   {
-    closed = false;
+    if (closed) {
+      closed = false;
+      local_resize_annotations(1);
+    }
     unary_daughters.push_back(UnaryDaughter(left,rule));
   }
 
   void add_daughters(const LexicalRule* rule, const Word* w)
   {
-    closed = false;
+    if (closed) {
+      closed = false;
+      local_resize_annotations(1);
+    }
     lexical_daughters.push_back(LexicalDaughter(rule, w));
   }
 
