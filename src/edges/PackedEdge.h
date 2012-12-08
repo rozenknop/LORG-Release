@@ -492,7 +492,7 @@ void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 template <class Types>
 void PackedEdge<Types>::clean_invalidated_binaries()
 {
-  BLOCKTIMING("PackedEdge<Types>::clean_invalidated_binaries()");
+//   BLOCKTIMING("PackedEdge<Types>::clean_invalidated_binaries()");
 
 //   auto it = binary_daughters.begin();
 //   auto removed_begin = binary_daughters.end();

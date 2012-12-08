@@ -221,7 +221,7 @@ inline void ParserCKYAllMinDivKB::extend_all_derivations()
   for (unsigned i = 2; i <= k; ++i)
   {
     //      std::cout << "before extend" << std::endl;
-    chart->get_root().get_edge(start_symbol).get_prob_model().extend_derivation(i,true);
+    root.get_edge(start_symbol).get_prob_model().extend_derivation(i,true);
   }
 }
 

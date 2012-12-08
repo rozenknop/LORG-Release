@@ -421,11 +421,23 @@ public:
   
   template<class Types>
   inline
-  typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
+  typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end)
   {
     //   assert(start <= end);
     //   assert(end < size);
-    return chart[start][end-start];
+    //     return chart[start][end-start];
+//     std::cout << "access("<<start<<","<<end<<") = "<<start + ( (end-start)*(2*size - (end-start) + 1))/2 << std::endl; std::cout.flush();
+    return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
+  }
+  
+  template<class Types>
+  inline
+  const typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
+  {
+    //   assert(start <= end);
+    //   assert(end < size);
+    //     return chart[start][end-start];
+    return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
   }
   
   template<class Types>
@@ -433,7 +445,7 @@ public:
   {
 //     for(unsigned i = 0; i < size; ++i)
 //       delete[] chart[i];
-    delete[] chart;
+//     delete[] chart;
   }
   
   struct cell_close_helper
@@ -448,7 +460,13 @@ public:
   
   
   template<class Types>
-  typename Types::Cell& ChartCKY<Types>::get_root() const
+  typename Types::Cell& ChartCKY<Types>::get_root()
+  {
+    return access(0,size-1);
+  }
+  
+  template<class Types>
+  const typename Types::Cell& ChartCKY<Types>::get_root() const
   {
     return access(0,size-1);
   }
@@ -502,7 +520,7 @@ public:
   // assume that words in sentence are in left to right direction (start in ascending direction)
   template<class Types>
   ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) :
-  chart(NULL),
+//   chart(NULL),
   size(find_last_in_sentence(s)),
   sentence(s),
   brackets(bs)
@@ -513,7 +531,7 @@ public:
       //       BLOCKTIMING("ChartCKY<Types>::ChartCKY theCells.assign");
       the_cells.assign((size*(size+1))/2, protoCell);
     }
-    chart = new Cell * [size];
+//     chart = new Cell * [size];
 
     Cell * line_start = &the_cells[0];
     for(unsigned i = 0; i < size; ++i) {
@@ -521,7 +539,7 @@ public:
       //    std::cout << "i: " << i << std::endl;
       {
         //         BLOCKTIMING("ChartCKY<Types>::ChartCKY chart[i] = line_start;");
-        chart[i] = line_start;//new Cell[size-i];
+//         chart[i] = line_start;//new Cell[size-i];
       }
       for(unsigned j = i; j < size;++j,++line_start) {
         //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
@@ -582,14 +600,14 @@ public:
     
     for(unsigned i = 0; i < size; ++i) {
       // j == 0 -> word position
-      Cell& cell = chart[i][0];
+      Cell& cell = access(i,i); //the_chart[i]; //chart[i][0];
       cell.reinit(false);
       cell.add_word(sentence[i]);
       
       // regular chart cells
       for(unsigned j = 1; j < size-i;++j) {
         bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
-        chart[i][j].reinit(close);
+        access(i,i+j)/*chart[i][j]*/.reinit(close);
       }
     }
   }

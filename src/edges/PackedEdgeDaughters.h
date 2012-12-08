@@ -184,7 +184,7 @@ public:
   inline const Word* get_word() const {return word;}
   
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
-    BLOCKTIMING("LexicalPackedEdgeDaughters - update_inside_annotations");
+//     BLOCKTIMING("LexicalPackedEdgeDaughters - update_inside_annotations");
     assert(Parent::get_rule() != NULL);
     Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array);
   }
