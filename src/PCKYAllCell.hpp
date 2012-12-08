@@ -56,13 +56,24 @@ void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double L_insid
   Edge & e = edges[rule->get_lhs()];
   e.add_daughters(edges[rule->get_rhs0()],rule);
 
-  assert(rule);
-  assert(rule->get_probability().size() > 0);
-
-  assert(rule);
-  assert(rule->get_probability().size() > 0);
   e.get_annotations().inside_probabilities_unary_temp.array[0] += L_inside * rule->get_probability()[0][0];
 }
+
+template<class Types>
+inline
+void PCKYAllCell<Types>::add_word(const Word & word)
+{
+  typedef typename Types::LexicalDaughter LDaughters;
+  assert(edges.size() == max_size);
+  for(const auto & rule : word.get_rules())
+  {
+    const typename Types::LRule* r = static_cast<const typename Types::LRule*>(rule);
+    int tag = rule->get_lhs();
+    edges[tag].add_daughters(r, &word);
+    edges[tag].get_annotations().inside_probabilities.array[0] += r->get_probability()[0];
+  }
+}
+
 
 template<class Types>
 void PCKYAllCell<Types>::reset_probabilities()
@@ -83,7 +94,7 @@ void PCKYAllCell<Types>::adjust_inside_probability()
 template<class Types>
 void PCKYAllCell<Types>::compute_inside_probabilities()
 {
-  //   apply_on_edges( & Edge::clean_invalidated_binaries);
+//     apply_on_edges( & Edge::clean_invalidated_binaries);
 
   apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
                       & LexicalDaughter::update_inside_annotations  ,

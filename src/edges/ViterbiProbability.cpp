@@ -2,6 +2,12 @@
 
 #include "ViterbiProbability.h"
 
+std::ostream& operator<<(std::ostream& out, const ViterbiProbability & prob)
+{
+  return out << "((ViterbiProb: " << &prob << ")" << ")";
+}
+
+
 void ViterbiProbability::update_lexical(Edge& edge, const LexicalDaughter& dtr)
 {
   const AnnotationInfo& a = edge.get_annotations();

@@ -79,7 +79,7 @@ public:
   */
   PackedEdge()
   {
-    closed = false ;
+    closed = true ;
     this->local_resize_annotations(1);
   }
 
@@ -204,16 +204,19 @@ public:
                      Edge & right, const BinaryRule* rule)
   {
     //               BLOCKTIMING("PackedEdge add_daughters(binary)");
+    closed = false;
     binary_daughters.push_back(BinaryDaughter(left,right,rule));
   }
 
   void add_daughters(Edge & left, const UnaryRule* rule)
   {
+    closed = false;
     unary_daughters.push_back(UnaryDaughter(left,rule));
   }
 
   void add_daughters(const LexicalRule* rule, const Word* w)
   {
+    closed = false;
     lexical_daughters.push_back(LexicalDaughter(rule, w));
   }
 

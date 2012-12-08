@@ -264,21 +264,6 @@ typename Types::Edge& PCKYAllCell<Types>::get_edge(int i)
   return edges[i];
 }
 
-template<class Types>
-inline
-void PCKYAllCell<Types>::add_word(const Word & word)
-{
-  typedef typename Types::LexicalDaughter LDaughters;
-  assert(edges.size() == max_size);
-  for(std::vector<const MetaProduction*>::const_iterator it(word.get_rules().begin());
-      it != word.get_rules().end(); ++it)
-  {
-    int tag = (*it)->get_lhs();
-    edges[tag].add_daughters(static_cast<const typename Types::LRule*>(*it), &word);
-  }
-}
-
-
 
 template<class Types>
 inline

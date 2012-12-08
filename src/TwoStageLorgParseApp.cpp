@@ -68,6 +68,7 @@ int TwoStageLorgParseApp::run()
               //               BLOCKTIMING("initialise_chart");
               parser->initialise_chart(sentence, brackets);
             }
+            
             // parse, aka create the coarse forest
             {
               //               BLOCKTIMING("parse");
