@@ -4,7 +4,6 @@
 #include "ParserCKYAll.h"
 #include "ChartCKY.hpp"
 
-
 template <class Types>
 ParserCKYAll_Impl<Types>::ParserCKYAll_Impl(std::vector<AGrammar*>& cgs,
                                             const std::vector<double>& p,

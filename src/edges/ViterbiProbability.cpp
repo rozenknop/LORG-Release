@@ -1,6 +1,7 @@
 // -*- mode: c++ -*-
 
 #include "ViterbiProbability.h"
+#include "edges/PackedEdge.hpp"
 
 std::ostream& operator<<(std::ostream& out, const ViterbiProbability & prob)
 {

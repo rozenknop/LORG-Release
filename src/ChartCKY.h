@@ -28,13 +28,16 @@ template<class Types>
 class ChartCKY
 {
 public:
-  typedef typename Types::Cell Cell ;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
   typedef typename Types::ChartWord MyWord;
 
 private:
-  std::vector<Cell> the_cells; ///< the chart itself
+  Cell * the_cells; ///< the chart itself
+  Edge * the_edges; ///< the edges of the chart
 //   Cell ** chart; ///< pointers on each column of the chart
-  unsigned size;     ///< the size of the chart
+  unsigned size;     ///< the size of the chart (width)
+  unsigned nb_cells; ///< number of cells in the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
 

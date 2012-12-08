@@ -93,7 +93,7 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	grammars/GrammarAnnotated.h grammars/GrammarAnnotated.hpp grammars/GrammarAnnotated.cpp utils/RuleVect2Map.h\
 	utils/data_parsers/BURuleInputParser.cpp utils/data_parsers/BURuleInputParser.h \
 	utils/data_parsers/AnnotHistoriesParser.h utils/data_parsers/AnnotHistoriesParser.cpp \
-	edges/PackedEdge.h edges/PackedEdgeDaughters.h edges/PackedEdgeProbability.h \
+	edges/PackedEdge.h edges/PackedEdge.hpp edges/PackedEdgeDaughters.h edges/PackedEdgeProbability.h \
 	edges/ViterbiProbability.h \
 	edges/MaxRuleProbabilityKB.h \
 	edges/BestProbability.h \

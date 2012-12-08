@@ -67,6 +67,7 @@ void scaled_array::resize(unsigned new_size)
 {
   array = std::vector<double>(new_size,0.0);
   scale = 0;
+  //   std::cout << "scaled_array::resize("<<new_size<<") array at " << array.data() << std::endl; std::cout.flush();
 }
 
 //inline

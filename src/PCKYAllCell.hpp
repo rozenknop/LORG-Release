@@ -4,6 +4,7 @@
 
 #include "./PCKYAllCell.h"
 #include "edges/AnnotationInfo.h"
+#include "edges/PackedEdge.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -21,10 +22,6 @@ unsigned PCKYAllCell<Types>::max_size = 0;
 
 template<class Types>
 PCKYAllCell<Types>::PCKYAllCell() {
-  edges = (Edge*) new char[max_size*sizeof(Edge)];
-  clear();
-//   std::cout << "PCKYAllCell empty constructor of " << this << std::endl;
-  
 }
 
 template<class Types>
@@ -32,6 +29,7 @@ PCKYAllCell<Types>::PCKYAllCell( const PCKYAllCell<Types> & o )
 {
   edges = (Edge*) new char[max_size*sizeof(Edge)];
   memcpy(edges, o.edges, max_size*sizeof(Edge));
+
 //   std::copy(&(o.edges), &(o.edges)+1, &edges);
 //   std::cout << "size of edges = " << edges.size() << " " << edges.capacity() <<  " " << max_size << std:: endl;
 //   memcpy(e, o.edges.data(), max_size*sizeof(Edge));
@@ -45,9 +43,9 @@ PCKYAllCell<Types>::PCKYAllCell( const PCKYAllCell<Types> & o )
 template<class Types>
 void PCKYAllCell<Types>::clear()
 {
-  static Edge protoEdge;
+//   static Edge protoEdge;
 //   edges.assign(max_size, protoEdge);
-  std::fill(edges, edges+max_size, protoEdge);
+  std::fill((char*)edges, (char*) (edges+max_size), 0);
 }
 
 
@@ -56,7 +54,7 @@ void PCKYAllCell<Types>::clear()
 template<class Types>
 PCKYAllCell<Types>::~PCKYAllCell()
 {
-  delete [] (char*)edges;
+  apply_on_edges( &Edge::close );
 }
 
 template<class Types>
@@ -91,7 +89,9 @@ void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double L_insid
   Edge & e = edges[rule->get_lhs()];
   e.add_daughters(edges[rule->get_rhs0()],rule);
 
+  //   std::cout << "PCKYAllCell<Types>::process_candidate. array at " << & e.get_annotations().inside_probabilities_unary_temp.array[0] << std::endl; std::cout.flush();
   e.get_annotations().inside_probabilities_unary_temp.array[0] += L_inside * rule->get_probability()[0][0];
+  
 }
 
 template<class Types>
@@ -172,7 +172,7 @@ void PCKYAllCell<Types>::clean()
                                         toFunc(& UnaryDaughter::points_towards_invalid_edges)),
                          udaughters.end());
 
-        if (edge.is_closed())
+        if (edge.no_daughters())
         {
           edge.close();
           changed =  true;

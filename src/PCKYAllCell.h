@@ -40,6 +40,8 @@ public:
   typedef typename Types::LexicalDaughter LexicalDaughter;
 
 public:
+
+private:
   /**
      \brief Simple constructor
      \note this cell is not initialised: trying
@@ -49,6 +51,7 @@ public:
   PCKYAllCell();
   PCKYAllCell(const PCKYAllCell<Types> &);
 
+public:
   /**
      \brief destructor
    */
@@ -59,7 +62,7 @@ public:
      \brief initialise the cell
      \param cl true if closed
    */
-  void init(bool cl, unsigned begin, unsigned end, bool top);
+  void init(bool cl, unsigned begin, unsigned end, Edge * first_edge, bool top);
   void reinit(bool cl);
 
 
@@ -221,10 +224,9 @@ bool PCKYAllCell<Types>::is_empty() const
 
 template<class Types>
 inline
-void PCKYAllCell<Types>::init(bool cl, unsigned b, unsigned e, bool t)
+void PCKYAllCell<Types>::init(bool cl, unsigned b, unsigned e, typename Types::Edge * first_edge, bool t)
 {
-  begin = b; end = e; top = t; closed = cl;
-//   reinit(cl);
+  begin = b; end = e; top = t; closed = cl; edges = first_edge;
 }
 
 template<class Types>
