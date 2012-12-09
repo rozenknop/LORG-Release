@@ -13,7 +13,8 @@
 class MaxRuleProbability1B;
 
 struct MaxRule1BTypes {
-  typedef MaxRuleProbability1B EdgeProbability ;
+  typedef MaxRuleProbability1B Best ;
+  typedef emptystruct EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
@@ -21,6 +22,8 @@ struct MaxRule1BTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRule1BTypes > Edge ;
+  typedef UPackedEdge< MaxRule1BTypes > UEdge ;
+  typedef LBPackedEdge< MaxRule1BTypes > LBEdge ;
   typedef PCKYAllCell< MaxRule1BTypes > Cell ;
   typedef ChartCKY< MaxRule1BTypes > Chart ;
   typedef BinaryPackedEdgeDaughters<MaxRule1BTypes> BinaryDaughter;
@@ -33,6 +36,8 @@ class MaxRuleProbability1B
 {
 public:
   typedef typename MaxRule1BTypes::Edge Edge;
+  typedef typename MaxRule1BTypes::UEdge UEdge;
+  typedef typename MaxRule1BTypes::LBEdge LBEdge;
   typedef typename MaxRule1BTypes::Cell Cell;
   typedef typename MaxRule1BTypes::UnaryDaughter UnaryDaughter;
   typedef typename MaxRule1BTypes::BinaryDaughter BinaryDaughter;
@@ -51,9 +56,9 @@ public:
   inline const packed_edge_probability& get(unsigned/*ignored*/) const {return best;}
   inline packed_edge_probability& get(unsigned /*ignored*/) {return best;}
 
-  inline void update_lexical(Edge& e,  const LexicalDaughter& dtr);
-  inline void update_unary(Edge& e, const UnaryDaughter& dtr);
-  inline void update_binary(Edge& e, const BinaryDaughter& dtr);
+  inline void update_lexical(LBEdge& e,  const LexicalDaughter& dtr);
+  inline void update_unary(UEdge& e, const UnaryDaughter& dtr);
+  inline void update_binary(LBEdge& e, const BinaryDaughter& dtr);
   inline void finalize();
 
   inline unsigned n_deriv() const {return 1;}
@@ -70,7 +75,7 @@ inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbability1B & 
 
 
 
-inline void MaxRuleProbability1B::update_lexical(Edge & edge,  const LexicalDaughter& dtr)
+inline void MaxRuleProbability1B::update_lexical(LBEdge & edge,  const LexicalDaughter& dtr)
 {
     const LexicalRuleC2f* rule = dtr.get_rule();
     
@@ -85,12 +90,12 @@ inline void MaxRuleProbability1B::update_lexical(Edge & edge,  const LexicalDaug
 }
 
 
-inline void MaxRuleProbability1B::update_unary (Edge & e, const UnaryDaughter & dtr)
+inline void MaxRuleProbability1B::update_unary (UEdge & e, const UnaryDaughter & dtr)
 {
   double probability = -std::numeric_limits<double>::infinity();
 
   const Edge& left  = dtr.left_daughter();
-  if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
+  if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
     probability =  QInsideComputer::compute(e.get_annotations(), dtr, log_normalisation_factor);
   }
 
@@ -101,7 +106,7 @@ inline void MaxRuleProbability1B::update_unary (Edge & e, const UnaryDaughter & 
 }
 
 inline void
-MaxRuleProbability1B::update_binary (Edge & e, const BinaryDaughter & dtr)
+MaxRuleProbability1B::update_binary (LBEdge & e, const BinaryDaughter & dtr)
 {
   double probability = QInsideComputer::compute(e.get_annotations(), dtr, log_normalisation_factor);
 

@@ -18,7 +18,8 @@
 class MaxRuleProbabilityMultiple;
 
 struct MaxRuleMultipleTypes {
-  typedef MaxRuleProbabilityMultiple EdgeProbability ;
+  typedef MaxRuleProbabilityMultiple Best ;
+  typedef emptystruct EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
@@ -26,6 +27,8 @@ struct MaxRuleMultipleTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRuleMultipleTypes > Edge ;
+  typedef UPackedEdge< MaxRuleMultipleTypes > UEdge ;
+  typedef LBPackedEdge< MaxRuleMultipleTypes > LBEdge ;
   typedef PCKYAllCell< MaxRuleMultipleTypes > Cell ;
   typedef ChartCKY< MaxRuleMultipleTypes > Chart ;
   typedef BinaryPackedEdgeDaughters<MaxRuleMultipleTypes> BinaryDaughter;
@@ -60,6 +63,8 @@ private:
 
 public:
   typedef typename MaxRuleMultipleTypes::Edge Edge;
+  typedef typename MaxRuleMultipleTypes::UEdge UEdge;
+  typedef typename MaxRuleMultipleTypes::LBEdge LBEdge;
   typedef typename MaxRuleMultipleTypes::Cell Cell;
   typedef typename MaxRuleMultipleTypes::UnaryDaughter UnaryDaughter;
   typedef typename MaxRuleMultipleTypes::BinaryDaughter BinaryDaughter;
@@ -82,9 +87,9 @@ public:
   inline const packed_edge_probability_with_index& get(unsigned idx) const {return derivations[idx];}
   inline       packed_edge_probability_with_index& get(unsigned idx)       {return derivations[idx];}
 
-  inline void update_lexical(Edge& e, const LexicalDaughter& dtr);
-  inline void update_unary(Edge& e, const UnaryDaughter& dtr);
-  inline void update_binary(Edge& e, const BinaryDaughter& dtr);
+  inline void update_lexical(LBEdge& e, const LexicalDaughter& dtr);
+  inline void update_unary(UEdge& e, const UnaryDaughter& dtr);
+  inline void update_binary(LBEdge& e, const BinaryDaughter& dtr);
   inline void finalize();
 
   inline void pick_best_lexical(const LexicalDaughter& dtr);
@@ -164,7 +169,7 @@ void MaxRuleProbabilityMultiple::write_scores(const PackedEdgeDaughters& dtr, do
 }
 
 
-void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughter& dtr)
+void MaxRuleProbabilityMultiple::update_lexical(LBEdge& e, const LexicalDaughter& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
   double probability(QInsideComputer::compute(a, dtr.get_rule(), log_normalisation_factor));
@@ -177,13 +182,13 @@ void MaxRuleProbabilityMultiple::update_lexical(Edge& e, const LexicalDaughter& 
   write_scores(dtr, probability);
 }
 
-void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughter & dtr)
+void MaxRuleProbabilityMultiple::update_unary(UEdge& e, const UnaryDaughter & dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
   double probability = -std::numeric_limits<double>::infinity();
 
   Edge& left  = dtr.left_daughter();
-  if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
+  if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
     probability =  QInsideComputer::compute(a, dtr, log_normalisation_factor);
   }
   // else {
@@ -201,7 +206,7 @@ void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughter & dtr
   write_scores(dtr, probability);
 }
 
-void MaxRuleProbabilityMultiple::update_binary(Edge& e, const BinaryDaughter& dtr)
+void MaxRuleProbabilityMultiple::update_binary(LBEdge& e, const BinaryDaughter& dtr)
 {
   const AnnotationInfo & a = e.get_annotations();
 

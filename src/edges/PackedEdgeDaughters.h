@@ -58,6 +58,8 @@ public:
   typedef TypedRulePackedEdgeDaughters<typename Types::BRule> Parent;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
+  typedef typename Types::LBEdge LBEdge;
+  typedef typename Types::UEdge UEdge;
   typedef typename Types::Edge * EdgePtr ;
   typedef typename Types::BRule Rule;
 
@@ -91,9 +93,11 @@ public:
   
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(Parent::rule != NULL);
-    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
-                                        left->get_annotations().inside_probabilities.array,
-                                        right->get_annotations().inside_probabilities.array);
+    if (left->has_unary() and right->has_unary()) {
+      Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
+                                                    static_cast<UEdge>(*left).get_annotations().inside_probabilities.array,
+                                                    static_cast<UEdge>(*right).get_annotations().inside_probabilities.array);
+    }
   }
   
   inline void update_outside_annotations(AnnotationInfo & annotations) const
@@ -118,6 +122,8 @@ public:
   typedef TypedRulePackedEdgeDaughters<typename Types::URule> Parent;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
+  typedef typename Types::LBEdge LBEdge;
+  typedef typename Types::UEdge UEdge;
   typedef typename Types::Edge * EdgePtr ;
   typedef typename Types::URule Rule;
 
@@ -127,7 +133,7 @@ protected:
 public:
 //   inline UnaryPackedEdgeDaughters & operator=(UnaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
   
-  UnaryPackedEdgeDaughters(Edge & le, const Rule * ru) :
+  UnaryPackedEdgeDaughters(LBEdge & le, const Rule * ru) :
     Parent(ru), left(&le)
   {};
 
@@ -144,13 +150,13 @@ public:
   }
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(Parent::rule != NULL);
-    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities_unary_temp.array,
-                                        left->get_annotations().inside_probabilities.array);
+    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
+                                                  left->get_annotations().inside_probabilities.array);
   }
   inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
     Parent::get_rule()->update_outside_annotations(annotations.outside_probabilities.array,
-                                         left->get_annotations().outside_probabilities_unary_temp.array);
+                                                   left->get_annotations().outside_probabilities.array);
   }
 };
 

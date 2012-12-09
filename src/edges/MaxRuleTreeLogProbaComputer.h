@@ -13,6 +13,8 @@ class MaxRuleTreeLogProbaComputer
 {
 public:
   typedef typename ProbaModel::Edge Edge ;
+  typedef typename ProbaModel::UEdge UEdge ;
+  typedef typename ProbaModel::LBEdge LBEdge ;
   typedef typename Edge::LexicalDaughter LexicalDaughter;
   typedef typename Edge::UnaryDaughter UnaryDaughter;
   typedef typename Edge::BinaryDaughter BinaryDaughter;
@@ -30,8 +32,15 @@ public:
     
     double probability = 0.0;
     
-    const scaled_array & left_inside  = left.get_annotations ().inside_probabilities;
-    const scaled_array & right_inside = right.get_annotations ().inside_probabilities;
+    bool uleft = not static_cast<const UEdge&>(left).is_closed();
+    bool uright = not static_cast<const UEdge&>(right).is_closed();
+    bool lbleft = not static_cast<const LBEdge&>(left).is_closed();
+    bool lbright = not static_cast<const LBEdge&>(right).is_closed();
+    const scaled_array * uleft_inside  = uleft ? nullptr : & static_cast<const UEdge&>(left).get_annotations ().inside_probabilities;
+    const scaled_array * uright_inside = uright ? nullptr : & static_cast<const UEdge&>(right).get_annotations ().inside_probabilities;
+    const scaled_array * lbleft_inside  = lbleft ? nullptr : & static_cast<const LBEdge&>(left).get_annotations ().inside_probabilities;
+    const scaled_array * lbright_inside = lbright ? nullptr : & static_cast<const LBEdge&>(right).get_annotations ().inside_probabilities;
+
     const scaled_array & up_outside = up_annotations.outside_probabilities;
     const std::vector<std::vector<std::vector<double >>> & rule_probs = dtr.get_rule ()->get_probability ();
     
@@ -64,8 +73,7 @@ public:
       if (!up_annotations.valid_prob_at (i, LorgConstants::NullProba))
         continue;
       double temp = 0;
-      const std::vector < std::vector < double >>&rule_probs_i =
-      rule_probs[i];
+      const std::vector < std::vector < double >>&rule_probs_i = rule_probs[i];
       unsigned size_i = rule_probs_i.size ();
       for (unsigned j = 0; j < size_i; ++j)
       {
@@ -77,17 +85,17 @@ public:
         for (unsigned k = 0; k < size_ij; ++k)
         {
           if (right.valid_prob_at (k))
-            inner += rule_probs_ij[k] * right_inside.array[k];
+            inner += rule_probs_ij[k] * ((uright ? uright_inside->array[k] : 0) + (lbright ? lbright_inside->array[k] : 0));
         }
-        temp += left_inside.array[j] * inner;
+        temp += inner * ((uleft ? uleft_inside->array[j] : 0) + (lbleft ? lbleft_inside->array[j] : 0));
       }
       probability += up_outside.array[i] * temp;
     }
     
     
     double res = (std::log (probability) - normalisation_factor)
-                 + left.get_prob_model().get (left_idx).probability
-                 + right.get_prob_model().get (right_idx).probability;
+                 + left.get_best().get (left_idx).probability
+                 + right.get_best().get (right_idx).probability;
     
     //assert(res <= 0);
     
@@ -173,7 +181,7 @@ public:
     
     const Edge & left = dtrs.left_daughter();
     
-    const scaled_array & left_inside = left.get_annotations ().inside_probabilities;
+    const scaled_array & left_inside = static_cast<const LBEdge&>(left).get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
     const std::vector < std::vector < double >>&rule_probs = dtrs.get_rule ()->get_probability ();
     
@@ -192,15 +200,15 @@ public:
     }
     
     
-    //FIXME: this should not happen because chart is clean ???
-    // only relevant in kmax parsing
-    if (      //probability != 0
-      //     &&
-      left.get_prob_model().n_deriv () != 0)
+//     //FIXME: this should not happen because chart is clean ???
+//     // only relevant in kmax parsing
+//     if (      //probability != 0
+//       //     &&
+//       left.get_prob_model().n_deriv () != 0)
     {
         
       double res = (std::log(probability) - normalisation_factor) +
-                   left.get_prob_model().get (left_idx).probability;
+                   left.get_best().get (left_idx).probability;
         // assert(res <= 0);
         
         if (res > 0)
@@ -222,8 +230,8 @@ public:
         
         return (res > 0) ? 0 : res;
       }
-      else
-        return -std::numeric_limits < double >::infinity ();
+//       else
+//         return -std::numeric_limits < double >::infinity ();
   }
   
   static void compute_best_indexes (const AnnotationInfo & up_annotations,
@@ -309,17 +317,14 @@ public:
   
   static  double compute_simple (const AnnotationInfo & up_annotations,
                                             double normalisation_factor,
-                                            const AnnotationInfo &
-                                            left_annotations,
-                                            const AnnotationInfo &
-                                            right_annotations,
+                                            const AnnotationInfo & left_annotations,
+                                            const AnnotationInfo & right_annotations,
                                             const std::vector<std::vector<std::vector<double>>>&rule_probs)
   {
     double probability = 0.0;
     
     const scaled_array & left_inside = left_annotations.inside_probabilities;
-    const scaled_array & right_inside =
-    right_annotations.inside_probabilities;
+    const scaled_array & right_inside = right_annotations.inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
     
     // std::cout << "up_outside " ;

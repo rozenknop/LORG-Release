@@ -31,6 +31,8 @@ class PCKYAllCell {
 
 public:
   typedef typename Types::Edge Edge;
+  typedef typename Types::UEdge UEdge;
+  typedef typename Types::LBEdge LBEdge;
   typedef typename Types::Cell Cell;
   typedef typename Types::BRule BinaryRule;
   typedef typename Types::URule UnaryRule;
