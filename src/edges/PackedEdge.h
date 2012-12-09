@@ -74,22 +74,11 @@ public:
 private:
 
   /**
-     \brief Constructor for creating an empty edge
+     \brief Forbidden constructors
   */
-  PackedEdge()
-  {
-//      std::cout << "PackedEdge empty constructor of " << this << std::endl; std::cout.flush();
-    open = false;
-//     this->local_resize_annotations(1);
-  }
+  PackedEdge() {}
+  PackedEdge(const PackedEdge<Types> &o) {}
 
-  PackedEdge(const PackedEdge<Types> &o)
-  {
-//     std::cout << "PackedEdge copy constructor of " << this << " from " << &o << std::endl; std::cout.flush();
-    open = false;
-    this->local_resize_annotations(1);
-  }
-  
 public:
   void reserve_binary_daughters(int size) 
   {
@@ -175,33 +164,9 @@ public:
      \brief build and add a daughter (binary, unary and lexical versions)
    */
   void add_daughters(Edge & left,
-                     Edge & right, const BinaryRule* rule)
-  {
-    //               BLOCKTIMING("PackedEdge add_daughters(binary)");
-    if (not open) {
-      open = true;
-      local_resize_annotations(1);
-    }
-    binary_daughters.push_back(BinaryDaughter(left,right,rule));
-  }
-
-  void add_daughters(Edge & left, const UnaryRule* rule)
-  {
-    if (not open) {
-      open = true;
-      local_resize_annotations(1);
-    }
-    unary_daughters.push_back(UnaryDaughter(left,rule));
-  }
-
-  void add_daughters(const LexicalRule* rule, const Word* w)
-  {
-    if (not open) {
-      open = true;
-      local_resize_annotations(1);
-    }
-    lexical_daughters.push_back(LexicalDaughter(rule, w));
-  }
+                     Edge & right, const BinaryRule* rule);
+  void add_daughters(Edge & left, const UnaryRule* rule);
+  void add_daughters(const LexicalRule* rule, const Word* w);
 
   /**
      \brief get the structure holding the "best calculation for the prob. model" whatever it means
@@ -220,10 +185,7 @@ public:
   void replace_rule_probabilities(unsigned i);
 
 
-  void extend_derivation(unsigned i, bool licence_unaries)
-  {
-    best.extend_derivation(this,i, licence_unaries);
-  }
+  void extend_derivation(unsigned i, bool licence_unaries);
 
   bool valid_prob_at(unsigned i) const;
 
