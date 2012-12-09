@@ -4,6 +4,8 @@
 
 #include "ParserCKYAllMaxVarKB.h"
 #include "ParserCKYAll.hpp"
+#include "edges/PackedEdge.hpp"
+
 #include "utils/tick_count.h"
 
 ParserCKYAllMaxRuleKB::ParserCKYAllMaxRuleKB(std::vector<AGrammar*>& cgs,

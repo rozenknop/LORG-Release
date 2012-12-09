@@ -11,7 +11,8 @@
 class ViterbiProbability;
 
 struct ViterbiTypes {
-  typedef ViterbiProbability EdgeProbability ;
+  typedef ViterbiProbability Best ;
+  typedef emptystruct EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
   
@@ -19,6 +20,8 @@ struct ViterbiTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< ViterbiTypes > Edge ;
+  typedef UPackedEdge<ViterbiTypes> UEdge;
+  typedef LBPackedEdge<ViterbiTypes> LBEdge;
   typedef PCKYAllCell< ViterbiTypes > Cell ;
   typedef ChartCKY< ViterbiTypes > Chart ;
   typedef BinaryPackedEdgeDaughters<ViterbiTypes> BinaryDaughter;
@@ -31,6 +34,8 @@ class ViterbiProbability //: public PackedEdgeProbability
 {
 public:
   typedef typename ViterbiTypes::Edge Edge;
+  typedef UPackedEdge<ViterbiTypes> UEdge;
+  typedef LBPackedEdge<ViterbiTypes> LBEdge;
   typedef typename ViterbiTypes::Cell Cell;
   typedef typename ViterbiTypes::UnaryDaughter  UnaryDaughter;
   typedef typename ViterbiTypes::BinaryDaughter BinaryDaughter;
@@ -51,9 +56,9 @@ public:
   packed_edge_probability& get(unsigned index)
   {return best[index];}
 
-  void update_lexical(Edge& e,  const LexicalDaughter& dtr);
-  void update_unary(Edge& e, const UnaryDaughter& dtr);
-  void update_binary(Edge& e, const BinaryDaughter& dtr);
+  void update_lexical(LBEdge& e,  const LexicalDaughter& dtr);
+  void update_unary(UEdge& e, const UnaryDaughter& dtr);
+  void update_binary(LBEdge& e, const BinaryDaughter& dtr);
   void finalize() {};
 
   bool has_solution(unsigned i) const {return i == 0;} ;

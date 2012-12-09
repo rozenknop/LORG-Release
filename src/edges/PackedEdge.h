@@ -41,10 +41,111 @@ typedef std::unordered_map<asymb, std::unordered_map< asymb, asymb> > PathMatrix
   \brief represents an edge in a chart
 */
 
+template<class Types> class UPackedEdge;
+template<class Types> class LBPackedEdge;
+
+template<class Types>
+class BasePackedEdge
+{
+public:
+  typedef typename Types::EdgeProbability ProbaModel;
+  typedef typename Types::Best Best;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+  typedef UPackedEdge<Types> UEdge;
+  typedef LBPackedEdge<Types> LBEdge;
+//   typedef PackedEdgeDaughters Daughters;
+  typedef typename Types::BRule BinaryRule;
+  typedef typename Types::URule UnaryRule;
+  typedef typename Types::LRule LexicalRule;
+  
+  typedef typename Types::BinaryDaughter  BinaryDaughter;
+  typedef typename Types::UnaryDaughter   UnaryDaughter;
+  typedef typename Types::LexicalDaughter LexicalDaughter;
+
+  typedef std::vector<BinaryDaughter> bvector;
+  typedef std::vector<UnaryDaughter>  uvector;
+  typedef std::vector<LexicalDaughter>  lvector;
+
+  typedef typename bvector::iterator biterator;
+  typedef typename uvector::iterator  uiterator;
+  typedef typename lvector::iterator  literator;
+
+  typedef typename bvector::const_iterator const_biterator;
+  typedef typename uvector::const_iterator  const_uiterator;
+  typedef typename lvector::const_iterator  const_literator;
+
+protected :
+  AnnotationInfo annotations;  ///< probabilities
+  bool open;
+  ProbaModel proba;
+
+
+private:
+
+  /**
+     \brief Constructors are forbidden
+  */
+  BasePackedEdge() {}
+  BasePackedEdge(const BasePackedEdge<Types> &) {}
+
+
+
+
+public:
+
+  /**
+     \brief resize the vector of annotations
+     \param size the new size
+   */
+  void local_resize_annotations(unsigned size);
+
+  /**
+     \brief Output operator
+     \param out the ostream to write on
+     \param edge the edge object to write
+     \return the used ostream
+  */
+  template<class OPEP>
+  friend std::ostream& operator<<(std::ostream& out, const BasePackedEdge<OPEP>& edge);
+
+
+
+  /**
+     \brief return an AnnotationInfo (inside/outside probs +scaling values)
+   */
+  AnnotationInfo& get_annotations();
+  const AnnotationInfo& get_annotations() const;
+
+
+
+  /**
+     \brief get the structure holding the "best calculation for the prob. model" whatever it means
+   */
+  const ProbaModel& get_prob_model() const;
+  ProbaModel& get_prob_model();
+
+  inline bool valid_prob_at(unsigned i) const;
+
+  bool is_closed() const { return not open; }
+  
+
+public:
+  
+  void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
+  void process(function<void(ProbaModel &)> f) {f(get_prob_model());}
+  void process(function<void(Edge &)> f) { f(*this); }
+
+  void apply() const {}
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
+};
 
 
 template<class Types>
-class PackedEdge
+class UPackedEdge : public BasePackedEdge<Types>
 {
 public:
   typedef typename Types::EdgeProbability ProbaModel;
@@ -71,25 +172,85 @@ public:
   typedef typename uvector::const_iterator  const_uiterator;
   typedef typename lvector::const_iterator  const_literator;
 
-private:
+protected:
+  uvector unary_daughters;     ///< set of possible daughters
+  static PathMatrix unary_chains;
+
+public:
+  inline const uvector& get_unary_daughters() const;
+  inline uvector& get_unary_daughters();
+
+ /**
+     \brief get one particular daughter of the edge
+  */
+  inline UnaryDaughter& get_unary_daughter(unsigned i);
+  inline const UnaryDaughter& get_unary_daughter(unsigned i) const;
 
   /**
-     \brief Constructor for creating an empty edge
-  */
-  PackedEdge()
-  {
-//      std::cout << "PackedEdge empty constructor of " << this << std::endl; std::cout.flush();
-    open = false;
-//     this->local_resize_annotations(1);
-  }
+   *   \brief build and add a daughter
+   */
+  inline void add_daughters(Edge & left, const UnaryRule* rule);
 
-  PackedEdge(const PackedEdge<Types> &o)
-  {
-//     std::cout << "PackedEdge copy constructor of " << this << " from " << &o << std::endl; std::cout.flush();
-    open = false;
-    this->local_resize_annotations(1);
-  }
+  /**
+   * \brief set unary chains
+   */
+  static void set_unary_chains(const PathMatrix& pathmatrix);
+  static const PathMatrix& get_unary_chains();
+
+
+
+  inline bool no_daughters() { return unary_daughters.empty(); } 
+  void close() { this->open=false; UPackedEdge::~UPackedEdge(); }
+
+  void process(function<void(const UnaryDaughter &)> f) const { for(const auto& d: get_unary_daughters()) f(d); }
+  void process(function<void(Edge &, UnaryDaughter &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
+  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_unary_daughters()) f(d, this->get_annotations()); }
+  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, this->get_annotations()); }
+  void process(function<void(ProbaModel &, Edge &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(this->get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(this->get_prob_model(), d);}
+  void process(function<void(ProbaModel &, UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(this->get_prob_model(), d);}
+
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
+
+};
+
+
+
+template<class Types>
+class LBPackedEdge : public BasePackedEdge<Types>
+{
+public:
+  typedef typename Types::EdgeProbability ProbaModel;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+//   typedef PackedEdgeDaughters Daughters;
+  typedef typename Types::BRule BinaryRule;
+  typedef typename Types::URule UnaryRule;
+  typedef typename Types::LRule LexicalRule;
   
+  typedef typename Types::BinaryDaughter  BinaryDaughter;
+  typedef typename Types::UnaryDaughter   UnaryDaughter;
+  typedef typename Types::LexicalDaughter LexicalDaughter;
+
+  typedef std::vector<BinaryDaughter> bvector;
+  typedef std::vector<UnaryDaughter>  uvector;
+  typedef std::vector<LexicalDaughter>  lvector;
+
+  typedef typename bvector::iterator biterator;
+  typedef typename uvector::iterator  uiterator;
+  typedef typename lvector::iterator  literator;
+
+  typedef typename bvector::const_iterator const_biterator;
+  typedef typename uvector::const_iterator  const_uiterator;
+  typedef typename lvector::const_iterator  const_literator;
+
+protected:
+  bvector binary_daughters;    ///< set of possible daughters
+  lvector lexical_daughters;   ///< a possible lexical daughter
+
 public:
   void reserve_binary_daughters(int size) 
   {
@@ -97,24 +258,13 @@ public:
   }
 
   /**
-     \brief Destructor
-  */
-  //   ~PackedEdge()  {assert(false);}
-
-
-  /**
-     \brief get the daughters of the edge
-  */
+   *   \brief get the daughters of the edge
+   */
   const bvector& get_binary_daughters() const;
   bvector& get_binary_daughters();
 
-  const uvector& get_unary_daughters() const;
-  uvector& get_unary_daughters();
-
   const lvector& get_lexical_daughters() const;
   lvector& get_lexical_daughters();
-
-
 
  /**
      \brief get one particular daughter of the edge
@@ -122,177 +272,108 @@ public:
   BinaryDaughter& get_binary_daughter(unsigned i);
   const BinaryDaughter& get_binary_daughter(unsigned i) const;
 
-  UnaryDaughter& get_unary_daughter(unsigned i);
-  const UnaryDaughter& get_unary_daughter(unsigned i) const;
-
   LexicalDaughter& get_lexical_daughter(unsigned i);
   const LexicalDaughter& get_lexical_daughter(unsigned i) const;
 
   /**
-     \brief is the daughter lexical ?
+     \brief is there a lexical daughter ?
   */
   bool get_lex() const;
 
   /**
-     \brief resize the vector of annotations
-     \param size the new size
+   *   \brief build and add a daughter (binary and lexical versions)
    */
-  void local_resize_annotations(unsigned size);
-
-  /**
-     \brief Output operator
-     \param out the ostream to write on
-     \param edge the edge object to write
-     \return the used ostream
-  */
-  template<class OPEP>
-  friend std::ostream& operator<<(std::ostream& out, const PackedEdge<OPEP>& edge);
-
-
-
-  /**
-     \brief return an AnnotationInfo (inside/outside probs +scaling values)
-   */
-  AnnotationInfo& get_annotations();
-  const AnnotationInfo& get_annotations() const;
-
-
-
-  /**
-   *  \brief before and after computing the inside probability of a packed edge
-   */
-  void prepare_inside_probability();
-  void adjust_inside_probability();
-
-
-  /**
-   * \brief before and after computing the outside probability of a packed edge
-   */
-  void prepare_outside_probability();
-  void adjust_outside_probability();
-
-  /**
-     \brief build and add a daughter (binary, unary and lexical versions)
-   */
-  void add_daughters(Edge & left,
-                     Edge & right, const BinaryRule* rule)
-  {
-    //               BLOCKTIMING("PackedEdge add_daughters(binary)");
-    if (not open) {
-      open = true;
-      local_resize_annotations(1);
-    }
-    binary_daughters.push_back(BinaryDaughter(left,right,rule));
-  }
-
-  void add_daughters(Edge & left, const UnaryRule* rule)
-  {
-    if (not open) {
-      open = true;
-      local_resize_annotations(1);
-    }
-    unary_daughters.push_back(UnaryDaughter(left,rule));
-  }
-
-  void add_daughters(const LexicalRule* rule, const Word* w)
-  {
-    if (not open) {
-      open = true;
-      local_resize_annotations(1);
-    }
-    lexical_daughters.push_back(LexicalDaughter(rule, w));
-  }
-
-  /**
-     \brief get the structure holding the "best calculation for the prob. model" whatever it means
-   */
-  const ProbaModel& get_prob_model() const;
-  ProbaModel& get_prob_model();
-
-
-  /**
-     \brief set unary chains
-   */
-  static void set_unary_chains(const PathMatrix& pathmatrix);
-  static const PathMatrix& get_unary_chains();
-
-
-  void replace_rule_probabilities(unsigned i);
-
-
-  void extend_derivation(unsigned i, bool licence_unaries)
-  {
-    best.extend_derivation(this,i, licence_unaries);
-  }
-
-  bool valid_prob_at(unsigned i) const;
+  inline void add_daughters(Edge & left, Edge & right, const BinaryRule* rule);
+  inline void add_daughters(const LexicalRule* rule, const Word* w);
 
   void clean_invalidated_binaries();
 
-  PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
+  bool no_daughters() { return binary_daughters.empty() and lexical_daughters.empty(); } 
+  void close() { this->open=false; LBPackedEdge<Types>::~LBPackedEdge(); }
 
-  bool has_solution(unsigned i) const ;
-
-  bool no_daughters() { return binary_daughters.empty() and unary_daughters.empty() and lexical_daughters.empty(); } 
-  bool is_closed() const { return not open; }
-  void close() { open=false; binary_daughters.clear(); unary_daughters.clear(); lexical_daughters.clear(); Edge::~Edge(); }
-  
-protected :
-  bvector binary_daughters;    ///< set of possible daughters
-  uvector unary_daughters;     ///< set of possible daughters
-  lvector lexical_daughters;   ///< a possible lexical daughter
-  AnnotationInfo annotations;  ///< probabilities
-
-  static PathMatrix unary_chains;
-
-  bool open;
-
-private:
-  ProbaModel best;
-
-  void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
-                    bool append_annot, bool outpu_forms) const;
-
-public:
   void process(function<void(const LexicalDaughter &)> f) const {for(const auto& d: get_lexical_daughters()) f(d);}
-  void process(function<void(const UnaryDaughter &)> f) const { for(const auto& d: get_unary_daughters()) f(d); }
   void process(function<void(const BinaryDaughter &)> f) const { for(const auto& d: get_binary_daughters()) f(d); }
 
   void process(function<void(Edge &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
-  void process(function<void(Edge &, UnaryDaughter &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
   void process(function<void(Edge &, BinaryDaughter &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
 
-  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {for(const auto& d: get_lexical_daughters()) f(d, get_annotations());}
-  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_unary_daughters()) f(d, get_annotations()); }
-  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_binary_daughters()) f(d, get_annotations()); }
+  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {for(const auto& d: get_lexical_daughters()) f(d, this->get_annotations());}
+  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_binary_daughters()) f(d, this->get_annotations()); }
 
-  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, get_annotations());}
-  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, get_annotations()); }
-  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, get_annotations()); }
-  
-  void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
+  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, this->get_annotations());}
+  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, this->get_annotations()); }
 
-  void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(ProbaModel &, Edge &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(get_prob_model(), *this, d);}
-  void process(function<void(ProbaModel &, Edge &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(this->get_prob_model(), *this, d);}
+  void process(function<void(ProbaModel &, Edge &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(this->get_prob_model(), *this, d);}
 
-  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
-  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(get_prob_model(), d);}
-  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(this->get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(this->get_prob_model(), d);}
 
-  void process(function<void(ProbaModel &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(get_prob_model(), d);}
-  void process(function<void(ProbaModel &, UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(get_prob_model(), d);}
-  void process(function<void(ProbaModel &, BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(get_prob_model(), d);}
-  
-  void process(function<void(ProbaModel &)> f) {f(get_prob_model());}
+  void process(function<void(ProbaModel &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(this->get_prob_model(), d);}
+  void process(function<void(ProbaModel &, BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(this->get_prob_model(), d);}
 
-  void process(function<void(Edge &)> f) { f(*this); }
-  
   template<typename Function, typename... OtherFunctions>
   void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
-  void apply() const {}
   template<typename Function, typename... OtherFunctions>
   void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
 };
+
+
+
+template<class Types>
+class PackedEdge : public UPackedEdge<Types>, public LBPackedEdge<Types>
+{
+public:
+  typedef typename Types::EdgeProbability ProbaModel;
+  typedef typename Types::Cell Cell;
+  typedef typename Types::Edge Edge;
+  typedef UPackedEdge<Types> UEdge;
+  typedef LBPackedEdge<Types> LBEdge;
+  typedef typename Types::Best Best;
+
+//   typedef PackedEdgeDaughters Daughters;
+  typedef typename Types::BRule BinaryRule;
+  typedef typename Types::URule UnaryRule;
+  typedef typename Types::LRule LexicalRule;
+  
+  typedef typename Types::BinaryDaughter  BinaryDaughter;
+  typedef typename Types::UnaryDaughter   UnaryDaughter;
+  typedef typename Types::LexicalDaughter LexicalDaughter;
+
+  typedef std::vector<BinaryDaughter> bvector;
+  typedef std::vector<UnaryDaughter>  uvector;
+  typedef std::vector<LexicalDaughter>  lvector;
+
+  typedef typename bvector::iterator biterator;
+  typedef typename uvector::iterator  uiterator;
+  typedef typename lvector::iterator  literator;
+
+  typedef typename bvector::const_iterator const_biterator;
+  typedef typename uvector::const_iterator  const_uiterator;
+  typedef typename lvector::const_iterator  const_literator;
+
+  /**
+   * attributes
+   */
+  Best best;
+  
+  /**
+   * \brief replace rules with grammar #i
+   */
+  void replace_rule_probabilities(unsigned i);
+  inline bool valid_prob_at(unsigned i) const;
+  inline Best& get_best();
+  inline const Best& get_best() const;
+  inline void extend_derivation(unsigned i, bool licence_unaries);
+  inline bool has_solution(unsigned i) const ;
+
+  PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
+private:
+  void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
+                    bool append_annot, bool outpu_forms) const;
+  
+};
+
+
 
 #endif /*PACKEDEDGE_H_*/

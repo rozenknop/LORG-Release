@@ -9,7 +9,7 @@ std::ostream& operator<<(std::ostream& out, const ViterbiProbability & prob)
 }
 
 
-void ViterbiProbability::update_lexical(Edge& edge, const LexicalDaughter& dtr)
+void ViterbiProbability::update_lexical(LBEdge& edge, const LexicalDaughter& dtr)
 {
   const AnnotationInfo& a = edge.get_annotations();
   const LexicalRuleC2f* rule = dtr.get_rule();
@@ -26,7 +26,7 @@ void ViterbiProbability::update_lexical(Edge& edge, const LexicalDaughter& dtr)
   }
 }
 
-void ViterbiProbability::update_unary(Edge& edge, const UnaryDaughter& dtr)
+void ViterbiProbability::update_unary(UEdge& edge, const UnaryDaughter& dtr)
 {
   const AnnotationInfo& a = edge.get_annotations();
   const std::vector<std::vector<double> >& rule_probs = dtr.get_rule()->get_probability();
@@ -39,7 +39,7 @@ void ViterbiProbability::update_unary(Edge& edge, const UnaryDaughter& dtr)
     const std::vector<double>& rule_probs_i = rule_probs[i];
     for (unsigned j = 0; j < rule_probs_i.size(); ++j) {
       if(!left.valid_prob_at(j)) continue;
-      double probability = rule_probs_i[j] + left.get_prob_model().get(j).probability; // log-mode
+      double probability = rule_probs_i[j] + left.get_best().get(j).probability; // log-mode
       if (probability > current_best.probability) {
         current_best.probability = probability;
         current_best.dtrs = &dtr;
@@ -49,7 +49,7 @@ void ViterbiProbability::update_unary(Edge& edge, const UnaryDaughter& dtr)
   }
 }
 
-void ViterbiProbability::update_binary(Edge& edge, const BinaryDaughter& dtr)
+void ViterbiProbability::update_binary(LBEdge& edge, const BinaryDaughter& dtr)
 {
   const AnnotationInfo& a = edge.get_annotations();
   const std::vector<std::vector<std::vector<double> > >& rule_probs = dtr.get_rule()->get_probability();
@@ -64,10 +64,10 @@ void ViterbiProbability::update_binary(Edge& edge, const BinaryDaughter& dtr)
     for (unsigned j=0; j < rule_probs_i.size(); ++j) {
       if(!left.valid_prob_at(j)) continue;
       const std::vector<double>& rule_probs_ij = rule_probs_i[j];
-      const double& left_best = left.get_prob_model().get(j).probability;
+      const double& left_best = left.get_best().get(j).probability;
       for (unsigned k = 0; k < rule_probs_ij.size(); ++k) {
         if(!right.valid_prob_at(k)) continue;
-        double probability = rule_probs_ij[k] + left_best + right.get_prob_model().get(k).probability; //log
+        double probability = rule_probs_ij[k] + left_best + right.get_best().get(k).probability; //log
         if (probability > current_best.probability) {
           //std::cout << " best so far " << std::endl;
           current_best.probability = probability;
