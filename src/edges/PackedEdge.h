@@ -43,6 +43,7 @@ typedef std::unordered_map<asymb, std::unordered_map< asymb, asymb> > PathMatrix
 
 template<class Types> class UPackedEdge;
 template<class Types> class LBPackedEdge;
+template<class Types> class BasePackedEdge;
 
 template<class Types>
 class BasePackedEdge
@@ -52,6 +53,7 @@ public:
   typedef typename Types::Best Best;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
+  typedef BasePackedEdge<Types> PEdge;
   typedef UPackedEdge<Types> UEdge;
   typedef LBPackedEdge<Types> LBEdge;
 //   typedef PackedEdgeDaughters Daughters;
@@ -76,6 +78,10 @@ public:
   typedef typename lvector::const_iterator  const_literator;
 
 protected :
+  /**
+   * attributes
+   */
+  Best best;
   AnnotationInfo annotations;  ///< probabilities
   bool open;
   ProbaModel proba;
@@ -118,17 +124,26 @@ public:
   const AnnotationInfo& get_annotations() const;
 
 
-
+  
   /**
      \brief get the structure holding the "best calculation for the prob. model" whatever it means
    */
-  const ProbaModel& get_prob_model() const;
-  ProbaModel& get_prob_model();
+  inline const ProbaModel& get_prob_model() const;
+  inline ProbaModel& get_prob_model();
 
   inline bool valid_prob_at(unsigned i) const;
 
-  bool is_closed() const { return not open; }
+  inline bool is_closed() const { return not open; }
   
+  inline Best& get_best();
+  inline const Best& get_best() const;
+  inline void extend_derivation(unsigned i, bool licence_unaries);
+  inline bool has_solution(unsigned i) const ;
+
+  PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
+private:
+  void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
+                    bool append_annot, bool outpu_forms) const;
 
 public:
   
@@ -352,26 +367,11 @@ public:
   typedef typename uvector::const_iterator  const_uiterator;
   typedef typename lvector::const_iterator  const_literator;
 
-  /**
-   * attributes
-   */
-  Best best;
   
   /**
    * \brief replace rules with grammar #i
    */
-  void replace_rule_probabilities(unsigned i);
-  inline bool valid_prob_at(unsigned i) const;
-  inline Best& get_best();
-  inline const Best& get_best() const;
-  inline void extend_derivation(unsigned i, bool licence_unaries);
-  inline bool has_solution(unsigned i) const ;
-
-  PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
-private:
-  void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
-                    bool append_annot, bool outpu_forms) const;
-  
+  void replace_rule_probabilities(unsigned i);  
 };
 
 

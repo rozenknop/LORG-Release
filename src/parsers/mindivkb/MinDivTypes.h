@@ -3,6 +3,7 @@
 #include <rules/BRuleC2f.h>
 #include <rules/LexicalRuleC2f.h>
 #include <rules/URuleC2f.h>
+#include <edges/PackedEdge.h>
 
 class MinDivProbabilityKB;
 class MinDivEdgeDaughterProbability;
@@ -20,6 +21,9 @@ struct MinDivKBTypes {
   typedef Word ChartWord ;
   
   typedef PackedEdge< MinDivKBTypes > Edge ;
+  typedef BasePackedEdge< MinDivKBTypes > PEdge ;
+  typedef UPackedEdge< MinDivKBTypes > UEdge ;
+  typedef LBPackedEdge< MinDivKBTypes > LBEdge ;
   typedef PCKYAllCell< MinDivKBTypes > Cell ;
   typedef ChartCKY< MinDivKBTypes > Chart ;
 //   typedef MinDivBRule BRule;

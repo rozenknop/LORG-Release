@@ -126,7 +126,7 @@ inline
 typename Types::EdgeProbability& BasePackedEdge<Types>::get_prob_model() {return proba;}
 
 template<class Types>
-inline void PackedEdge<Types>::extend_derivation(unsigned i, bool licence_unaries)
+inline void BasePackedEdge<Types>::extend_derivation(unsigned i, bool licence_unaries)
 {
   best.extend_derivation(this,i, licence_unaries);
 }
@@ -140,12 +140,6 @@ bool BasePackedEdge<Types>::valid_prob_at(unsigned i) const
   return get_annotations().valid_prob_at(i, LorgConstants::NullProba);
 }
 
-template<class Types>
-inline
-bool PackedEdge<Types>::valid_prob_at(unsigned i) const
-{
-  return UEdge::get_annotations().valid_prob_at(i, LorgConstants::NullProba) or LBEdge::get_annotations().valid_prob_at(i, LorgConstants::NullProba);
-}
 
 
 //////////
@@ -318,7 +312,7 @@ unsigned decode_path(PtbPsTree& tree,
 
 
 template <class Types>
-PtbPsTree * PackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
+PtbPsTree * BasePackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
 {
 
   PtbPsTree * tree = NULL;
@@ -391,7 +385,7 @@ PtbPsTree * PackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, bool ap
 }
 
 template <class Types>
-void PackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
+void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
                                    PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                                    bool append_annot, bool output_forms) const
 {
@@ -525,20 +519,21 @@ std::ostream& operator<<(std::ostream& out, const UPackedEdge<OPEP>& edge)
  * ********************************************************/
 
 template<class Types>
-inline typename Types::Best & PackedEdge<Types>::get_best()
+inline typename Types::Best & BasePackedEdge<Types>::get_best()
 {
   return best;
 }
-  
+
 template<class Types>
-inline const typename Types::Best & PackedEdge<Types>::get_best() const
+inline const typename Types::Best & BasePackedEdge<Types>::get_best() const
 {
   return best;
 }
+
   
 template <class Types>
 inline
-bool PackedEdge<Types>::has_solution(unsigned i) const
+bool BasePackedEdge<Types>::has_solution(unsigned i) const
 {
   return best.has_solution(i);
 }

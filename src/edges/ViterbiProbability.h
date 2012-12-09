@@ -20,6 +20,7 @@ struct ViterbiTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< ViterbiTypes > Edge ;
+  typedef BasePackedEdge<ViterbiTypes> PEdge;
   typedef UPackedEdge<ViterbiTypes> UEdge;
   typedef LBPackedEdge<ViterbiTypes> LBEdge;
   typedef PCKYAllCell< ViterbiTypes > Cell ;
@@ -34,6 +35,7 @@ class ViterbiProbability //: public PackedEdgeProbability
 {
 public:
   typedef typename ViterbiTypes::Edge Edge;
+  typedef typename ViterbiTypes::PEdge PEdge;
   typedef UPackedEdge<ViterbiTypes> UEdge;
   typedef LBPackedEdge<ViterbiTypes> LBEdge;
   typedef typename ViterbiTypes::Cell Cell;

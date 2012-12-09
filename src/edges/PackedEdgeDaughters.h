@@ -57,10 +57,10 @@ class BinaryPackedEdgeDaughters : public TypedRulePackedEdgeDaughters<typename T
 public:
   typedef TypedRulePackedEdgeDaughters<typename Types::BRule> Parent;
   typedef typename Types::Cell Cell;
-  typedef typename Types::Edge Edge;
+  typedef typename Types::PEdge PEdge;
   typedef typename Types::LBEdge LBEdge;
   typedef typename Types::UEdge UEdge;
-  typedef typename Types::Edge * EdgePtr ;
+  typedef typename Types::PEdge * EdgePtr ;
   typedef typename Types::BRule Rule;
 
 protected:
@@ -69,7 +69,7 @@ protected:
 //   friend class Types::Edge ;
 public:
 //   inline BinaryPackedEdgeDaughters & operator=(BinaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
-  BinaryPackedEdgeDaughters(Edge& le, Edge& ri, const typename Types::BRule * ru) :
+  BinaryPackedEdgeDaughters(PEdge& le, PEdge& ri, const typename Types::BRule * ru) :
     Parent(ru), left(&le),right(&ri)
   {};
 //   BinaryPackedEdgeDaughters(BinaryPackedEdgeDaughters&& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
@@ -79,8 +79,8 @@ public:
 
 //   inline const Edge& left_daughter() const  {return *left;}
 //   inline const Edge& right_daughter() const {return *right;}
-  inline Edge& left_daughter() const {return *left;}
-  inline Edge& right_daughter() const {return *right;}
+  inline PEdge& left_daughter() const {return *left;}
+  inline PEdge& right_daughter() const {return *right;}
 
   inline bool operator==(const BinaryPackedEdgeDaughters& other)
   {
@@ -124,7 +124,7 @@ public:
   typedef typename Types::Edge Edge;
   typedef typename Types::LBEdge LBEdge;
   typedef typename Types::UEdge UEdge;
-  typedef typename Types::Edge * EdgePtr ;
+  typedef typename Types::LBEdge * EdgePtr ;
   typedef typename Types::URule Rule;
 
 protected:
@@ -142,7 +142,7 @@ public:
   inline bool is_binary() const {return false;}
   inline bool is_lexical() const {return false;}
 //   inline const Edge& left_daughter() const  {return *left;}
-  inline Edge& left_daughter() const {return *left;}
+  inline LBEdge& left_daughter() const {return *left;}
   
   inline bool points_towards_invalid_edges() const
   {

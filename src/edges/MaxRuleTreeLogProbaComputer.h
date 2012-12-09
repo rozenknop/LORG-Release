@@ -13,6 +13,7 @@ class MaxRuleTreeLogProbaComputer
 {
 public:
   typedef typename ProbaModel::Edge Edge ;
+  typedef typename ProbaModel::PEdge PEdge ;
   typedef typename ProbaModel::UEdge UEdge ;
   typedef typename ProbaModel::LBEdge LBEdge ;
   typedef typename Edge::LexicalDaughter LexicalDaughter;
@@ -27,8 +28,8 @@ public:
     //    std::cout << left_idx << " : " << right_idx << std::endl;
     //    std::cout << *(dtr.get_rule()) << std::endl;
     
-    const Edge & left  = dtr.left_daughter ();
-    const Edge & right = dtr.right_daughter ();
+    const PEdge & left  = dtr.left_daughter ();
+    const PEdge & right = dtr.right_daughter ();
     
     double probability = 0.0;
     
@@ -173,13 +174,13 @@ public:
   }
   
   static double compute (const AnnotationInfo & up_annotations,
-                                            const UnaryDaughter & dtrs,
-                                            double normalisation_factor,
-                                            unsigned left_idx = 0)
+                         const UnaryDaughter & dtrs,
+                         double normalisation_factor,
+                         unsigned left_idx = 0)
   {
     double probability = 0;
     
-    const Edge & left = dtrs.left_daughter();
+    const PEdge & left = dtrs.left_daughter();
     
     const scaled_array & left_inside = static_cast<const LBEdge&>(left).get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;

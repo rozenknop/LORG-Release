@@ -4,6 +4,7 @@
 #define _MAXRULEMULTIPLEPROBABILITY_CPP_
 
 #include "MaxRuleProbabilityMultiple.h"
+#include "edges/PackedEdge.hpp"
 
 unsigned MaxRuleProbabilityMultiple::size = 1;
 double MaxRuleProbabilityMultiple::log_normalisation_factor = 0;

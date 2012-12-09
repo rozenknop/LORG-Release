@@ -22,6 +22,7 @@ struct MaxRule1BTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRule1BTypes > Edge ;
+  typedef BasePackedEdge< MaxRule1BTypes > PEdge ;
   typedef UPackedEdge< MaxRule1BTypes > UEdge ;
   typedef LBPackedEdge< MaxRule1BTypes > LBEdge ;
   typedef PCKYAllCell< MaxRule1BTypes > Cell ;
@@ -36,6 +37,7 @@ class MaxRuleProbability1B
 {
 public:
   typedef typename MaxRule1BTypes::Edge Edge;
+  typedef typename MaxRule1BTypes::PEdge PEdge;
   typedef typename MaxRule1BTypes::UEdge UEdge;
   typedef typename MaxRule1BTypes::LBEdge LBEdge;
   typedef typename MaxRule1BTypes::Cell Cell;
@@ -94,7 +96,7 @@ inline void MaxRuleProbability1B::update_unary (UEdge & e, const UnaryDaughter &
 {
   double probability = -std::numeric_limits<double>::infinity();
 
-  const Edge& left  = dtr.left_daughter();
+  const LBEdge& left  = dtr.left_daughter();
   if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
     probability =  QInsideComputer::compute(e.get_annotations(), dtr, log_normalisation_factor);
   }

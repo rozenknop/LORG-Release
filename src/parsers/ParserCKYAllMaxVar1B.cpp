@@ -2,9 +2,9 @@
 #ifndef _PARSERCKYALLMAXVARONEBEST_CPP_
 #define _PARSERCKYALLMAXVARONEBEST_CPP_
 
+#include "edges/PackedEdge.hpp"
 #include "ParserCKYAllMaxVar1B.h"
 #include "ParserCKYAll.hpp"
-#include "edges/PackedEdge.hpp"
 
 double ParserCKYAllMaxRule1B::log_normalisation_factor = 0;
 
