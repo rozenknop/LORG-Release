@@ -297,4 +297,5 @@ protected:
   Chart * chart; // the chart
 };
 
+
 #endif /*PARSERCKYALL_H*/
