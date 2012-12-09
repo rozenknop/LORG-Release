@@ -46,7 +46,7 @@ class MinDivBinaryDaughter : public BinaryPackedEdgeDaughters<MinDivKBTypes>, pu
 {
 public:
 //   MinDivBinaryDaughter(const MinDivBinaryDaughter&&other) : BinaryPackedEdgeDaughters<MinDivKBTypes>(other) {left=other.left; right=other.right; rule=other.rule;}
-  inline MinDivBinaryDaughter(Edge & le, Edge & ri, const MinDivKBTypes::BRule * ru) : BinaryPackedEdgeDaughters<MinDivKBTypes>(le,ri,ru) {}
+  inline MinDivBinaryDaughter(MinDivKBTypes::PEdge & le, MinDivKBTypes::PEdge & ri, const MinDivKBTypes::BRule * ru) : BinaryPackedEdgeDaughters<MinDivKBTypes>(le,ri,ru) {}
   inline void update_inside_annotations(AnnotationInfo & annotations) const {BinaryPackedEdgeDaughters<MinDivKBTypes>::update_inside_annotations(annotations);}
   inline void update_outside_annotations(AnnotationInfo & annotations) const {BinaryPackedEdgeDaughters<MinDivKBTypes>::update_outside_annotations(annotations);}
 

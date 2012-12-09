@@ -209,7 +209,7 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
     const BinaryDaughter* d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
     //extend to the left
-    Edge& left  = d->left_daughter();
+    PEdge& left  = d->left_daughter();
     unsigned nextleft = pep.left_index + 1;
     left.extend_derivation(nextleft+1,true);
 
@@ -233,7 +233,7 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
     }
 
     //extend to the right
-    Edge& right = d->right_daughter();
+    PEdge& right = d->right_daughter();
     unsigned nextright = pep.right_index + 1;
 
     right.extend_derivation(nextright+1,true);
@@ -269,7 +269,7 @@ void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_in
 
 
     //extend to the left
-    Edge& left  = d->left_daughter();
+    LBEdge& left  = d->left_daughter();
     unsigned nextleft = pep.left_index + 1;
 
     left.extend_derivation(nextleft+1, false);

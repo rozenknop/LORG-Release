@@ -21,6 +21,7 @@ struct MaxRuleKBTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRuleKBTypes > Edge ;
+  typedef BasePackedEdge< MaxRuleKBTypes > PEdge ;
   typedef UPackedEdge< MaxRuleKBTypes > UEdge ;
   typedef LBPackedEdge< MaxRuleKBTypes > LBEdge ;
   typedef PCKYAllCell< MaxRuleKBTypes > Cell ;
@@ -38,6 +39,7 @@ public:
 
   typedef std::vector<packed_edge_probability_with_index> heap_type;
   typedef typename MaxRuleKBTypes::Edge Edge;
+  typedef typename MaxRuleKBTypes::PEdge PEdge;
   typedef typename MaxRuleKBTypes::UEdge UEdge;
   typedef typename MaxRuleKBTypes::LBEdge LBEdge;
   typedef typename MaxRuleKBTypes::Cell Cell;
