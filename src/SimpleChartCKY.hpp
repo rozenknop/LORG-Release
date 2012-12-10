@@ -1,8 +1,7 @@
-#ifndef ChartCKY_hpp
-#define ChartCKY_hpp
+#ifndef SimpleChartCKY_hpp
+#define SimpleChartCKY_hpp
 
-#include "ChartCKY.h"
-#include "PCKYAllCell.hpp"
+#include "SimpleChartCKY.h"
 
 /* use parallel_for in opencells_apply_bottom_up and opencells_apply_top_down */
 //#define WITH_PARALLEL_FOR
@@ -14,69 +13,7 @@
 // #define OPENCELLS_APPLY_CHART_TASK
 
 
-// assume that words in sentence are in left to right direction (start in ascending direction)
 template<class Types>
-ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) : size(find_last_in_sentence(s)), sentence(s), brackets(bs)
-{
-  Cell::set_max_size(grammar_size);
-  {
-    //       BLOCKTIMING("ChartCKY<Types>::ChartCKY theCells.assign");
-    nb_cells = (size*(size+1))/2;
-    unsigned nb_edges = nb_cells*grammar_size;
-    //       the_cells.assign(nbcells, protoCell);
-    the_cells = (Cell*) new char[nb_cells*sizeof(Cell)];
-    the_edges = (Edge*) new char[nb_edges*sizeof(Edge)];
-    std::fill((char*)the_cells, (char*)(the_cells+nb_cells), 0);
-    std::fill((char*)the_edges, (char*)(the_edges+nb_edges), 0);
-  }
-//     chart = new Cell * [size];
-
-  Edge * edge = the_edges;
-  for(unsigned i = 0; i < size; ++i) {
-    
-    //    std::cout << "i: " << i << std::endl;
-    {
-      //         BLOCKTIMING("ChartCKY<Types>::ChartCKY chart[i] = line_start;");
-//         chart[i] = line_start;//new Cell[size-i];
-    }
-//     for(unsigned j = i; j < size;++j, edge+=grammar_size) {
-//       //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
-//       Cell& cell = access(i,j);
-//       struct cell_close_helper
-//       {
-//         const bracketing& brackets;
-//         cell_close_helper(const bracketing& b) : brackets(b) {}
-//         bool operator()(const bracketing& other) const
-//         {
-//           return brackets.overlap(other);
-//         }
-//       };
-    for(unsigned j = i; j < size;++j, edge+=grammar_size) {
-      //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
-      Cell& cell = access(i,j);
-      bool close = brackets.end() != std::find_if(brackets.begin(),brackets.end(),
-                                                  [&](const bracketing & other){return bracketing(i,i+j).overlap(other);}) ;
-      cell.init(close, i, j, edge, i==0 and j==size-1);
-    }
-  }
-  
-  for (unsigned i = 0; i < sentence.size(); ++i)
-  {
-    //       BLOCKTIMING("ChartCKY<Types>::ChartCKY add_word");
-    // todo: proper error handling
-    if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
-      std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
-    
-    access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
-  }    
-//     std::cout << "Chart is built and intialised" << std::endl;
-//     std::cout << *this << std::endl; std::cout.flush();
-}
-
-  
-  
-  
-  template<class Types>
 void
 ChartCKY<Types>::opencells_apply_nothread( std::function<void(Cell &)> f)
 {
@@ -132,7 +69,7 @@ ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(const Cel
       unsigned end = begin + span ;
       //std::cout << '(' << begin << ',' << end << ')' << std::endl;
       
-      const Cell& cell = access(begin,end);
+      Cell& cell = access(begin,end);
       if(!cell.is_closed()) f(cell);
     }
   }
@@ -213,10 +150,10 @@ template<class Types>
 void
 ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
 {
-  tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell>::iterator>(the_cells.begin(), the_cells.end()),
-                    [&f](const tbb::blocked_range<typename std::vector<Cell>::iterator>& r){
+  tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
+                    [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
                       for (auto cell = r.begin(); cell < r.end(); ++cell) {
-                        if(! cell->is_closed()) f(*cell);
+                        if(!(**cell).is_closed()) f(**cell);
                       }
                     }
   );
@@ -254,11 +191,11 @@ public:
   void
   ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
-    tbb::parallel_for(tbb::blocked_range<Cell *>(the_cells, the_cells+nb_cells),
-                      [&f](const tbb::blocked_range<Cell *>& r){
+    tbb::parallel_for(tbb::blocked_range<typename std::vector<Cell *>::iterator>(vcells.begin(), vcells.end()),
+                      [&f](const tbb::blocked_range<typename std::vector<Cell *>::iterator>& r){
 //                         std::cerr << "blockedrange="<< (r.end() - r.begin()) << std::endl;
                         for (auto cell = r.begin(); cell < r.end(); ++cell) {
-                          if(!cell->is_closed()) f(*cell);
+                          if(!(**cell).is_closed()) f(**cell);
                         }
                       }
     );
@@ -272,19 +209,19 @@ public:
   template<typename Cell>
   class ParallelTask: public tbb::task {
     const std::function<void(Cell &)> action ;
-    atomic<Cell*> & it  ;
-    Cell* end ;
+    atomic<Cell**> & it  ;
+    Cell** end ;
     tbb::task * waiter;
     
   public:
-    ParallelTask(std::function<void(Cell &)> _action, atomic<Cell *> & _it, Cell * _end, tbb::task * _waiter)
+    ParallelTask(std::function<void(Cell &)> _action, atomic<Cell **> & _it, Cell ** _end, tbb::task * _waiter)
     : action(_action), it(_it), end(_end), waiter(_waiter)
     {
       //     std::cout << "ParallelTask it = " << _it << std::endl;
     }
     task* execute() {
       __TBB_ASSERT( ref_count()==0, NULL );
-      Cell * oldit, * newit;
+      Cell ** oldit, ** newit;
       do {
         oldit = it ; newit = oldit;
         if (newit!=end) ++newit;
@@ -292,7 +229,7 @@ public:
       
       if (oldit != end) {
         //       std::cout << "cell : " << it << " ? " << end << std::endl ;
-        if (not oldit->is_closed()) action(*oldit);
+        if (not (**oldit).is_closed()) action(**oldit);
         recycle_as_continuation();
         return this;
       } else {
@@ -306,11 +243,11 @@ public:
   void
   ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
-    atomic<Cell *> it; it = the_cells.data();
+    atomic<Cell **> it; it = &vcells[0];
     tbb::task_list seeds;
     tbb::task * waiter = new( tbb::task::allocate_root() ) tbb::empty_task;
     for (signed t=0; t</*1*/tbb::task_scheduler_init::default_num_threads(); ++t) {
-      ParallelTask<Cell> & task = *new (tbb::task::allocate_root()) ParallelTask<Cell>(f, it, the_cells.data()+the_cells.size(), waiter);
+      ParallelTask<Cell> & task = *new (tbb::task::allocate_root()) ParallelTask<Cell>(f, it, &vcells[0]+vcells.size(), waiter);
       task.set_ref_count(2);
       seeds.push_back(task);
       waiter->increment_ref_count();
@@ -331,8 +268,8 @@ public:
   ChartCKY<Types>::opencells_apply( std::function<void(Cell &)> f)
   {
     tbb::task_group g;
-    for(auto & cell: the_cells) {
-      if(!cell.is_closed()) g.run([&cell,&f](){f(cell);});
+    for(auto cell: vcells) {
+      if(!cell->is_closed()) g.run([cell,&f](){f(*cell);});
     }
     g.wait();
   }
@@ -349,10 +286,10 @@ public:
     tbb::task_list seeds;
     unsigned count = 0;
     
-    for(auto & cell: the_cells) {
-      if(not cell.is_closed())
+    for(auto cell: vcells) {
+      if(not cell->is_closed())
       {
-        ChartTask * t = new( tbb::task::allocate_root() ) ChartTask([&cell,&f](){f(cell);});
+        ChartTask * t = new( tbb::task::allocate_root() ) ChartTask([cell,&f](){f(*cell);});
         t->successor[0] = waiter;
         t->successor[1] = NULL;
         t->set_ref_count(2);
@@ -483,47 +420,34 @@ public:
   
   template<class Types>
   inline
-  typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end)
+  typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
   {
     //   assert(start <= end);
     //   assert(end < size);
-    //     return chart[start][end-start];
-//     std::cout << "access("<<start<<","<<end<<") = "<<start + ( (end-start)*(2*size - (end-start) + 1))/2 << std::endl; std::cout.flush();
-    return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
-  }
-  
-  template<class Types>
-  inline
-  const typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
-  {
-    //   assert(start <= end);
-    //   assert(end < size);
-    //     return chart[start][end-start];
-    return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
+    return chart[start][end-start];
   }
   
   template<class Types>
   ChartCKY<Types>::~ChartCKY()
   {
-    opencells_apply([](Cell&cell){cell.Cell::~Cell();});
-//     for (unsigned i=0; i<nb_cells * Cell::get_max_size(); ++i) {if (not the_edges[i].is_closed()) the_edges[i].Edge::~Edge();}
-    delete [] (char*) the_cells;
-    delete [] (char*) the_edges;
-
-//     for(unsigned i = 0; i < size; ++i)
-//       delete[] chart[i];
-//     delete[] chart;
+    for(unsigned i = 0; i < size; ++i)
+      delete[] chart[i];
+    delete[] chart;
   }
   
-  
-  template<class Types>
-  typename Types::Cell& ChartCKY<Types>::get_root()
+  struct cell_close_helper
   {
-    return access(0,size-1);
-  }
+    const bracketing& brackets;
+    cell_close_helper(const bracketing& b) : brackets(b) {}
+    bool operator()(const bracketing& other) const
+    {
+      return brackets.overlap(other);
+    }
+  };
+  
   
   template<class Types>
-  const typename Types::Cell& ChartCKY<Types>::get_root() const
+  typename Types::Cell& ChartCKY<Types>::get_root() const
   {
     return access(0,size-1);
   }
@@ -574,6 +498,55 @@ public:
   
   
   
+  // assume that words in sentence are in left to right direction (start in ascending direction)
+  template<class Types>
+  ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size, const std::vector<bracketing>& bs) :
+  chart(NULL),
+  size(find_last_in_sentence(s)),
+  sentence(s),
+  brackets(bs)
+  {
+    Cell::set_max_size(grammar_size);
+    
+    chart = new Cell * [size];
+    
+    for(unsigned i = 0; i < size; ++i) {
+      
+      //    std::cout << "i: " << i << std::endl;
+      
+      chart[i] = new Cell[size-i];
+      
+      for(unsigned j = i; j < size;++j) {
+        Cell& cell = access(i,j);
+        bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
+        cell.init(close, i, j, i==0 and j==size-1);
+      }
+    }
+    
+    for (unsigned i = 0; i < sentence.size(); ++i)
+    {
+      // todo: proper error handling
+      if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
+        std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
+      
+      access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
+    }
+    
+    #ifdef USE_THREADS
+    unsigned sent_size=get_size();
+    vcells.reserve((sent_size*(sent_size+1))/2);
+    for (signed span = sent_size-1; span >= 0; --span) {
+      unsigned end_of_begin=sent_size-span;
+      for (unsigned begin=0; begin < end_of_begin; ++begin) {
+        unsigned end = begin + span ;
+        vcells.push_back(& access(begin,end)) ;
+      }
+    }
+    //   std::cout << "Size of vcells : " << vcells.size() << ", begin : " << &vcells[0] << ", end : " << &vcells[0]+vcells.size() << std::endl;
+    #endif
+    
+    //  std::cout << "Chart is built and intialised" << std::endl;
+  }
   
   
   
@@ -613,15 +586,14 @@ public:
     
     for(unsigned i = 0; i < size; ++i) {
       // j == 0 -> word position
-      Cell& cell = access(i,i); //the_chart[i]; //chart[i][0];
+      Cell& cell = chart[i][0];
       cell.reinit(false);
       cell.add_word(sentence[i]);
       
       // regular chart cells
       for(unsigned j = 1; j < size-i;++j) {
-        bool close = brackets.end() != std::find_if(brackets.begin(),brackets.end(),
-                                                    [&](const bracketing & other){return bracketing(i,i+j).overlap(other);}) ;
-        access(i,i+j)/*chart[i][j]*/.reinit(close);
+        bool close = std::find_if(brackets.begin(),brackets.end(), cell_close_helper(bracketing(i,i+j))) != brackets.end() ;
+        chart[i][j].reinit(close);
       }
     }
   }

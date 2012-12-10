@@ -17,8 +17,20 @@ public:
   LexicalRule(short lhs_, int rhs_, const std::vector<double> lex_probs) : 
     AnnotatedRule(lhs_), rhs0(rhs_), probabilities(lex_probs) {}
   
-  bool is_lexical() const {return true;}
-  bool is_unary() const {return true;}
+  /**
+     \brief -> always true
+   */
+  inline bool is_lexical() const {return true;}
+  /**
+     \brief -> always false
+   */
+  inline bool is_unary() const {return false;}
+  /**
+     \brief -> always false
+   */
+  inline bool is_binary() const {return false;}
+
+
   
   /**
      \brief returns attribute rhs0

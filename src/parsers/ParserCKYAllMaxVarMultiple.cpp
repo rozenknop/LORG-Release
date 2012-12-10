@@ -50,7 +50,7 @@ ParserCKYAllMaxRuleMultiple::~ParserCKYAllMaxRuleMultiple()
 }
 
 
-void ParserCKYAllMaxRuleMultiple::change_rules_reset() const
+void ParserCKYAllMaxRuleMultiple::change_rules_reset()
 {
   this->chart->opencells_apply(
       [](Cell& cell)

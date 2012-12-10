@@ -1,4 +1,4 @@
-#include "edges/PackedEdge.h"
+#include "edges/PackedEdge.hpp"
 #include "ChartCKY.h"
 #include "parsers/mindivkb/ParserCKYAllMinDivKB.h"
 

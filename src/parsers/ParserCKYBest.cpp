@@ -1,5 +1,5 @@
 #include "ParserCKYBest.h"
-#include "ChartCKY.hpp"
+#include "SimpleChartCKY.hpp"
 
 ParserCKYBest::~ParserCKYBest()
 {

@@ -184,9 +184,11 @@ public:
   void initialise_chart(const std::vector< Word >& sentence, const std::vector<bracketing>& brackets)
   {
     chart = new Chart(sentence, get_nonterm_count(), brackets);
+//     std::cout << *chart << std::endl;
+
   }
 
-  void clean() { delete chart; chart = NULL;}
+  void clean() { delete chart; chart = nullptr;}
 
 
  private:
@@ -294,5 +296,6 @@ protected:
  protected: // attributes
   Chart * chart; // the chart
 };
+
 
 #endif /*PARSERCKYALL_H*/

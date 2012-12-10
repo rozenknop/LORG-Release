@@ -1,6 +1,6 @@
 // -*- mode: c++ -*-
-#ifndef CHARTCKY_H_
-#define CHARTCKY_H_
+#ifndef SIMPLECHARTCKY_H_
+#define SIMPLECHARTCKY_H_
 
 #include "utils/PtbPsTree.h"
 #include "utils/LorgConstants.h"
@@ -28,18 +28,17 @@ template<class Types>
 class ChartCKY
 {
 public:
-  typedef typename Types::Cell Cell;
-  typedef typename Types::Edge Edge;
+  typedef typename Types::Cell Cell ;
   typedef typename Types::ChartWord MyWord;
 
 private:
-  Cell * the_cells; ///< the chart itself
-  Edge * the_edges; ///< the edges of the chart
-//   Cell ** chart; ///< pointers on each column of the chart
-  unsigned size;     ///< the size of the chart (width)
-  unsigned nb_cells; ///< number of cells in the chart
+  Cell ** chart; ///< the chart itself
+  unsigned size;     ///< the size of the chart
   const std::vector< MyWord >& sentence;
   const std::vector<bracketing>& brackets;
+  #ifdef USE_THREADS
+  std::vector<Cell *> vcells;
+  #endif
 
   // prevents unwanted conversions
   ChartCKY(const ChartCKY&);
@@ -70,11 +69,9 @@ public:
      \return a cell (may segfault if coordinates are out of bounds)
   */
 
-  const Cell& access(unsigned start, unsigned end) const;
-  Cell& access(unsigned start, unsigned end);
+  Cell& access(unsigned start, unsigned end) const;
 
-  inline const Cell& get_root() const;
-  Cell& get_root();
+  Cell& get_root() const;
 
   PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations) const;
 

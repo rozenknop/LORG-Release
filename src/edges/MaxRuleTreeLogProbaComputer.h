@@ -25,8 +25,8 @@ public:
     //    std::cout << left_idx << " : " << right_idx << std::endl;
     //    std::cout << *(dtr.get_rule()) << std::endl;
     
-    const Edge & left  = dtr.left_daughter ()->get_edge (dtr.get_rule ()->get_rhs0 ());
-    const Edge & right = dtr.right_daughter ()->get_edge (dtr.get_rule ()->get_rhs1 ());
+    const Edge & left  = dtr.left_daughter ();
+    const Edge & right = dtr.right_daughter ();
     
     double probability = 0.0;
     
@@ -171,7 +171,7 @@ public:
   {
     double probability = 0;
     
-    const Edge & left = (dtrs.left_daughter ())->get_edge (dtrs.get_rule ()->get_rhs0 ());
+    const Edge & left = dtrs.left_daughter();
     
     const scaled_array & left_inside = left.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;

@@ -11,7 +11,7 @@
 #include "ParserCKYAllMaxVarMultiple.h"
 #include "mindivkb/ParserCKYAllMinDivKB.h"
 
-#include "ParserCKYAll.hpp"
+// #include "ParserCKYAll.hpp"
 #include "grammars/GrammarAnnotated.hpp"
 #include "utils/data_parsers/AnnotHistoriesParser.h"
 

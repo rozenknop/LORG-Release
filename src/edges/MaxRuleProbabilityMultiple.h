@@ -182,7 +182,7 @@ void MaxRuleProbabilityMultiple::update_unary(Edge& e, const UnaryDaughter & dtr
   const AnnotationInfo & a = e.get_annotations();
   double probability = -std::numeric_limits<double>::infinity();
 
-  Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
+  Edge& left  = dtr.left_daughter();
   if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
     probability =  QInsideComputer::compute(a, dtr, log_normalisation_factor);
   }
@@ -315,10 +315,10 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryDaughter& dtr)
 
     const BinaryDaughter * d = static_cast<const BinaryDaughter*>(p.dtrs);
 
-    Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
+    Edge& left  = d->left_daughter();
     const std::vector<AnnotationInfo>& leftannots = left.get_prob_model().get_annotations_backup();
 
-    Edge& right = d->right_daughter()->get_edge(d->get_rule()->get_rhs1());
+    Edge& right = d->right_daughter();
     const std::vector<AnnotationInfo>& rightannots = right.get_prob_model().get_annotations_backup();
 
     p.probability = 0;
@@ -371,7 +371,7 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryDaughter & dtr)
 
     const UnaryDaughter* d = static_cast<const UnaryDaughter*>(p.dtrs);
 
-    Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
+    Edge& left  = d->left_daughter();
 
     if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
 
@@ -544,10 +544,10 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
 
     const BinaryDaughter* d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
-    Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
+    Edge& left  = d->left_daughter();
     const std::vector<AnnotationInfo>& leftannots = left.get_prob_model().get_annotations_backup();
 
-    Edge& right = d->right_daughter()->get_edge(d->get_rule()->get_rhs1());
+    Edge& right = d->right_daughter();
     const std::vector<AnnotationInfo>& rightannots = right.get_prob_model().get_annotations_backup();
 
     //extend to the left
@@ -645,7 +645,7 @@ void MaxRuleProbabilityMultiple::find_succ(Edge* edge, packed_edge_probability_w
 
     const UnaryDaughter* d = static_cast<const UnaryDaughter*>(pep.dtrs);
 
-    Edge& left  = d->left_daughter()->get_edge(d->get_rule()->get_rhs0());
+    Edge& left  = d->left_daughter();
     const std::vector<AnnotationInfo>& leftannots = left.get_prob_model().get_annotations_backup();
 
     //        std::cout << * d->get_rule() << std::endl;

@@ -89,7 +89,7 @@ inline void MaxRuleProbability1B::update_unary (Edge & e, const UnaryDaughter & 
 {
   double probability = -std::numeric_limits<double>::infinity();
 
-  Edge& left  = dtr.left_daughter()->get_edge(dtr.get_rule()->get_rhs0());
+  const Edge& left  = dtr.left_daughter();
   if(left.get_prob_model().get(0).dtrs && (left.get_prob_model().get(0).dtrs->is_lexical() || left.get_prob_model().get(0).dtrs->is_binary())) {
     probability =  QInsideComputer::compute(e.get_annotations(), dtr, log_normalisation_factor);
   }
