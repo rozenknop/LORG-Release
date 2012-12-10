@@ -197,7 +197,7 @@ public:
 
   bool no_daughters() { return binary_daughters.empty() and unary_daughters.empty() and lexical_daughters.empty(); } 
   bool is_closed() const { return not open; }
-  void close() { open=false; binary_daughters.clear(); unary_daughters.clear(); lexical_daughters.clear(); Edge::~Edge(); }
+  void close() { open=false; Edge::~Edge(); }
   
 protected :
   bvector binary_daughters;    ///< set of possible daughters

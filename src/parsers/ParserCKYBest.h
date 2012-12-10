@@ -4,7 +4,7 @@
 
 
 #include "grammars/Grammar.h"
-#include "ChartCKY.h"
+#include "SimpleChartCKY.h"
 #include "edges/Edge.h"
 #include "PCKYBestCell.h"
 
@@ -19,6 +19,7 @@ struct SimpleBestTypes {
   typedef Word ChartWord ;
   typedef PCKYBestCell Cell ;
   typedef ChartCKY< SimpleBestTypes > Chart ;
+  typedef ::Edge Edge;
 };
 
 
