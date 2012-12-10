@@ -2,8 +2,9 @@
 #include <string>
 #include <vector>
 
+#include "ChartCKY.hpp"
 #include "edges/Edge.h"
-#include "edges/PackedEdge.h"
+#include "edges/PackedEdge.hpp"
 #include "edges/PackedEdgeDaughters.h"
 #include "edges/PackedEdgeProbability.h"
 #include "edges/MaxRuleProbabilityKB.h"
@@ -117,14 +118,14 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(PackedEdgeDaughtersSuite)
 
-BOOST_AUTO_TEST_CASE(RuleHolderTest){
+BOOST_AUTO_TEST_CASE(TypedRulePackedEdgeDaughtersTest){
     BRule br(0, 1, 2, std::vector<binary_proba_info>());
     BRule br2(3, 4, 5, std::vector<binary_proba_info>());
 
     const BRuleC2f *br_c2f = new BRuleC2f(br);
     const BRuleC2f *br2_c2f = new BRuleC2f(br2);
 
-    RuleHolder<BRuleC2f> rh(br_c2f);
+    TypedRulePackedEdgeDaughters<BRuleC2f> rh(br_c2f);
     BOOST_CHECK_EQUAL(rh.get_rule(), br_c2f);
     rh.set_rule(br2_c2f);
     BOOST_CHECK_EQUAL(rh.get_rule(), br2_c2f);
@@ -137,21 +138,21 @@ BOOST_AUTO_TEST_CASE(BinaryEdgeDaughtersTest){
     const BRuleC2f *br_c2f = new BRuleC2f(BRule(0, 1, 2, std::vector<binary_proba_info>()));
     const URuleC2f *ur_c2f = new URuleC2f(URule(0, 1, std::vector<unary_proba_info>()));
     const LexicalRuleC2f *lr_c2f = new LexicalRuleC2f(LexicalRule(0, 1, std::vector<lexical_proba_info>()));
-    std::string *left = new std::string;
-    std::string *right = new std::string;
+    PackedEdge<StringType> *left  = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
+    PackedEdge<StringType> *right = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
 
-    BinaryPackedEdgeDaughters<StringType> *bped = new BinaryPackedEdgeDaughters<StringType>(left, right, br_c2f);
+    BinaryPackedEdgeDaughters<StringType> *bped = new BinaryPackedEdgeDaughters<StringType>(*left, *right, br_c2f);
 
     BOOST_CHECK_EQUAL(bped->is_binary(), true);
     BOOST_CHECK_EQUAL(bped->is_lexical(), false);
-    BOOST_CHECK_EQUAL(bped->left_daughter(), left);
-    BOOST_CHECK_EQUAL(bped->right_daughter(), right);
+    BOOST_CHECK_EQUAL(& bped->left_daughter(), left);
+    BOOST_CHECK_EQUAL(& bped->right_daughter(), right);
 
-    UnaryPackedEdgeDaughters<StringType> *uped = new UnaryPackedEdgeDaughters<StringType>(left, ur_c2f);
+    UnaryPackedEdgeDaughters<StringType> *uped = new UnaryPackedEdgeDaughters<StringType>(*left, ur_c2f);
 
     BOOST_CHECK_EQUAL(uped->is_binary(), false);
     BOOST_CHECK_EQUAL(uped->is_lexical(), false);
-    BOOST_CHECK_EQUAL(uped->left_daughter(), left);
+    BOOST_CHECK_EQUAL(& uped->left_daughter(), left);
 
     SymbolTable& st_word  = SymbolTable::instance_word();
     st_word.insert("cat");
@@ -163,6 +164,10 @@ BOOST_AUTO_TEST_CASE(BinaryEdgeDaughtersTest){
     BOOST_CHECK_EQUAL(lped->is_binary(), false);
     BOOST_CHECK_EQUAL(lped->is_lexical(), true);
     BOOST_CHECK_EQUAL(lped->get_word(), w);
+    
+    right->~Edge(); left->~Edge();
+    delete [] (char*) right; delete [] (char*) left;
+    delete br_c2f; delete ur_c2f; delete lr_c2f;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -252,29 +257,33 @@ BOOST_AUTO_TEST_CASE(PackedEdgeProbabilityTest){
     BOOST_CHECK(p2 > p);
 }
 
-BOOST_AUTO_TEST_CASE(PackedEdgeConstructorsTest){
-    //For the sake of the test with use a dummy
-    //PackedEdge Probability ie string (uh ?)
-    typedef typename StringType::BinaryDaughter BinaryDaughter;
-    typedef typename StringType::UnaryDaughter UnaryDaughter;
-    typedef typename StringType::LexicalDaughter LexicalDaughter;
-    typedef typename StringType::Edge Edge;
-    
-    typename StringType::Edge *ped = new StringType::Edge();
-    BOOST_CHECK_EQUAL(ped->get_annotations().get_size(), 1U);
 
-    BinaryDaughter bped(NULL, NULL, NULL);
-    Edge *ped2 = new Edge(bped);
-    BOOST_CHECK_EQUAL(ped2->get_binary_daughters().size(), 1U);
-
-    UnaryDaughter uped(NULL, NULL);
-    Edge *ped3 = new Edge(uped);
-    BOOST_CHECK_EQUAL(ped3->get_unary_daughters().size(), 1U);
-
-    LexicalDaughter lped(NULL, NULL);
-    Edge *ped4 = new Edge(lped);
-    BOOST_CHECK_EQUAL(ped4->get_lexical_daughters().size(), 1U);
-}
+// BOOST_AUTO_TEST_CASE(PackedEdgeConstructorsTest){
+//
+// PackedEdge constructors are forbidden (to speed up allocation)
+//
+//     //For the sake of the test with use a dummy
+//     //PackedEdge Probability ie string (uh ?)
+//     typedef typename StringType::BinaryDaughter BinaryDaughter;
+//     typedef typename StringType::UnaryDaughter UnaryDaughter;
+//     typedef typename StringType::LexicalDaughter LexicalDaughter;
+//     typedef typename StringType::Edge Edge;
+//     
+//     typename StringType::Edge *ped = (StringType::Edge *) new char[sizeof(StringType::Edge)];
+//     BOOST_CHECK_EQUAL(ped->get_annotations().get_size(), 1U);
+// 
+//     BinaryDaughter bped(NULL, NULL, NULL);
+//     Edge *ped2 = new Edge(bped);
+//     BOOST_CHECK_EQUAL(ped2->get_binary_daughters().size(), 1U);
+// 
+//     UnaryDaughter uped(NULL, NULL);
+//     Edge *ped3 = new Edge(uped);
+//     BOOST_CHECK_EQUAL(ped3->get_unary_daughters().size(), 1U);
+// 
+//     LexicalDaughter lped(NULL, NULL);
+//     Edge *ped4 = new Edge(lped);
+//     BOOST_CHECK_EQUAL(ped4->get_lexical_daughters().size(), 1U);
+// }
 
 BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
   typedef typename StringType::BinaryDaughter BinaryDaughter;
@@ -282,14 +291,15 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
   typedef typename StringType::LexicalDaughter LexicalDaughter;
   typedef typename StringType::Edge Edge;
   
-    BinaryDaughter bped(NULL, NULL, NULL);
-    Edge *ped = new Edge(bped);
-
-    UnaryDaughter uped(NULL, NULL);
-    Edge *ped2 = new Edge(uped);
-
-    LexicalDaughter lped(NULL, NULL);
-    Edge *ped3 = new Edge(lped);
+    PackedEdge<StringType> *left  = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
+    PackedEdge<StringType> *right = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
+    PackedEdge<StringType> *ped = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
+    PackedEdge<StringType> *ped2 = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
+    PackedEdge<StringType> *ped3 = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
+    
+    ped->add_daughters(*left, *right, nullptr);
+    ped2->add_daughters(*left, nullptr);
+    ped3->add_daughters(nullptr, nullptr);
 
     BOOST_CHECK_EQUAL(ped->get_binary_daughters().size(), 1U);
 
@@ -309,7 +319,7 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
     BOOST_CHECK_EQUAL(annot.get_size(), 1U);
 
     //Backup is only in use for MaxRuleProbabilityMultiple
-    typename StringMultipleType::Edge *ped_maxrulem = new StringMultipleType::Edge();
+    typename StringMultipleType::Edge *ped_maxrulem = (StringMultipleType::Edge *) new char[sizeof(StringMultipleType::Edge)];
     std::vector<AnnotationInfo>& backup = ped_maxrulem->get_prob_model().get_annotations_backup();
     BOOST_CHECK_EQUAL(backup.size(), 0U);
 }
