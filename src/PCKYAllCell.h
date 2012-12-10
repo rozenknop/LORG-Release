@@ -95,7 +95,9 @@ public:
      \return true if label is in the cell
   */
   bool exists_edge(int label) const;
-
+  bool exists_uedge(int label) const;
+  bool exists_lbedge(int label) const;
+  
 
   /**
      \brief test if there's an edge in the cell
@@ -205,6 +207,26 @@ bool PCKYAllCell<Types>::exists_edge(int label) const
   assert(label >= 0);
   assert(label < (int) max_size);
   return (not edges[label].is_closed());
+}
+
+
+template<class Types>
+inline
+bool PCKYAllCell<Types>::exists_uedge(int label) const
+{
+  assert(label >= 0);
+  assert(label < (int) max_size);
+  return (not edges[label].uedge().is_closed());
+}
+
+
+template<class Types>
+inline
+bool PCKYAllCell<Types>::exists_lbedge(int label) const
+{
+  assert(label >= 0);
+  assert(label < (int) max_size);
+  return (not edges[label].lbedge().is_closed());
 }
 
 

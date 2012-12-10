@@ -32,13 +32,14 @@ void ParserCKYAllViterbi::extract_solution()
     [&annotations_info](Cell & cell){
       
       for(unsigned i = 0; i < cell.get_max_size(); ++i) {
-        if(cell.exists_edge(i))  {
-          cell.get_edge(i).get_prob_model().set_size(annotations_info.get_number_of_annotations(i));
+        if(cell.exists_lbedge(i))  {
+          cell.get_edge(i).lbedge().get_best().set_size(annotations_info.get_number_of_annotations(i));
           cell.get_edge(i).replace_rule_probabilities(0);
-          cell.get_edge(i).apply(&ViterbiProbability::update_lexical);
-          cell.get_edge(i).apply(&ViterbiProbability::update_binary);
+          cell.get_edge(i).lbedge().lbapply(&ViterbiProbability::update_lexical,
+                                   &ViterbiProbability::update_binary);
         }
       }
+      #warning no unary update for Viterbi ?
     }
   );
 }

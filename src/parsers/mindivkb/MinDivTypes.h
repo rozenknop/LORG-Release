@@ -13,7 +13,7 @@ class MinDivLRule;
 class MinDivBinaryDaughter;
 class MinDivUnaryDaughter;
 class MinDivLexicalDaughter;
-
+class MinDivBest;
 
 struct MinDivKBTypes {
   typedef MinDivProbabilityKB EdgeProbability ;
@@ -35,6 +35,8 @@ struct MinDivKBTypes {
   typedef MinDivBinaryDaughter BinaryDaughter;
   typedef MinDivUnaryDaughter  UnaryDaughter;
   typedef MinDivLexicalDaughter LexicalDaughter;
+
+  typedef MinDivBest Best;
 };
 
 #endif

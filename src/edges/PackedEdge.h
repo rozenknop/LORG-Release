@@ -225,10 +225,11 @@ public:
   void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(this->get_prob_model(), d);}
   void process(function<void(ProbaModel &, UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(this->get_prob_model(), d);}
 
+  void uapply() {}
   template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
+  void uapply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));uapply(o...);}
   template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
+  void uapply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));uapply(o...);}
 
 };
 
@@ -327,10 +328,15 @@ public:
   void process(function<void(ProbaModel &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(this->get_prob_model(), d);}
   void process(function<void(ProbaModel &, BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(this->get_prob_model(), d);}
 
+  void lbapply() {}
   template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
+  void lbapply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));lbapply(o...);}
   template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
+  void lbapply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));lbapply(o...);}
+
+private:
+  void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
+                    bool append_annot, bool outpu_forms) const;
 };
 
 
@@ -371,7 +377,10 @@ public:
   /**
    * \brief replace rules with grammar #i
    */
-  void replace_rule_probabilities(unsigned i);  
+  void replace_rule_probabilities(unsigned i);
+
+  LBEdge & lbedge() { return static_cast<LBEdge &>(*this) ; }
+  UEdge  &  uedge() { return static_cast<UEdge  &>(*this) ; }
 };
 
 

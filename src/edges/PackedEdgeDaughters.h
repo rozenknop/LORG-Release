@@ -68,12 +68,9 @@ protected:
   EdgePtr right;
 //   friend class Types::Edge ;
 public:
-//   inline BinaryPackedEdgeDaughters & operator=(BinaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
   BinaryPackedEdgeDaughters(PEdge& le, PEdge& ri, const typename Types::BRule * ru) :
     Parent(ru), left(&le),right(&ri)
   {};
-//   BinaryPackedEdgeDaughters(BinaryPackedEdgeDaughters&& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
-//   BinaryPackedEdgeDaughters(const BinaryPackedEdgeDaughters& o) : PackedEdgeDaughters(), RH(o), left(o.left),right(o.right) {}
 
   ~BinaryPackedEdgeDaughters() {};
 
@@ -93,11 +90,9 @@ public:
   
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(Parent::rule != NULL);
-    if (left->has_unary() and right->has_unary()) {
-      Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
-                                                    static_cast<UEdge>(*left).get_annotations().inside_probabilities.array,
-                                                    static_cast<UEdge>(*right).get_annotations().inside_probabilities.array);
-    }
+    Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
+                                                  left-> get_annotations().inside_probabilities.array,
+                                                  right->get_annotations().inside_probabilities.array);
   }
   
   inline void update_outside_annotations(AnnotationInfo & annotations) const

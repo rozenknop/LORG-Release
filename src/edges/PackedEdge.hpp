@@ -385,17 +385,26 @@ PtbPsTree * BasePackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, boo
 }
 
 template <class Types>
+void LBPackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
+                                       PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
+                                       bool append_annot, bool output_forms) const
+{
+  assert(this->best.get(index).dtrs || get_lex());
+  BasePackedEdge<Types>::to_ptbpstree(tree,pos,lhs,index,append_annot,output_forms);
+}
+
+
+template <class Types>
 void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
                                    PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                                    bool append_annot, bool output_forms) const
 {
   std::ostringstream node_content;
-
   // default height for unary chains
   unsigned added_height = 1;
-
+  
   // either a valid internal node or a lexical one
-  assert(best.get(index).dtrs || get_lex());
+  assert(best.get(index).dtrs);
 
   // if we can't find a branching (lexical node)
   // the nwe exit
