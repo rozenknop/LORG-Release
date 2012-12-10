@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVARMULTIPLE_CPP_
 #define _PARSERCKYALLMAXVARMULTIPLE_CPP_
 
-#include "ParserCKYAll.hpp"
-#include "ParserCKYAllMaxVarMultiple.h"
+#include "parsers/ParserCKYAll.hpp"
+#include "ParserCKYAllMaxRuleMultiple.h"
 
 
 

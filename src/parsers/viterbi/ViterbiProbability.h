@@ -3,8 +3,8 @@
 #ifndef _VITERBIPROBABILITY_H_
 #define _VITERBIPROBABILITY_H_
 
-#include "PackedEdgeProbability.h"
-#include "PackedEdge.h"
+#include "edges/PackedEdgeProbability.h"
+#include "edges/PackedEdge.h"
 #include "ChartCKY.h"
 #include "emptystruct.h"
 
@@ -14,7 +14,7 @@ struct ViterbiTypes {
   typedef ViterbiProbability EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
-  
+
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
@@ -35,7 +35,7 @@ public:
   typedef typename ViterbiTypes::UnaryDaughter  UnaryDaughter;
   typedef typename ViterbiTypes::BinaryDaughter BinaryDaughter;
   typedef typename ViterbiTypes::LexicalDaughter LexicalDaughter;
-  
+
 private:
   std::vector<packed_edge_probability_with_index> best;
 public:

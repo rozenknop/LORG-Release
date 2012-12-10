@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVARONEBEST_H_
 #define _PARSERCKYALLMAXVARONEBEST_H_
 
-#include "ParserCKYAllMaxVar.h"
-#include "edges/MaxRuleProbability1B.h"
+#include "ParserCKYAllMaxRule.h"
+#include "MaxRuleProbability1B.h"
 #include "Word.h"
 
 #include "emptystruct.h"

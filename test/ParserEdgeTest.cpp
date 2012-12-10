@@ -7,8 +7,8 @@
 #include "edges/PackedEdge.hpp"
 #include "edges/PackedEdgeDaughters.h"
 #include "edges/PackedEdgeProbability.h"
-#include "edges/MaxRuleProbabilityKB.h"
-#include "edges/MaxRuleProbabilityMultiple.h"
+#include "parsers/maxrule/MaxRuleProbabilityKB.h"
+#include "parsers/maxrule/MaxRuleProbabilityMultiple.h"
 #include "utils/PtbPsTree.h"
 
 #include "rules/BRuleC2f.h"
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(BinaryEdgeDaughtersTest){
     BOOST_CHECK_EQUAL(lped->is_binary(), false);
     BOOST_CHECK_EQUAL(lped->is_lexical(), true);
     BOOST_CHECK_EQUAL(lped->get_word(), w);
-    
+
     right->~Edge(); left->~Edge();
     delete [] (char*) right; delete [] (char*) left;
     delete br_c2f; delete ur_c2f; delete lr_c2f;
@@ -268,18 +268,18 @@ BOOST_AUTO_TEST_CASE(PackedEdgeProbabilityTest){
 //     typedef typename StringType::UnaryDaughter UnaryDaughter;
 //     typedef typename StringType::LexicalDaughter LexicalDaughter;
 //     typedef typename StringType::Edge Edge;
-//     
+//
 //     typename StringType::Edge *ped = (StringType::Edge *) new char[sizeof(StringType::Edge)];
 //     BOOST_CHECK_EQUAL(ped->get_annotations().get_size(), 1U);
-// 
+//
 //     BinaryDaughter bped(NULL, NULL, NULL);
 //     Edge *ped2 = new Edge(bped);
 //     BOOST_CHECK_EQUAL(ped2->get_binary_daughters().size(), 1U);
-// 
+//
 //     UnaryDaughter uped(NULL, NULL);
 //     Edge *ped3 = new Edge(uped);
 //     BOOST_CHECK_EQUAL(ped3->get_unary_daughters().size(), 1U);
-// 
+//
 //     LexicalDaughter lped(NULL, NULL);
 //     Edge *ped4 = new Edge(lped);
 //     BOOST_CHECK_EQUAL(ped4->get_lexical_daughters().size(), 1U);
@@ -290,13 +290,13 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
   typedef typename StringType::UnaryDaughter UnaryDaughter;
   typedef typename StringType::LexicalDaughter LexicalDaughter;
   typedef typename StringType::Edge Edge;
-  
+
     PackedEdge<StringType> *left  = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
     PackedEdge<StringType> *right = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
     PackedEdge<StringType> *ped = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
     PackedEdge<StringType> *ped2 = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
     PackedEdge<StringType> *ped3 = (PackedEdge<StringType> *) new char[sizeof(PackedEdge<StringType>)];
-    
+
     ped->add_daughters(*left, *right, nullptr);
     ped2->add_daughters(*left, nullptr);
     ped3->add_daughters(nullptr, nullptr);

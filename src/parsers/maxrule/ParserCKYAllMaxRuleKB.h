@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVARKB_H_
 #define _PARSERCKYALLMAXVARKB_H_
 
-#include "edges/MaxRuleProbabilityKB.h"
-#include "ParserCKYAllMaxVar.h"
+#include "MaxRuleProbabilityKB.h"
+#include "ParserCKYAllMaxRule.h"
 
 
 class ParserCKYAllMaxRuleKB : public ParserCKYAllMaxRule<MaxRuleKBTypes>

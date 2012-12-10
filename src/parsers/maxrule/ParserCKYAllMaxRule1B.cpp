@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVARONEBEST_CPP_
 #define _PARSERCKYALLMAXVARONEBEST_CPP_
 
-#include "ParserCKYAllMaxVar1B.h"
-#include "ParserCKYAll.hpp"
+#include "ParserCKYAllMaxRule1B.h"
+#include "parsers/ParserCKYAll.hpp"
 
 double ParserCKYAllMaxRule1B::log_normalisation_factor = 0;
 

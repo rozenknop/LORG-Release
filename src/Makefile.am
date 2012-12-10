@@ -94,29 +94,23 @@ twostage_lorgparser_SOURCES += twostage_lorgparser.cpp \
 	utils/data_parsers/BURuleInputParser.cpp utils/data_parsers/BURuleInputParser.h \
 	utils/data_parsers/AnnotHistoriesParser.h utils/data_parsers/AnnotHistoriesParser.cpp \
 	edges/PackedEdge.h edges/PackedEdge.hpp edges/PackedEdgeDaughters.h edges/PackedEdgeProbability.h \
-	edges/ViterbiProbability.h \
-	edges/MaxRuleProbabilityKB.h \
 	edges/BestProbability.h \
-	edges/MaxRuleProbabilityMultiple.h \
-	edges/MaxRuleTreeLogProbaComputer.h \
+	parsers/maxrule/MaxRuleProbability1B.h parsers/maxrule/MaxRuleProbability1B.cpp \
+	parsers/maxrule/MaxRuleProbabilityKB.h parsers/maxrule/MaxRuleProbabilityKB.cpp \
+	parsers/maxrule/MaxRuleProbabilityMultiple.h parsers/maxrule/MaxRuleProbabilityMultiple.cpp \
+	parsers/maxrule/ParserCKYAllMaxRule1B.h parsers/maxrule/ParserCKYAllMaxRule1B.cpp \
+	parsers/maxrule/ParserCKYAllMaxRuleKB.h	parsers/maxrule/ParserCKYAllMaxRuleKB.cpp \
+	parsers/maxrule/ParserCKYAllMaxRuleMultiple.h parsers/maxrule/ParserCKYAllMaxRuleMultiple.cpp \
+	parsers/maxrule/MaxRuleTreeLogProbaComputer.h parsers/maxrule/ParserCKYAllMaxRule.h \
 	PCKYAllCell.h parsers/ParserCKYAll.h parsers/ParserCKYAll.hpp \
-	parsers/ParserCKYAllViterbi.h parsers/ParserCKYAllMaxVar.h \
-	parsers/ParserCKYAllMaxVarKB.h parsers/ParserCKYAllMaxVarMultiple.h \
-	parsers/ParserCKYAllMaxVar1B.h \
+	parsers/viterbi/ParserCKYAllViterbi.h parsers/viterbi/ParserCKYAllViterbi.cpp \
+	parsers/viterbi/ViterbiProbability.h parsers/viterbi/ViterbiProbability.cpp \
 	parsers/mindivkb/ParserCKYAllMinDivKB.h parsers/mindivkb/ParserCKYAllMinDivKB.cpp \
 	parsers/mindivkb/MinDivDaughters.h parsers/mindivkb/MinDivDaughters.cpp parsers/mindivkb/MinDivDaughters.hpp \
 	parsers/mindivkb/MinDivTypes.h \
 	parsers/ParserCKYAllFactory.h \
-	edges/ViterbiProbability.cpp \
-	edges/MaxRuleProbability1B.cpp \
-	edges/MaxRuleProbabilityKB.cpp \
-	edges/MaxRuleProbabilityMultiple.cpp \
 	parsers/ParserCKYAll.cpp \
 	parsers/ParserCKYAllFactory.cpp \
-	parsers/ParserCKYAllViterbi.cpp \
-	parsers/ParserCKYAllMaxVar1B.cpp \
-	parsers/ParserCKYAllMaxVarKB.cpp \
-	parsers/ParserCKYAllMaxVarMultiple.cpp \
 	utils/lorg_functional.h utils/tick_count.h utils/hash_impl.h \
 	rules/AnnotatedRule.h edges/AnnotationInfo.h edges/AnnotationInfo.cpp\
 	rules/C2f.h \

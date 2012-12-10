@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVARKB_CPP_
 #define _PARSERCKYALLMAXVARKB_CPP_
 
-#include "ParserCKYAllMaxVarKB.h"
-#include "ParserCKYAll.hpp"
+#include "ParserCKYAllMaxRuleKB.h"
+#include "parsers/ParserCKYAll.hpp"
 #include "utils/tick_count.h"
 
 ParserCKYAllMaxRuleKB::ParserCKYAllMaxRuleKB(std::vector<AGrammar*>& cgs,

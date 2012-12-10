@@ -2,8 +2,8 @@
 #ifndef _MAXRULEPROBABILITYKB_H_
 #define _MAXRULEPROBABILITYKB_H_
 
-#include "PackedEdgeProbability.h"
-#include "PackedEdge.h"
+#include "edges/PackedEdgeProbability.h"
+#include "edges/PackedEdge.h"
 #include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
@@ -15,7 +15,7 @@ struct MaxRuleKBTypes {
   typedef MaxRuleProbabilityKB EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
-  
+
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
@@ -40,7 +40,7 @@ public:
   typedef typename MaxRuleKBTypes::BinaryDaughter BinaryDaughter;
   typedef typename MaxRuleKBTypes::LexicalDaughter LexicalDaughter;
   typedef MaxRuleTreeLogProbaComputer<MaxRuleProbabilityKB> QInsideComputer;
-  
+
 private:
 
   heap_type candidates;
@@ -70,7 +70,7 @@ public:
   inline void update_unary(Edge& e, const UnaryDaughter& dtr);
   inline void update_binary(Edge& e, const BinaryDaughter& dtr);
   inline void finalize();
-  
+
   inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
   inline void extend_derivation(Edge*, unsigned, bool) ;
 
@@ -79,7 +79,7 @@ public:
   inline bool has_solution(unsigned i) const {return i <derivations.size();}
 
 private:
-  
+
   struct test_helper
   {
     const packed_edge_probability_with_index& pep;
@@ -91,7 +91,7 @@ private:
       ;
     }
   };
-  
+
   public:
     inline std::ostream& operator>>(std::ostream& out) const;
 };
@@ -146,7 +146,7 @@ void MaxRuleProbabilityKB::update_unary(Edge& e, const UnaryDaughter& dtr)
        derivations.push_back(pep);
   else if(pep.probability > derivations[0].probability)
        derivations[0] = pep;
-  
+
 //   std::cout << *this << std::endl;
 }
 

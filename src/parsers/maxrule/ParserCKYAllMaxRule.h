@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVAR_H_
 #define _PARSERCKYALLMAXVAR_H_
 
-#include "ParserCKY.h"
-#include "ParserCKYAll.h"
+//#include "ParserCKY.h"
+#include "parsers/ParserCKYAll.h"
 #include "utils/lorg_functional.h"
 
 template<class Types>

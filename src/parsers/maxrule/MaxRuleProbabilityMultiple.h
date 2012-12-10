@@ -3,13 +3,12 @@
 #ifndef _MAXRULEMULTIPLEPROBABILITY_H_
 #define _MAXRULEMULTIPLEPROBABILITY_H_
 
-#include "PackedEdgeProbability.h"
-#include "PackedEdge.h"
+#include "edges/PackedEdgeProbability.h"
+#include "edges/PackedEdge.h"
 #include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
 
-// #include <numeric>
 #include <vector>
 #include <unordered_map>
 
@@ -21,7 +20,7 @@ struct MaxRuleMultipleTypes {
   typedef MaxRuleProbabilityMultiple EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
-  
+
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
@@ -64,7 +63,7 @@ public:
   typedef typename MaxRuleMultipleTypes::UnaryDaughter UnaryDaughter;
   typedef typename MaxRuleMultipleTypes::BinaryDaughter BinaryDaughter;
   typedef typename MaxRuleMultipleTypes::LexicalDaughter LexicalDaughter;
-  
+
   MaxRuleProbabilityMultiple() : candidates(),
                                  derivations(heap_type(1))
   {candidates.reserve(50);};

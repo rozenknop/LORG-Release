@@ -5,10 +5,10 @@
 #include "ParserCKYAllFactory.h"
 
 #include "utils/ConfigTable.h"
-#include "ParserCKYAllViterbi.h"
-#include "ParserCKYAllMaxVar1B.h"
-#include "ParserCKYAllMaxVarKB.h"
-#include "ParserCKYAllMaxVarMultiple.h"
+#include "viterbi/ParserCKYAllViterbi.h"
+#include "maxrule/ParserCKYAllMaxRule1B.h"
+#include "maxrule/ParserCKYAllMaxRuleKB.h"
+#include "maxrule/ParserCKYAllMaxRuleMultiple.h"
 #include "mindivkb/ParserCKYAllMinDivKB.h"
 
 // #include "ParserCKYAll.hpp"
@@ -256,7 +256,7 @@ create_annot_descendants(const std::vector< Tree<unsigned> >& annot_histories)
       }
     }
   }
-  
+
   return result;
 }
 
