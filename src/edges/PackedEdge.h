@@ -141,6 +141,7 @@ public:
   inline bool has_solution(unsigned i) const ;
 
   PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
+
 private:
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                     bool append_annot, bool outpu_forms) const;
@@ -150,12 +151,6 @@ public:
   void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
   void process(function<void(ProbaModel &)> f) {f(get_prob_model());}
   void process(function<void(Edge &)> f) { f(*this); }
-
-  void apply() const {}
-  template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
-  template<typename Function, typename... OtherFunctions>
-  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
 };
 
 
@@ -216,21 +211,6 @@ public:
 
   inline bool no_daughters() { return unary_daughters.empty(); } 
   void close() { this->open=false; UPackedEdge::~UPackedEdge(); }
-
-  void process(function<void(const UnaryDaughter &)> f) const { for(const auto& d: get_unary_daughters()) f(d); }
-  void process(function<void(Edge &, UnaryDaughter &)> f) { for(auto& d: get_unary_daughters()) f(*this, d); }
-  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_unary_daughters()) f(d, this->get_annotations()); }
-  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_unary_daughters()) f(d, this->get_annotations()); }
-  void process(function<void(ProbaModel &, Edge &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(this->get_prob_model(), *this, d);}
-  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(const auto& d: get_unary_daughters()) f(this->get_prob_model(), d);}
-  void process(function<void(ProbaModel &, UnaryDaughter &)> f) {for(auto& d: get_unary_daughters()) f(this->get_prob_model(), d);}
-
-  void uapply() {}
-  template<typename Function, typename... OtherFunctions>
-  void uapply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));uapply(o...);}
-  template<typename Function, typename... OtherFunctions>
-  void uapply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));uapply(o...);}
-
 };
 
 
@@ -307,32 +287,11 @@ public:
   bool no_daughters() { return binary_daughters.empty() and lexical_daughters.empty(); } 
   void close() { this->open=false; LBPackedEdge<Types>::~LBPackedEdge(); }
 
-  void process(function<void(const LexicalDaughter &)> f) const {for(const auto& d: get_lexical_daughters()) f(d);}
-  void process(function<void(const BinaryDaughter &)> f) const { for(const auto& d: get_binary_daughters()) f(d); }
 
-  void process(function<void(Edge &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(*this, d);}
-  void process(function<void(Edge &, BinaryDaughter &)> f) { for(auto& d: get_binary_daughters()) f(*this, d); }
-
-  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {for(const auto& d: get_lexical_daughters()) f(d, this->get_annotations());}
-  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: get_binary_daughters()) f(d, this->get_annotations()); }
-
-  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: get_lexical_daughters()) f(d, this->get_annotations());}
-  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: get_binary_daughters()) f(d, this->get_annotations()); }
-
-  void process(function<void(ProbaModel &, Edge &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(this->get_prob_model(), *this, d);}
-  void process(function<void(ProbaModel &, Edge &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(this->get_prob_model(), *this, d);}
-
-  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(const auto& d: get_lexical_daughters()) f(this->get_prob_model(), d);}
-  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(const auto& d: get_binary_daughters()) f(this->get_prob_model(), d);}
-
-  void process(function<void(ProbaModel &, LexicalDaughter &)> f) {for(auto& d: get_lexical_daughters()) f(this->get_prob_model(), d);}
-  void process(function<void(ProbaModel &, BinaryDaughter &)> f) {for(auto& d: get_binary_daughters()) f(this->get_prob_model(), d);}
-
-  void lbapply() {}
-  template<typename Function, typename... OtherFunctions>
-  void lbapply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));lbapply(o...);}
-  template<typename Function, typename... OtherFunctions>
-  void lbapply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));lbapply(o...);}
+  PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
+  { 
+    return BasePackedEdge<Types>::to_ptbpstree(lhs,ith_deriv,append_annot,output_forms);
+  }
 
 private:
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
@@ -342,7 +301,7 @@ private:
 
 
 template<class Types>
-class PackedEdge : public UPackedEdge<Types>, public LBPackedEdge<Types>
+class PackedEdge
 {
 public:
   typedef typename Types::EdgeProbability ProbaModel;
@@ -373,14 +332,61 @@ public:
   typedef typename uvector::const_iterator  const_uiterator;
   typedef typename lvector::const_iterator  const_literator;
 
+private:
+  UEdge u;
+  LBEdge lb;
   
+public:
   /**
    * \brief replace rules with grammar #i
    */
   void replace_rule_probabilities(unsigned i);
 
-  LBEdge & lbedge() { return static_cast<LBEdge &>(*this) ; }
-  UEdge  &  uedge() { return static_cast<UEdge  &>(*this) ; }
+  LBEdge & lbedge() { return lb; }
+  UEdge  &  uedge() { return u; }
+  const LBEdge & lbedge() const { return lb; }
+  const UEdge  &  uedge() const { return u; }
+  
+  
+  inline bool has_solution(unsigned i) const { return lb.has_solution() or u.has_solution(); }
+
+  
+  
+  void process(function<void(const UnaryDaughter &)> f) const { for(const auto& d: u.get_unary_daughters()) f(d); }
+  void process(function<void(UEdge &, UnaryDaughter &)> f) { for(auto& d: u.get_unary_daughters()) f(u, d); }
+  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: u.get_unary_daughters()) f(d, u.get_annotations()); }
+  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: u.get_unary_daughters()) f(d, u.get_annotations()); }
+  void process(function<void(Best &, UEdge &, const UnaryDaughter &)> f) {for(const auto& d: u.get_unary_daughters()) f(u.get_best(), u, d);}
+  void process(function<void(Best &, const UnaryDaughter &)> f) {for(const auto& d: u.get_unary_daughters()) f(u.get_best(), d);}
+  void process(function<void(Best &, UnaryDaughter &)> f) {for(auto& d: u.get_unary_daughters()) f(u.get_best(), d);}
+
+  void process(function<void(const LexicalDaughter &)> f) const {for(const auto& d: lb.get_lexical_daughters()) f(d);}
+  void process(function<void(const BinaryDaughter &)> f) const { for(const auto& d: lb.get_binary_daughters()) f(d); }
+
+  void process(function<void(LBEdge &, LexicalDaughter &)> f) {for(auto& d: lb.get_lexical_daughters()) f(lb, d);}
+  void process(function<void(LBEdge &, BinaryDaughter &)> f) { for(auto& d: lb.get_binary_daughters()) f(lb, d); }
+
+  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(d, lb.get_annotations());}
+  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: lb.get_binary_daughters()) f(d, lb.get_annotations()); }
+
+  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: lb.get_lexical_daughters()) f(d, lb.get_annotations());}
+  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: lb.get_binary_daughters()) f(d, lb.get_annotations()); }
+
+  void process(function<void(Best &, LBEdge &, const LexicalDaughter &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(lb.get_best(), lb, d);}
+  void process(function<void(Best &, LBEdge &, const BinaryDaughter &)> f) {for(const auto& d: lb.get_binary_daughters()) f(lb.get_best(), lb, d);}
+
+  void process(function<void(Best &, const LexicalDaughter &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(lb.get_best(), d);}
+  void process(function<void(Best &, const BinaryDaughter &)> f) {for(const auto& d: lb.get_binary_daughters()) f(lb.get_best(), d);}
+
+  void process(function<void(Best &, LexicalDaughter &)> f) {for(auto& d: lb.get_lexical_daughters()) f(lb.get_best(), d);}
+  void process(function<void(Best &, BinaryDaughter &)> f) {for(auto& d: lb.get_binary_daughters()) f(lb.get_best(), d);}
+
+  void apply() const {}
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) {process(toFunc(f));apply(o...);}
+  template<typename Function, typename... OtherFunctions>
+  void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
+
 };
 
 

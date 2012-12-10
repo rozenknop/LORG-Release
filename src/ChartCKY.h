@@ -76,16 +76,16 @@ public:
   inline const Cell& get_root() const;
   Cell& get_root();
 
-  PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations) const;
+  PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations, bool unary_start=true) const;
 
-  double get_score(int start_symbol, unsigned k) const;
+  double get_score(int start_symbol, unsigned k, bool unary_start=true) const;
 
 
   void init(const std::vector< MyWord >& sentence);
 
   void reset_probabilities();
 
-  bool has_solution(int symb, unsigned i) const;
+  bool has_solution(int symb, unsigned i, bool unary_start=true) const;
 
   void clear();
 

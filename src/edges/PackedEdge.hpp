@@ -188,9 +188,9 @@ void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
 {
   // for all possible daughters
   c2f_replace_struct_helper c2f_replacer(i);
-  std::for_each(this->binary_daughters.begin(),this->binary_daughters.end(), c2f_replacer);
-  std::for_each(this->unary_daughters.begin(),this->unary_daughters.end(),   c2f_replacer);
-  std::for_each(this->lexical_daughters.begin(), this->lexical_daughters.end(),   c2f_replacer);
+  std::for_each(lb.get_binary_daughters().begin(),lb.get_binary_daughters().end(), c2f_replacer);
+  std::for_each(u.get_unary_daughters().begin(),u.get_unary_daughters().end(),   c2f_replacer);
+  std::for_each(lb.get_lexical_daughters().begin(), lb.get_lexical_daughters().end(),   c2f_replacer);
 }
 
 

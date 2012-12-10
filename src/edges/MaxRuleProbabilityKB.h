@@ -78,8 +78,8 @@ public:
   inline void update_binary(LBEdge& e, const BinaryDaughter& dtr);
   inline void finalize();
   
-  inline void find_succ(Edge*,packed_edge_probability_with_index& pep, bool licence_unaries);
-  inline void extend_derivation(Edge*, unsigned, bool) ;
+  inline void find_succ(PEdge*,packed_edge_probability_with_index& pep, bool licence_unaries);
+  inline void extend_derivation(PEdge*, unsigned, bool) ;
 
   inline unsigned n_deriv() const {return derivations.size();};
 

@@ -145,9 +145,7 @@ void PCKYAllCell<Types>::compute_inside_probabilities()
 template<class Types>
 void PCKYAllCell<Types>::compute_outside_probabilities()
 {
-  apply_on_edges(& Edge::             prepare_outside_probability);
   apply_on_edges(&     UnaryDaughter::update_outside_annotations);
-  apply_on_edges(& Edge::              adjust_outside_probability);
   apply_on_edges(&    BinaryDaughter::update_outside_annotations);
 }
 

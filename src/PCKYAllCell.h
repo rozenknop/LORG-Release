@@ -200,14 +200,14 @@ Edge * begin(Edge e[]) { return e; }
 template<class Edge>
 Edge * end(Edge e[]) { return (e+Edge::Cell::get_max_size()); }
 
-template<class Types>
-inline
-bool PCKYAllCell<Types>::exists_edge(int label) const
-{
-  assert(label >= 0);
-  assert(label < (int) max_size);
-  return (not edges[label].is_closed());
-}
+// template<class Types>
+// inline
+// bool PCKYAllCell<Types>::exists_edge(int label) const
+// {
+//   assert(label >= 0);
+//   assert(label < (int) max_size);
+//   return (not edges[label].is_closed());
+// }
 
 
 template<class Types>

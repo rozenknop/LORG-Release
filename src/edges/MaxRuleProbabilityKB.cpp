@@ -149,7 +149,7 @@ void MaxRuleProbabilityKB:: finalize()
   }
 }
 
-void MaxRuleProbabilityKB::extend_derivation(Edge* edge, unsigned i, bool licence_unaries)
+void MaxRuleProbabilityKB::extend_derivation(PEdge* edge, unsigned i, bool licence_unaries)
 {
   if(derivations.size() == i) {
     return;
@@ -200,7 +200,7 @@ void MaxRuleProbabilityKB::extend_derivation(Edge* edge, unsigned i, bool licenc
 
 }
 
-void MaxRuleProbabilityKB::find_succ(Edge* edge, packed_edge_probability_with_index& pep, bool licence_unaries)
+void MaxRuleProbabilityKB::find_succ(PEdge* edge, packed_edge_probability_with_index& pep, bool licence_unaries)
 {
   if(pep.dtrs->is_lexical())  { return;}
   // binary -> extend left and right daughters

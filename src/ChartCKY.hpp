@@ -529,14 +529,19 @@ public:
   }
   
   template<class Types>
-  PtbPsTree* ChartCKY<Types>::get_best_tree(int start_symbol, unsigned k, bool output_forms, bool output_annotations) const
+  PtbPsTree* ChartCKY<Types>::get_best_tree(int start_symbol, unsigned k, bool output_forms, bool output_annotations, bool unary_start) const
   {
     PtbPsTree* tree = NULL;
     
     const Cell & root_cell = this->get_root();
-    
-    if (!root_cell.is_closed() && root_cell.exists_edge(start_symbol)) {
-      tree = root_cell.get_edge(start_symbol).to_ptbpstree(start_symbol, k, output_annotations, output_forms);
+    if (unary_start) {
+      if (!root_cell.is_closed() && root_cell.exists_uedge(start_symbol)) {
+        tree = root_cell.get_edge(start_symbol).uedge().to_ptbpstree(start_symbol, k, output_annotations, output_forms);
+      }
+    } else {
+      if (!root_cell.is_closed() && root_cell.exists_lbedge(start_symbol)) {
+        tree = root_cell.get_edge(start_symbol).lbedge().to_ptbpstree(start_symbol, k, output_annotations, output_forms);
+      }
     }
     
     return tree;
@@ -544,9 +549,10 @@ public:
   
   //score at root
   template<class Types>
-  double ChartCKY<Types>::get_score(int symbol, unsigned k) const
+  double ChartCKY<Types>::get_score(int symbol, unsigned k, bool unary_start) const
   {
-    return get_root().get_edge(symbol).get_prob_model().get(k).probability;
+    return unary_start ? get_root().get_edge(symbol).uedge().get_best().get(k).probability
+    : get_root().get_edge(symbol).lbedge().get_best().get(k).probability ;
   }
   
   
@@ -555,9 +561,10 @@ public:
   {
     //iterate through all the words in the sentence
     for(typename std::vector<MyWord>::const_iterator w_itr(sentence.begin());
-        w_itr != sentence.end(); ++w_itr)  {
-      Cell& cell = this->access(w_itr->get_start(), w_itr->get_end() -1);
-    cell.add_word(*w_itr);
+        w_itr != sentence.end(); ++w_itr)
+        {
+          Cell& cell = this->access(w_itr->get_start(), w_itr->get_end() -1);
+          cell.add_word(*w_itr);
         }
   }
   
@@ -590,10 +597,11 @@ public:
   
   
   template<class Types>
-  bool ChartCKY<Types>::has_solution(int symb, unsigned i) const
+  bool ChartCKY<Types>::has_solution(int symb, unsigned i, bool unary_start) const
   {
     //  std::cout << SymbolTable::instance_nt().translate(symb) << std::endl;
-    return get_root().get_edge(symb).has_solution(i);
+    return unary_start ? get_root().get_edge(symb).uedge().has_solution(i)
+    : get_root().get_edge(symb).lbedge().has_solution(i);
   }
   
   template<class Types>

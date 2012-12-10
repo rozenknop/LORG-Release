@@ -83,7 +83,7 @@ class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, Lexic
   virtual bool is_chart_valid(int start_symbol) = 0;
 
   virtual void get_parses(int start_symbol, unsigned kbest, bool always_output_forms, bool output_annotations,
-                          std::vector<std::pair<PtbPsTree *,double> >& best_trees) = 0;
+                          std::vector<std::pair<PtbPsTree *,double> >& best_trees, bool unary_start_edge = true) = 0;
 
   virtual void clean() = 0;
 
@@ -290,7 +290,7 @@ protected:
 
 
   void get_parses(int start_symbol, unsigned kbest, bool always_output_forms, bool output_annotations,
-                  std::vector<std::pair<PtbPsTree *,double> >& best_trees);
+                  std::vector<std::pair<PtbPsTree *,double> >& best_trees, bool unary_start_edge=true);
 
 
  protected: // attributes

@@ -19,7 +19,7 @@ ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
   
   create_coarse_to_fine_mapping(all_grammars);
   
-  Edge::set_unary_chains(fine_grammar->get_unary_decoding_paths());
+  ViterbiTypes::UEdge::set_unary_chains(fine_grammar->get_unary_decoding_paths());
 }
 
 
@@ -35,8 +35,8 @@ void ParserCKYAllViterbi::extract_solution()
         if(cell.exists_lbedge(i))  {
           cell.get_edge(i).lbedge().get_best().set_size(annotations_info.get_number_of_annotations(i));
           cell.get_edge(i).replace_rule_probabilities(0);
-          cell.get_edge(i).lbedge().lbapply(&ViterbiProbability::update_lexical,
-                                   &ViterbiProbability::update_binary);
+          cell.get_edge(i).apply(&ViterbiProbability::update_lexical,
+                                 &ViterbiProbability::update_binary);
         }
       }
       #warning no unary update for Viterbi ?
