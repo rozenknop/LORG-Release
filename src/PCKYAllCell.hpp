@@ -54,7 +54,7 @@ void PCKYAllCell<Types>::clear()
 template<class Types>
 PCKYAllCell<Types>::~PCKYAllCell()
 {
-  apply_on_edges( &Edge::close );
+  apply_on_edges( &LBEdge::close, &UEdge::close );
 }
 
 template<class Types>
@@ -68,12 +68,12 @@ void PCKYAllCell<Types>::reserve_binary_daughters(const std::vector<int> & count
 }
 
 template<class Types>
-void PCKYAllCell<Types>::process_candidate(Edge & left,
-                                            Edge & right,
+void PCKYAllCell<Types>::process_candidate(PEdge & left,
+                                            PEdge & right,
                                             const BinaryRule* rule,
                                             double LR_inside)
 {
-  Edge & e = edges[rule->get_lhs()];
+  LBEdge & e = edges[rule->get_lhs()].lbedge();
   e.add_daughters(left,right,rule);
   e.get_annotations().inside_probabilities.array[0] += LR_inside * rule->get_probability()[0][0][0];
 }
@@ -127,13 +127,11 @@ void PCKYAllCell<Types>::compute_inside_probabilities()
 {
 //     apply_on_edges( & Edge::clean_invalidated_binaries);
 
-  apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
-                      & LexicalDaughter::update_inside_annotations  ,
-                      &  BinaryDaughter::update_inside_annotations  ,
-                      &            Edge::prepare_inside_probability );
+  apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.lbedge().get_lex()) edge.lbedge().get_annotations().reset_probabilities();}) ,
+                 & LexicalDaughter::update_inside_annotations  ,
+                 &  BinaryDaughter::update_inside_annotations  );
 
   apply_on_edges(& UnaryDaughter::update_inside_annotations);
-  apply_on_edges(& Edge::         adjust_inside_probability);
 }
 
 template<class Types>
@@ -158,15 +156,15 @@ void PCKYAllCell<Types>::clean()
 
     // go through all the lists of unary daughters and remove the ones pointing on removed edges
     for(auto & edge : edges)
-      if(not edge.is_closed()) {
-        auto & udaughters = edge.get_unary_daughters();
+      if(not edge.uedge().is_closed()) {
+        auto & udaughters = edge.uedge().get_unary_daughters();
         udaughters.erase(std::remove_if(udaughters.begin(), udaughters.end(),
                                         toFunc(& UnaryDaughter::points_towards_invalid_edges)),
                          udaughters.end());
 
-        if (edge.no_daughters())
+        if (edge.uedge().no_daughters())
         {
-          edge.close();
+          edge.uedge().close();
           changed =  true;
         }
       }
@@ -177,7 +175,7 @@ void PCKYAllCell<Types>::clean()
   bool all_null = true;
   for(auto & edge : edges)
     if(not edge.is_closed()) {
-      edge.get_unary_daughters().shrink_to_fit();
+      edge.uedge().get_unary_daughters().shrink_to_fit();
       all_null = false ;
     }
 

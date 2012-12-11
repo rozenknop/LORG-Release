@@ -142,7 +142,7 @@ public:
 
   PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const;
 
-private:
+protected:
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                     bool append_annot, bool outpu_forms) const;
 
@@ -296,6 +296,8 @@ public:
 private:
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                     bool append_annot, bool outpu_forms) const;
+                    
+friend class BasePackedEdge<Types>;
 };
 
 

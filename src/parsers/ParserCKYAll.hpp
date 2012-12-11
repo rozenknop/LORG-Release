@@ -115,18 +115,20 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
     //               BLOCKTIMING("get_candidates creating");
     //iterating through all the rules P -> L R, indexed by L
     for (const auto & same_rhs0_rules: brules) {
-      Edge & left_edge = left_cell.get_edge(same_rhs0_rules.rhs0) ;
-      if (not left_edge.is_closed()) {
-        double LR1 = left_edge.get_annotations().inside_probabilities.array[0];
+      Edge & left_edges = left_cell.get_edge(same_rhs0_rules.rhs0) ;
+      for(PEdge *  left_edge: std::vector<PEdge*>({&left_edges.uedge(), &left_edges.lbedge()}))
+      if (not left_edge->is_closed()) {
+        double LR1 = left_edge->get_annotations().inside_probabilities.array[0];
         //iterating through all the rules P -> L R, indexed by R, L fixed
         for(const auto & same_rhs: same_rhs0_rules) {
-          Edge & right_edge = right_cell.get_edge(same_rhs.rhs1);
-          if (not right_edge.is_closed()) {
-            double LR = LR1 * right_edge.get_annotations().inside_probabilities.array[0];
+          Edge & right_edges = right_cell.get_edge(same_rhs.rhs1);
+          for(PEdge *  right_edge: std::vector<PEdge*>({&right_edges.uedge(), &right_edges.lbedge()}))
+          if (not right_edge->is_closed()) {
+            double LR = LR1 * right_edge->get_annotations().inside_probabilities.array[0];
             
             //iterating through all the rules P -> L R, indexed by P, R and L fixed
             for(const auto & rule: same_rhs) {
-              result_cell.process_candidate(left_edge,right_edge, rule, LR);
+              result_cell.process_candidate(*left_edge,*right_edge, rule, LR);
             }
           }
         }
@@ -201,7 +203,7 @@ void ParserCKYAll_Impl<Types>::add_unary_init(Cell& cell, bool isroot) const
 
   for(std::vector<short>::const_iterator unary_rhs_itr(unary_rhs_itr_begin); unary_rhs_itr != unary_rhs_itr_end; ++unary_rhs_itr) {
 
-    if (cell.exists_edge(*unary_rhs_itr)) {
+    if (cell.exists_lbedge(*unary_rhs_itr)) {
 //       BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_init");
       process_unary(cell,*unary_rhs_itr, isroot);
     }
@@ -238,14 +240,14 @@ struct processunary
 
 
 template <class Types>
-void ParserCKYAll_Impl<Types>::process_unary(Cell& cell, int lhs, bool isroot) const
+void ParserCKYAll_Impl<Types>::process_unary(Cell& cell, int rhs, bool isroot) const
 {
   //BLOCKTIMING("ParserCKYAll_Impl<Types>::process_unary");
   const std::vector<const URuleC2f*>& rules = isroot ?
-                                              unary_rhs_2_rules_toponly[lhs] :
-                                              unary_rhs_2_rules_notop[lhs];
+                                              unary_rhs_2_rules_toponly[rhs] :
+                                              unary_rhs_2_rules_notop[rhs];
 
-  double L_inside = cell.get_edge(lhs).get_annotations().inside_probabilities.array[0];
+  double L_inside = cell.get_edge(rhs).lbedge().get_annotations().inside_probabilities.array[0];
 
   std::for_each(rules.begin(),rules.end(),processunary<Cell>(cell, L_inside));
 }
@@ -270,8 +272,8 @@ double ParserCKYAll_Impl<Types>::get_sentence_probability() const
 {
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
-  if(chart->get_root().exists_edge(start_symbol))
-    return chart->get_root().get_edge(start_symbol).get_annotations().get_inside(0);
+  if(chart->get_root().exists_uedge(start_symbol))
+    return chart->get_root().get_edge(start_symbol).uedge().get_annotations().get_inside(0);
   else
     return LorgConstants::NullProba;
 }
@@ -297,18 +299,18 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
 {
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
 
-  chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
+  chart->get_root().get_edge(start_symbol).uedge().get_annotations().reset_outside_probabilities(1.0);
   compute_outside_probabilities();
 
   this->chart->opencells_apply_bottom_up(
       [log_sent_prob, log_threshold, huang]
       (Cell& cell)
       {
-        cell.apply_on_edges(&Edge::clean_invalidated_binaries);
+        cell.apply_on_edges(&Types::LBEdge::clean_invalidated_binaries);
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
         if(!cell.is_closed() && huang) {
-          cell.apply_on_edges(&Edge::clean_invalidated_binaries);
+          cell.apply_on_edges(&Types::LBEdge::clean_invalidated_binaries);
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
         }

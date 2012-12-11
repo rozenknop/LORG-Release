@@ -81,7 +81,7 @@ public:
      \brief insert a candidate edge in the cell from application of a binary rule
      \param
   */
-  void process_candidate(Edge & left, Edge & right, const BinaryRule*, double LR_inside);
+  void process_candidate(PEdge & left, PEdge & right, const BinaryRule*, double LR_inside);
 
 
   /**

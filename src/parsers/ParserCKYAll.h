@@ -119,6 +119,9 @@ public:
   typedef typename Types::URule UnaryRule;
   typedef typename Types::LRule LexicalRule;
   typedef typename Types::Edge Edge;
+  typedef typename Types::PEdge PEdge;
+  typedef typename Types::UEdge UEdge;
+  typedef typename Types::LBEdge LBEdge;
   typedef typename Types::Cell Cell;
   typedef typename Types::EdgeProbability ProbaModel;
   typedef typename Types::Chart Chart;
