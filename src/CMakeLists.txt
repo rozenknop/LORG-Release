@@ -1,6 +1,6 @@
 add_subdirectory(training)
 
-set(common_sources 
+set(common_sources
          rules/Production.cpp
          rules/Rule.cpp
          grammars/compact_binary_rules.cpp
@@ -43,16 +43,16 @@ set(twostage_lorgparser_SOURCES
          ${common_sources}
          twostage_lorgparser.cpp
          TwoStageLorgParseApp.cpp
-         edges/ViterbiProbability.cpp
-         edges/MaxRuleProbability1B.cpp
-         edges/MaxRuleProbabilityKB.cpp
-         edges/MaxRuleProbabilityMultiple.cpp
+         parsers/viterbi/ViterbiProbability.cpp
+         parsers/maxrule//MaxRuleProbability1B.cpp
+         parsers/maxrule/MaxRuleProbabilityKB.cpp
+         parsers/maxrule/MaxRuleProbabilityMultiple.cpp
          parsers/ParserCKYAll.cpp
          parsers/ParserCKYAllFactory.cpp
-         parsers/ParserCKYAllViterbi.cpp
-         parsers/ParserCKYAllMaxVar1B.cpp
-         parsers/ParserCKYAllMaxVarKB.cpp
-         parsers/ParserCKYAllMaxVarMultiple.cpp
+         parsers/viterbi/ParserCKYAllViterbi.cpp
+         parsers/maxrule/ParserCKYAllMaxRule1B.cpp
+         parsers/maxrule/ParserCKYAllMaxRuleKB.cpp
+         parsers/maxrule/ParserCKYAllMaxRuleMultiple.cpp
          parsers/mindivkb/ParserCKYAllMinDivKB.cpp
          parsers/mindivkb/MinDivDaughters.cpp
          grammars/compact_binary_rules_annotated.cpp
