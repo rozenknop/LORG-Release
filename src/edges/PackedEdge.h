@@ -349,6 +349,7 @@ public:
   
   
   inline bool has_solution(unsigned i) const { return lb.has_solution() or u.has_solution(); }
+  inline bool is_closed() const { return lb.is_closed() and u.is_closed(); }
 
   
   

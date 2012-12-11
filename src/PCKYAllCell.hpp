@@ -104,10 +104,10 @@ void PCKYAllCell<Types>::add_word(const Word & word)
   {
     const typename Types::LRule* r = static_cast<const typename Types::LRule*>(rule);
     int tag = rule->get_lhs();
-    if (0==edges[tag].get_annotations().get_size())
-      edges[tag].local_resize_annotations(1);
-    edges[tag].add_daughters(r, &word);
-    edges[tag].get_annotations().inside_probabilities.array[0] += r->get_probability()[0];
+    if (0==edges[tag].lbedge().get_annotations().get_size())
+      edges[tag].lbedge().local_resize_annotations(1);
+    edges[tag].lbedge().add_daughters(r, &word);
+    edges[tag].lbedge().get_annotations().inside_probabilities.array[0] += r->get_probability()[0];
   }
 }
 
@@ -115,15 +115,9 @@ void PCKYAllCell<Types>::add_word(const Word & word)
 template<class Types>
 void PCKYAllCell<Types>::reset_probabilities()
 {
-  apply_on_edges(function<void(Edge&)>([](Edge&e){e.get_annotations().reset_probabilities(0.0);}));
+  apply_on_edges(function<void(Edge&)>([](PEdge&e){e.get_annotations().reset_probabilities(0.0);}));
 }
 
-
-template <class Types>
-void PCKYAllCell<Types>::adjust_inside_probability()
-{
-  apply_on_edges(&Edge::adjust_inside_probability);
-}
 
 
 
@@ -201,32 +195,42 @@ void PCKYAllCell<Types>::clean()
 template <class Types>
 void PCKYAllCell<Types>::beam(const std::vector<double>& priors, double threshold)
 {
-  double max = 0.0;
-  double beam = threshold;
+  double lbmax, umax = lbmax = 0.0;
+  double lbbeam, ubeam = lbbeam = threshold;
 
-  std::vector<double> sums = priors;
+  std::vector<double> lbsums, usums = lbsums = priors;
 
   //computing unannotated inside probabilities
   //looking for the probablity of the most probable symbol
   for(unsigned i = 0; i < max_size; ++i)
-    if(not edges[i].is_closed()) {
-      sums[i] *= std::accumulate(edges[i].get_annotations().inside_probabilities.array.begin(),
-                                 edges[i].get_annotations().inside_probabilities.array.end(),
-                                 0.0);
-      max = std::max(max, sums[i]);
+    if(not edges[i].uedge().is_closed()) {
+      usums[i] *= std::accumulate(edges[i].uedge().get_annotations().inside_probabilities.array.begin(),
+                                  edges[i].uedge().get_annotations().inside_probabilities.array.end(),
+                                  0.0);
+      umax = std::max(umax, usums[i]);
+      lbsums[i] *= std::accumulate(edges[i].lbedge().get_annotations().inside_probabilities.array.begin(),
+                                   edges[i].lbedge().get_annotations().inside_probabilities.array.end(),
+                                   0.0);
+      lbmax = std::max(lbmax, lbsums[i]);
     }
 
   //setting threshold
-  beam *= max;
+  lbbeam *= lbmax;
+  ubeam *= umax;
 
   //looking for edges below threshold
-  for(unsigned i = 0; i < max_size; ++i)
-    if(not edges[i].is_closed()) {
-      if(sums[i] < beam) {
-        edges[i].close();
+  for(unsigned i = 0; i < max_size; ++i) {
+    if(not edges[i].uedge().is_closed()) {
+      if(usums[i] < ubeam) {
+        edges[i].uedge().close();
       }
     }
-
+    if(not edges[i].lbedge().is_closed()) {
+      if(lbsums[i] < lbbeam) {
+        edges[i].lbedge().close();
+      }
+    }
+  }
   //  clean the cell
 
   clean();
