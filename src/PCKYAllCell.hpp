@@ -283,7 +283,7 @@ void PCKYAllCell<Types>::beam(double log_threshold, double log_sent_prob)
 {
   double beam = log_threshold  + log_sent_prob;
 
-  for(Edge & edge: edges)
+  for(Edge & edge: Uedges<Edge>(edges))
     if(not edge.is_closed()) {
       bool all_invalid = true;
       AnnotationInfo& ai = edge.get_annotations();

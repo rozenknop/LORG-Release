@@ -201,6 +201,22 @@ Edge * begin(Edge e[]) { return e; }
 template<class Edge>
 Edge * end(Edge e[]) { return (e+Edge::Cell::get_max_size()); }
 
+template<class Edge, class PEdge>
+struct _pedge_iterator {
+  Edge * it ;
+  PEdge & operator*() { return *(PEdge *)it; }
+  _pedge_iterator<Edge,PEdge> & operator++() { ++it; return *this; }
+  _pedge_iterator<Edge,PEdge>(PEdge & init) { it = (Edge *) (&init); }
+};
+
+template<class Edge>
+struct Uedges {
+  typename Edge::UEdge * b;
+  typename Edge::UEdge * e;
+  _pedge_iterator<Edge,typename Edge::UEdge> & begin() { return _pedge_iterator<Edge,typename Edge::UEdge>(*b); }
+  _pedge_iterator<Edge,typename Edge::UEdge> &   end() { return _pedge_iterator<Edge,typename Edge::UEdge>(*e); }
+  
+};
 // template<class Types>
 // inline
 // bool PCKYAllCell<Types>::exists_edge(int label) const
