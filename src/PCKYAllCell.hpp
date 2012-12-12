@@ -20,25 +20,6 @@ using std::function;
 template<class Types>
 unsigned PCKYAllCell<Types>::max_size = 0;
 
-template<class Types>
-PCKYAllCell<Types>::PCKYAllCell() {
-}
-
-template<class Types>
-PCKYAllCell<Types>::PCKYAllCell( const PCKYAllCell<Types> & o )
-{
-  edges = (Edge*) new char[max_size*sizeof(Edge)];
-  memcpy(edges, o.edges, max_size*sizeof(Edge));
-
-//   std::copy(&(o.edges), &(o.edges)+1, &edges);
-//   std::cout << "size of edges = " << edges.size() << " " << edges.capacity() <<  " " << max_size << std:: endl;
-//   memcpy(e, o.edges.data(), max_size*sizeof(Edge));
-  
-//   std::cout << "copy constructor of " << this << " from " << &o << std::endl;
-//   *this = o ;
-//   memcpy(this, &o, sizeof(PCKYAllCell<Types>));
-
-}
 
 template<class Types>
 void PCKYAllCell<Types>::clear()
@@ -51,11 +32,51 @@ void PCKYAllCell<Types>::clear()
 
 
 
-template<class Types>
-PCKYAllCell<Types>::~PCKYAllCell()
-{
-  apply_on_edges( &LBEdge::close, &UEdge::close );
-}
+
+/* *****************************************************************************************************************
+ *                                             ITERATEURS                                                          *
+ * *****************************************************************************************************************/
+
+
+template<class Edge>
+Edge * begin(Edge * e) { return e; }
+
+template<class Edge>
+Edge * end(Edge * e) { return (e+Edge::Cell::get_max_size()); }
+
+template<class Edge, class PEdge>
+struct _pedge_iterator {
+  Edge * it ;
+  PEdge & operator*() { return *(PEdge *)it; }
+  _pedge_iterator<Edge,PEdge> & operator++() { ++it; return *this; }
+  _pedge_iterator<Edge,PEdge>(PEdge & init) { it = (Edge *) (&init); }
+  bool operator!=(const _pedge_iterator< Edge, PEdge > &o) const { return it!=o.it; }
+};
+
+template<class Edge>
+struct Uedges {
+  typename Edge::UEdge * beg;
+  typename Edge::UEdge * en;
+  _pedge_iterator<Edge,typename Edge::UEdge> & begin() { return _pedge_iterator<Edge,typename Edge::UEdge>(*beg); }
+  _pedge_iterator<Edge,typename Edge::UEdge> &   end() { return _pedge_iterator<Edge,typename Edge::UEdge>(*en); }
+  Uedges(Edge * e) : beg(&e->uedge()), en(&(e+Edge::Cell::get_max_size())->uedge()) {}
+};
+
+template<class Edge>
+struct LBedges {
+  typename Edge::LBEdge * beg;
+  typename Edge::LBEdge * en;
+  _pedge_iterator<Edge,typename Edge::UEdge> & begin() { return _pedge_iterator<Edge,typename Edge::LBEdge>(*beg); }
+  _pedge_iterator<Edge,typename Edge::UEdge> &   end() { return _pedge_iterator<Edge,typename Edge::LBEdge>(*en); }
+  LBedges(Edge * e) : beg(&e->lbedge()), en(&(e+Edge::Cell::get_max_size())->lbedge()) {}
+};
+
+
+
+
+
+
+
 
 template<class Types>
 void PCKYAllCell<Types>::reserve_binary_daughters(const std::vector<int> & counts)
@@ -283,7 +304,7 @@ void PCKYAllCell<Types>::beam(double log_threshold, double log_sent_prob)
 {
   double beam = log_threshold  + log_sent_prob;
 
-  for(Edge & edge: Uedges<Edge>(edges))
+  for(PEdge & edge: Uedges<Edge>(edges))
     if(not edge.is_closed()) {
       bool all_invalid = true;
       AnnotationInfo& ai = edge.get_annotations();
@@ -481,6 +502,9 @@ std::ostream& operator<<(std::ostream& out, const PCKYAllCell<Types>& cell)
     }
   return out << "filled entries: " << nb_entries << ")";
 }
+
+
+
 
 
 #endif //PCKYALLCELL_HPP

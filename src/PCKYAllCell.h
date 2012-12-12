@@ -181,7 +181,19 @@ public:
       if(exists_edge(i)) get_edge(i).apply(args...);
     }
   }
-
+  template<typename... Function>
+  void apply_on_uedges(Function&&... args) {
+    for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
+      if(exists_uedge(i)) get_edge(i).apply(args...);
+    }
+  }
+  template<typename... Function>
+  void apply_on_lbedges(Function&&... args) {
+    for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
+      if(exists_lbedge(i)) get_edge(i).apply(args...);
+    }
+  }
+  
   inline static unsigned get_max_size() { return max_size; }
 
 private:
@@ -195,28 +207,6 @@ private:
   static unsigned max_size;
 };
 
-template<class Edge>
-Edge * begin(Edge e[]) { return e; }
-
-template<class Edge>
-Edge * end(Edge e[]) { return (e+Edge::Cell::get_max_size()); }
-
-template<class Edge, class PEdge>
-struct _pedge_iterator {
-  Edge * it ;
-  PEdge & operator*() { return *(PEdge *)it; }
-  _pedge_iterator<Edge,PEdge> & operator++() { ++it; return *this; }
-  _pedge_iterator<Edge,PEdge>(PEdge & init) { it = (Edge *) (&init); }
-};
-
-template<class Edge>
-struct Uedges {
-  typename Edge::UEdge * b;
-  typename Edge::UEdge * e;
-  _pedge_iterator<Edge,typename Edge::UEdge> & begin() { return _pedge_iterator<Edge,typename Edge::UEdge>(*b); }
-  _pedge_iterator<Edge,typename Edge::UEdge> &   end() { return _pedge_iterator<Edge,typename Edge::UEdge>(*e); }
-  
-};
 // template<class Types>
 // inline
 // bool PCKYAllCell<Types>::exists_edge(int label) const

@@ -247,9 +247,9 @@ void ParserCKYAll_Impl<Types>::process_unary(Cell& cell, int rhs, bool isroot) c
                                               unary_rhs_2_rules_toponly[rhs] :
                                               unary_rhs_2_rules_notop[rhs];
 
-  double L_inside = cell.get_edge(rhs).lbedge().get_annotations().inside_probabilities.array[0];
+  double R_inside = cell.get_edge(rhs).lbedge().get_annotations().inside_probabilities.array[0];
 
-  std::for_each(rules.begin(),rules.end(),processunary<Cell>(cell, L_inside));
+  std::for_each(rules.begin(),rules.end(),processunary<Cell>(cell, R_inside));
 }
 
 
