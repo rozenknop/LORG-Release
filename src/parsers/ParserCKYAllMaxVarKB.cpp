@@ -4,7 +4,7 @@
 
 #include "ParserCKYAllMaxVarKB.h"
 #include "ParserCKYAll.hpp"
-#include "edges/PackedEdge.hpp"
+#include "edges/MaxRuleProbabilityKB.hpp"
 
 #include "utils/tick_count.h"
 
@@ -19,7 +19,7 @@ ParserCKYAllMaxRuleKB::ParserCKYAllMaxRuleKB(std::vector<AGrammar*>& cgs,
   //create the coarse-to-fine map
   this->create_coarse_to_fine_mapping(this->grammars);
 
-  Edge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
+  UEdge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
 }
 
 
@@ -36,7 +36,7 @@ void ParserCKYAllMaxRuleKB::extend_all_derivations()
   for (unsigned i = 2; i <= k; ++i)
   {
     //      std::cout << "before extend" << std::endl;
-    chart->get_root().get_edge(start_symbol).extend_derivation(i,true);
+    chart->get_root().get_edge(start_symbol).uedge().extend_derivation(i,true);
   }
 }
 

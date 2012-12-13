@@ -16,7 +16,15 @@ private:
   friend class ParserCKYAllMinDivKB;
   
   typedef std::vector<packed_edge_probability_with_index> heap_type;
-  
+  typedef typename MinDivKBTypes::Edge Edge;
+  typedef typename MinDivKBTypes::PEdge PEdge;
+  typedef typename MinDivKBTypes::UEdge UEdge;
+  typedef typename MinDivKBTypes::LBEdge LBEdge;
+  typedef typename MinDivKBTypes::Cell Cell;
+  typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
+  typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
+  typedef typename MinDivKBTypes::LexicalDaughter LexicalDaughter;
+
   heap_type candidates;
   heap_type derivations;
   static unsigned size;
@@ -62,6 +70,9 @@ class MinDivProbabilityKB
 public:
 
   typedef typename MinDivKBTypes::Edge Edge;
+  typedef typename MinDivKBTypes::PEdge PEdge;
+  typedef typename MinDivKBTypes::UEdge UEdge;
+  typedef typename MinDivKBTypes::LBEdge LBEdge;
   typedef typename MinDivKBTypes::Cell Cell;
   typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
   typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
@@ -126,6 +137,7 @@ class ParserCKYAllMinDivKB : public ParserCKYAll_Impl<MinDivKBTypes>
 {
   typedef typename MinDivKBTypes::Edge Edge;
   typedef typename MinDivKBTypes::Cell Cell;
+  typedef typename MinDivKBTypes::Best Best;
   typedef typename MinDivKBTypes::UnaryDaughter UnaryDaughter;
   typedef typename MinDivKBTypes::BinaryDaughter BinaryDaughter;
   typedef typename MinDivKBTypes::LexicalDaughter LexicalDaughter;

@@ -76,7 +76,7 @@ ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size,
   
   
   
-  template<class Types>
+template<class Types>
 void
 ChartCKY<Types>::opencells_apply_nothread( std::function<void(Cell &)> f)
 {
@@ -475,34 +475,6 @@ public:
   //#include "utils/SymbolTable.h"
   
   template<class Types>
-  inline
-  unsigned ChartCKY<Types>::get_size() const
-  {
-    return size;
-  }
-  
-  template<class Types>
-  inline
-  typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end)
-  {
-    //   assert(start <= end);
-    //   assert(end < size);
-    //     return chart[start][end-start];
-//     std::cout << "access("<<start<<","<<end<<") = "<<start + ( (end-start)*(2*size - (end-start) + 1))/2 << std::endl; std::cout.flush();
-    return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
-  }
-  
-  template<class Types>
-  inline
-  const typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
-  {
-    //   assert(start <= end);
-    //   assert(end < size);
-    //     return chart[start][end-start];
-    return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
-  }
-  
-  template<class Types>
   ChartCKY<Types>::~ChartCKY()
   {
     opencells_apply([](Cell&cell){cell.Cell::~Cell();});
@@ -516,17 +488,6 @@ public:
   }
   
   
-  template<class Types>
-  typename Types::Cell& ChartCKY<Types>::get_root()
-  {
-    return access(0,size-1);
-  }
-  
-  template<class Types>
-  const typename Types::Cell& ChartCKY<Types>::get_root() const
-  {
-    return access(0,size-1);
-  }
   
   template<class Types>
   PtbPsTree* ChartCKY<Types>::get_best_tree(int start_symbol, unsigned k, bool output_forms, bool output_annotations, bool unary_start) const
@@ -634,10 +595,5 @@ public:
     }
   }
   
-  template <class Types>
-  bool ChartCKY<Types>::is_valid(int start_symbol) const
-  {
-    return !get_root().is_closed() && get_root().exists_edge(start_symbol);
-  }
   
 #endif

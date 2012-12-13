@@ -5,7 +5,7 @@
 
 template<class Types>
 inline
-void UPackedEdge<Types>::add_daughters(Edge & left, const UnaryRule* rule)
+void UPackedEdge<Types>::add_daughters(LBPackedEdge<Types> & left, const UnaryRule* rule)
 {
   if (not this->open) {
     this->open = true;
@@ -16,8 +16,8 @@ void UPackedEdge<Types>::add_daughters(Edge & left, const UnaryRule* rule)
 
 template<class Types>
 inline
-void LBPackedEdge<Types>::add_daughters(Edge & left,
-                                        Edge & right, const BinaryRule* rule)
+void LBPackedEdge<Types>::add_daughters(PEdge & left,
+                                        PEdge & right, const BinaryRule* rule)
 {
   //               BLOCKTIMING("PackedEdge add_daughters(binary)");
   if (not this->open) {
@@ -184,13 +184,19 @@ struct c2f_replace_struct_helper
 
 
 template <class Types>
-void PackedEdge<Types>::replace_rule_probabilities(unsigned i)
+void UPackedEdge<Types>::replace_rule_probabilities(unsigned i)
 {
   // for all possible daughters
   c2f_replace_struct_helper c2f_replacer(i);
-  std::for_each(lb.get_binary_daughters().begin(),lb.get_binary_daughters().end(), c2f_replacer);
-  std::for_each(u.get_unary_daughters().begin(),u.get_unary_daughters().end(),   c2f_replacer);
-  std::for_each(lb.get_lexical_daughters().begin(), lb.get_lexical_daughters().end(),   c2f_replacer);
+  std::for_each(get_unary_daughters().begin(),get_unary_daughters().end(),   c2f_replacer);
+}
+template <class Types>
+void LBPackedEdge<Types>::replace_rule_probabilities(unsigned i)
+{
+  // for all possible daughters
+  c2f_replace_struct_helper c2f_replacer(i);
+  std::for_each(get_binary_daughters() .begin(), get_binary_daughters() .end(), c2f_replacer);
+  std::for_each(get_lexical_daughters().begin(), get_lexical_daughters().end(), c2f_replacer);
 }
 
 

@@ -3,6 +3,7 @@
 #define _MAXRULEPROBABILITY_CPP_
 
 #include "MaxRuleProbability1B.h"
+#include "edges/PackedEdge.hpp"
 
 #include <numeric>
 

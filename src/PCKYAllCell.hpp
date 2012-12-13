@@ -107,8 +107,8 @@ void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double L_insid
   static int i = 0;
   ++i;
 
-  Edge & e = edges[rule->get_lhs()];
-  e.add_daughters(edges[rule->get_rhs0()],rule);
+  UEdge & e = edges[rule->get_lhs()].uedge();
+  e.add_daughters(edges[rule->get_rhs0()].lbedge(),rule);
 
   //   std::cout << "PCKYAllCell<Types>::process_candidate. array at " << & e.get_annotations().inside_probabilities_unary_temp.array[0] << std::endl; std::cout.flush();
   e.get_annotations().inside_probabilities_unary_temp.array[0] += L_inside * rule->get_probability()[0][0];
@@ -136,7 +136,8 @@ void PCKYAllCell<Types>::add_word(const Word & word)
 template<class Types>
 void PCKYAllCell<Types>::reset_probabilities()
 {
-  apply_on_edges(function<void(Edge&)>([](PEdge&e){e.get_annotations().reset_probabilities(0.0);}));
+  apply_on_uedges(function<void(UEdge&)>([](UEdge&e){e.get_annotations().reset_probabilities(0.0);}));
+  apply_on_lbedges(function<void(LBEdge&)>([](LBEdge&e){e.get_annotations().reset_probabilities(0.0);}));
 }
 
 
@@ -148,7 +149,7 @@ void PCKYAllCell<Types>::compute_inside_probabilities()
 {
 //     apply_on_edges( & Edge::clean_invalidated_binaries);
 
-  apply_on_edges(std::function<void(Edge&)>([](Edge& edge){if (edge.lbedge().get_lex()) edge.lbedge().get_annotations().reset_probabilities();}) ,
+  apply_on_edges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
                  & LexicalDaughter::update_inside_annotations  ,
                  &  BinaryDaughter::update_inside_annotations  );
 
@@ -297,61 +298,91 @@ void PCKYAllCell<Types>::beam(double threshold)
   clean();
 }
 
+template<class EdgeType>
+static void absolute_beam(EdgeType & edge, double beam)
+{
+    bool all_invalid = true;
+    AnnotationInfo& ai = edge.get_annotations();
+
+    // calculate posterior for each annotation
+    for(unsigned annot = 0 ; annot < ai.inside_probabilities.array.size(); ++annot) {
+      if(ai.inside_probabilities.array[annot] != LorgConstants::NullProba
+        //|| ai.outside_probabilities.array[annot] != LorgConstants::NullProba
+      ) {
+
+        double prob = std::log(ai.inside_probabilities.array[annot]) + std::log(ai.outside_probabilities.array[annot]);
+        //          double prob = std::log(ai.inside_probabilities.array[annot] * ai.outside_probabilities.array[annot]);
+
+        if (prob > beam)
+          all_invalid = false;
+        else {
+          ai.inside_probabilities.array[annot] = ai.outside_probabilities.array[annot] = LorgConstants::NullProba;
+        }
+      }
+    }
+
+    //remove edge if all annotations are NullProba
+    if(all_invalid) {
+      edge.close();
+    }
+}
 
 // Absolute Inside/Outside beam
 template<class Types>
 void PCKYAllCell<Types>::beam(double log_threshold, double log_sent_prob)
 {
   double beam = log_threshold  + log_sent_prob;
-
-  for(PEdge & edge: Uedges<Edge>(edges))
-    if(not edge.is_closed()) {
-      bool all_invalid = true;
-      AnnotationInfo& ai = edge.get_annotations();
-
-      // calculate posterior for each annotation
-      for(unsigned annot = 0 ; annot < ai.inside_probabilities.array.size(); ++annot) {
-        if(ai.inside_probabilities.array[annot] != LorgConstants::NullProba
-          //|| ai.outside_probabilities.array[annot] != LorgConstants::NullProba
-        ) {
-
-          double prob = std::log(ai.inside_probabilities.array[annot]) + std::log(ai.outside_probabilities.array[annot]);
-          //          double prob = std::log(ai.inside_probabilities.array[annot] * ai.outside_probabilities.array[annot]);
-
-          if (prob > beam)
-            all_invalid = false;
-          else {
-            ai.inside_probabilities.array[annot] = ai.outside_probabilities.array[annot] = LorgConstants::NullProba;
-          }
-        }
-      }
-
-      //remove edge if all annotations are NullProba
-      if(all_invalid) {
-        edge.close();
-      }
-    }
-  // you must call clean after this method
+  apply_on_uedges(function<void(UEdge&)>(std::bind(absolute_beam<UEdge>, std::placeholders::_1, beam)));
+  apply_on_lbedges(function<void(LBEdge&)>(std::bind(absolute_beam<LBEdge>, std::placeholders::_1, beam)));
 }
 
 
 // returns true if the branching can be removed
 // in the sense of Huang, 2008
 template <typename Edge>
-struct pred_beam_huang
+struct pred_beam_huang_unary
 {
   double log_threshold;
   double log_outside_up;
 
-  pred_beam_huang(double th, double se, double ou) : log_threshold(th + se), log_outside_up(ou) {}
+  pred_beam_huang_unary(double th, double se, double ou) : log_threshold(th + se), log_outside_up(ou) {}
+
+  bool operator()(const typename Edge::UnaryDaughter& packededgedaughter) const
+  {
+    Edge & lefty = packededgedaughter.left_daughter();
+    assert(not lefty.is_closed());
+    const AnnotationInfo& ailefty = lefty.get_annotations();
+
+    double total_in = 0;
+
+    for(unsigned annot = 0 ; annot < ailefty.inside_probabilities.array.size(); ++annot) {
+      if(ailefty.inside_probabilities.array[annot] != LorgConstants::NullProba) {
+        total_in += ailefty.inside_probabilities.array[annot];
+      }
+    }
+
+    total_in = std::log(total_in);
+
+    bool remove = log_outside_up + total_in  < log_threshold;
+
+    return remove;
+
+  }
+};
+
+template <typename Edge>
+struct pred_beam_huang_binary
+{
+  double log_threshold;
+  double log_outside_up;
+
+  pred_beam_huang_binary(double th, double se, double ou) : log_threshold(th + se), log_outside_up(ou) {}
 
 
   // assume that clean has already been called
   // and so lefty and righty are never NULL
   bool operator()(const typename Edge::BinaryDaughter& packededgedaughter) const
   {
-
-
     const Edge & lefty = packededgedaughter.left_daughter();
     assert(not lefty.is_closed());
     const AnnotationInfo& ailefty = lefty.get_annotations();
@@ -383,29 +414,8 @@ struct pred_beam_huang
 
     return remove;
   }
-
-  bool operator()(const typename Edge::UnaryDaughter& packededgedaughter) const
-  {
-    Edge & lefty = packededgedaughter.left_daughter();
-    assert(not lefty.is_closed());
-    const AnnotationInfo& ailefty = lefty.get_annotations();
-
-    double total_in = 0;
-
-    for(unsigned annot = 0 ; annot < ailefty.inside_probabilities.array.size(); ++annot) {
-      if(ailefty.inside_probabilities.array[annot] != LorgConstants::NullProba) {
-        total_in += ailefty.inside_probabilities.array[annot];
-      }
-    }
-
-    total_in = std::log(total_in);
-
-    bool remove = log_outside_up + total_in  < log_threshold;
-
-    return remove;
-
-  }
 };
+
 
 template<class Types>
 void PCKYAllCell<Types>::beam_huang(double log_threshold, double log_sent_prob)
@@ -413,8 +423,8 @@ void PCKYAllCell<Types>::beam_huang(double log_threshold, double log_sent_prob)
   for(Edge & edge: edges) {
     // std::cout << edges << std::endl;
     // std::cout << i << std::endl;
-    if(not edge.is_closed()) {
-      AnnotationInfo& ai = edge.get_annotations();
+    if(not edge.lbedge().is_closed()) {
+      AnnotationInfo& ai = edge.lbedge().get_annotations();
 
       double total_out = 0;
       for(unsigned annot = 0 ; annot < ai.outside_probabilities.array.size(); ++annot) {
@@ -425,14 +435,27 @@ void PCKYAllCell<Types>::beam_huang(double log_threshold, double log_sent_prob)
 
       total_out = std::log(total_out);
 
-      pred_beam_huang<typename Types::Edge> huang(log_threshold, log_sent_prob, total_out);
+      pred_beam_huang_binary<typename Types::PEdge> huang(log_threshold, log_sent_prob, total_out);
 
-
-      std::vector<typename Types::BinaryDaughter >& bdaughters = edge.get_binary_daughters();
+      std::vector<typename Types::BinaryDaughter >& bdaughters = edge.lbedge().get_binary_daughters();
       bdaughters.erase(std::remove_if(bdaughters.begin(), bdaughters.end(), huang),
                        bdaughters.end());
+    }
+    if(not edge.uedge().is_closed()) {
+      AnnotationInfo& ai = edge.uedge().get_annotations();
 
-      std::vector<typename Types::UnaryDaughter >& udaughters = edge.get_unary_daughters();
+      double total_out = 0;
+      for(unsigned annot = 0 ; annot < ai.outside_probabilities.array.size(); ++annot) {
+        if(ai.outside_probabilities.array[annot] != LorgConstants::NullProba) {
+          total_out += ai.outside_probabilities.array[annot];
+        }
+      }
+
+      total_out = std::log(total_out);
+
+      pred_beam_huang_unary<typename Types::LBEdge> huang(log_threshold, log_sent_prob, total_out);
+
+      std::vector<typename Types::UnaryDaughter >& udaughters = edge.uedge().get_unary_daughters();
 
       udaughters.erase(std::remove_if(udaughters.begin(), udaughters.end(), huang),
                        udaughters.end());
@@ -444,8 +467,7 @@ template<class Types>
 void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_annotations,
                                               const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current)
 {
-  for(size_t i=0; i<max_size; ++i) {
-    Edge & edge = edges[i];
+  auto c_r_s = [&](PEdge & edge, int i)->void {
     if(not edge.is_closed()) {
       
       AnnotationInfo a(next_annotations.get_number_of_annotations(i), 0.0);
@@ -463,12 +485,14 @@ void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_ann
       }
 
       //replace annot
-      std::swap(a,edge.get_annotations());
-
-      //replace rule
-      edge.replace_rule_probabilities(0);
-
+      edge.get_annotations() = std::move(a);
     }
+  };
+  
+  for(size_t i=0; i<max_size; ++i) {
+    Edge & edge = edges[i];
+    c_r_s(edge.uedge(), i); edge.uedge().replace_rule_probabilities(0);
+    c_r_s(edge.lbedge(), i); edge.lbedge().replace_rule_probabilities(0);
   }
 }
 
@@ -477,7 +501,15 @@ void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_ann
 template<class Types>
 void PCKYAllCell<Types>::change_rules_resize(unsigned new_size, unsigned finer_idx)
 {
-  apply_on_edges(function<void(Edge&)>([new_size,finer_idx](Edge&e){
+  apply_on_lbedges(function<void(LBEdge&)>([new_size,finer_idx](LBEdge&e){
+    //resize
+    e.get_annotations().reset_probabilities(0.0);
+    e.get_annotations().resize(new_size);
+    //replace rule
+    e.replace_rule_probabilities(finer_idx);
+  })
+  );
+  apply_on_uedges(function<void(UEdge&)>([new_size,finer_idx](UEdge&e){
     //resize
     e.get_annotations().reset_probabilities(0.0);
     e.get_annotations().resize(new_size);

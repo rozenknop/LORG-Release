@@ -2,11 +2,9 @@
 #ifndef _PARSERCKYALLMAXVARONEBEST_H_
 #define _PARSERCKYALLMAXVARONEBEST_H_
 
-#include "ParserCKYAllMaxVar.h"
 #include "edges/MaxRuleProbability1B.h"
+#include "ParserCKYAllMaxVar.h"
 #include "Word.h"
-
-#include "emptystruct.h"
 
 
 class ParserCKYAllMaxRule1B : public ParserCKYAllMaxRule<MaxRule1BTypes>
@@ -33,7 +31,6 @@ protected:
    */
   void calculate_chart_specific_rule_probabilities_and_best_edge();
 
-  static double log_normalisation_factor;
 };
 
 #endif /* _PARSERCKYALLMAXVARONEBEST_H_ */

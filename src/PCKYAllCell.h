@@ -56,12 +56,6 @@ private:
 
 public:
   /**
-     \brief destructor
-   */
-  ~PCKYAllCell();
-
-
-  /**
      \brief initialise the cell
      \param cl true if closed
    */
@@ -152,7 +146,6 @@ public:
 
   void compute_inside_probabilities();
   void compute_outside_probabilities();
-  void adjust_inside_probability();
 
   void add_word(const Word & word);
 
@@ -207,14 +200,14 @@ private:
   static unsigned max_size;
 };
 
-// template<class Types>
-// inline
-// bool PCKYAllCell<Types>::exists_edge(int label) const
-// {
-//   assert(label >= 0);
-//   assert(label < (int) max_size);
-//   return (not edges[label].is_closed());
-// }
+template<class Types>
+inline
+bool PCKYAllCell<Types>::exists_edge(int label) const
+{
+  assert(label >= 0);
+  assert(label < (int) max_size);
+  return (not edges[label].is_closed());
+}
 
 
 template<class Types>

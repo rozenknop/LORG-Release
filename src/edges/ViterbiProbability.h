@@ -49,21 +49,21 @@ public:
   ViterbiProbability() {};
   ViterbiProbability(unsigned size) : best(size) {};
 
-  void set_size(unsigned size_) {best.resize(size_);}
+  inline void set_size(unsigned size_) {best.resize(size_);}
 
 
-  const packed_edge_probability& get(unsigned index) const
+  inline const packed_edge_probability& get(unsigned index) const
   {return best[index];}
 
-  packed_edge_probability& get(unsigned index)
+  inline packed_edge_probability& get(unsigned index)
   {return best[index];}
 
-  void update_lexical(LBEdge& e,  const LexicalDaughter& dtr);
-  void update_unary(UEdge& e, const UnaryDaughter& dtr);
-  void update_binary(LBEdge& e, const BinaryDaughter& dtr);
-  void finalize() {};
+  inline void update_lexical(LBEdge& e,  const LexicalDaughter& dtr);
+  inline void update_unary(UEdge& e, const UnaryDaughter& dtr);
+  inline void update_binary(LBEdge& e, const BinaryDaughter& dtr);
+  inline void finalize() {};
 
-  bool has_solution(unsigned i) const {return i == 0;} ;
+  inline bool has_solution(unsigned i) const {return i == 0;} ;
 };
 
 std::ostream& operator<<(std::ostream& out, const ViterbiProbability & prob);

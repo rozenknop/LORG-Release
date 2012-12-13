@@ -5,8 +5,9 @@
 #include "edges/PackedEdge.hpp"
 #include "ParserCKYAllMaxVar1B.h"
 #include "ParserCKYAll.hpp"
+#include "edges/MaxRuleProbability1B.hpp"
 
-double ParserCKYAllMaxRule1B::log_normalisation_factor = 0;
+
 
 ParserCKYAllMaxRule1B::ParserCKYAllMaxRule1B(std::vector<AGrammar*>& cgs,
                                              const std::vector<double>& p, double b_t,
@@ -19,7 +20,7 @@ ParserCKYAllMaxRule1B::ParserCKYAllMaxRule1B(std::vector<AGrammar*>& cgs,
   //create the coarse-to-fine map
   this->create_coarse_to_fine_mapping(this->grammars);
 
-  Edge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
+  UEdge::set_unary_chains(this->grammars[this->grammars.size() - 1]->get_unary_decoding_paths());
 }
 
 void ParserCKYAllMaxRule1B::extract_solution()

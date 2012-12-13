@@ -58,7 +58,6 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
         if(!cell.is_empty()) {
           this->add_unary_init(cell,cell.get_top());
           //           std::cout << cell << std::endl;
-          cell.adjust_inside_probability();
 
           // prevent short sentences from being skipped ...
           if(beam_short)
@@ -177,10 +176,6 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
   {
     // BLOCKTIMING("process_cell unary");
     add_unary_internal(cell, isroot);
-  }
-  {
-    // BLOCKTIMING("process_cell adjust_inside_probability");
-    cell.adjust_inside_probability();
   }
   // pruning
   if(chart->get_size() >= min_length_beam)
@@ -526,7 +521,7 @@ void ParserCKYAll_Impl<Types>::compute_inside_outside_probabilities()
 {
   compute_inside_probabilities();
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-  chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
+  chart->get_root().get_edge(start_symbol).uedge().get_annotations().reset_outside_probabilities(1.0);
   compute_outside_probabilities();
 }
 

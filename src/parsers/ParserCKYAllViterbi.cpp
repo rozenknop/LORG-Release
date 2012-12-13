@@ -1,5 +1,7 @@
 #include "ParserCKYAll.hpp"
 #include "ParserCKYAllViterbi.h"
+#include "edges/ViterbiProbability.hpp"
+
 #include "grammars/GrammarAnnotated.hpp"
 
 ParserCKYAllViterbi::ParserCKYAllViterbi(std::vector<AGrammar *>& cgs,
@@ -34,7 +36,7 @@ void ParserCKYAllViterbi::extract_solution()
       for(unsigned i = 0; i < cell.get_max_size(); ++i) {
         if(cell.exists_lbedge(i))  {
           cell.get_edge(i).lbedge().get_best().set_size(annotations_info.get_number_of_annotations(i));
-          cell.get_edge(i).replace_rule_probabilities(0);
+          cell.get_edge(i).lbedge().replace_rule_probabilities(0);
           cell.get_edge(i).apply(&ViterbiProbability::update_lexical,
                                  &ViterbiProbability::update_binary);
         }

@@ -60,7 +60,7 @@ public:
      \brief get the size of the chart
      \return the size of the chart
   */
-  unsigned get_size() const;
+  inline unsigned get_size() const;
 
 
   /**
@@ -70,42 +70,88 @@ public:
      \return a cell (may segfault if coordinates are out of bounds)
   */
 
-  const Cell& access(unsigned start, unsigned end) const;
-  Cell& access(unsigned start, unsigned end);
+  inline const Cell& access(unsigned start, unsigned end) const;
+  inline Cell& access(unsigned start, unsigned end);
 
   inline const Cell& get_root() const;
-  Cell& get_root();
+  inline Cell& get_root();
 
-  PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations, bool unary_start=true) const;
+  inline PtbPsTree* get_best_tree(int start_symbol, unsigned k, bool always_output_forms, bool output_annotations, bool unary_start=true) const;
 
-  double get_score(int start_symbol, unsigned k, bool unary_start=true) const;
+  inline double get_score(int start_symbol, unsigned k, bool unary_start=true) const;
 
 
-  void init(const std::vector< MyWord >& sentence);
+  inline void init(const std::vector< MyWord >& sentence);
 
-  void reset_probabilities();
+  inline void reset_probabilities();
 
-  bool has_solution(int symb, unsigned i, bool unary_start=true) const;
+  inline bool has_solution(int symb, unsigned i, bool unary_start=true) const;
 
-  void clear();
+  inline void clear();
 
-  void prepare_retry();
+  inline void prepare_retry();
 
-  bool is_valid(int start_symbol) const;
+  inline bool is_valid(int start_symbol) const;
 
-  ostream & to_stream(ostream & s) const;
-  std::string toString() const ;
+  inline ostream & to_stream(ostream & s) const;
+  inline std::string toString() const ;
 
-  void opencells_apply( std::function<void(Cell &)> f );
-  void opencells_apply_nothread( std::function<void(Cell &)> f );
-  void opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span=0 );
-  void opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span=0 );
-  void opencells_apply_top_down( std::function<void(Cell &)> f );
-  void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
-  void opencells_apply_top_down_nothread( std::function<void(const Cell &)> f ) const;
+  inline void opencells_apply( std::function<void(Cell &)> f );
+  inline void opencells_apply_nothread( std::function<void(Cell &)> f );
+  inline void opencells_apply_bottom_up( std::function<void(Cell &)> f, unsigned min_span=0 );
+  inline void opencells_apply_bottom_up_nothread( std::function<void(Cell &)> f, unsigned min_span=0 );
+  inline void opencells_apply_top_down( std::function<void(Cell &)> f );
+  inline void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
+  inline void opencells_apply_top_down_nothread( std::function<void(const Cell &)> f ) const;
 
-  std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
+  inline std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
 };
+
+template <class Types>
+inline bool ChartCKY<Types>::is_valid(int start_symbol) const
+{
+  return !get_root().is_closed() && get_root().exists_uedge(start_symbol);
+}
+
+template<class Types>
+inline typename Types::Cell& ChartCKY<Types>::get_root()
+{
+  return access(0,size-1);
+}
+
+template<class Types>
+inline const typename Types::Cell& ChartCKY<Types>::get_root() const
+{
+  return access(0,size-1);
+}
+
+template<class Types>
+inline
+unsigned ChartCKY<Types>::get_size() const
+{
+  return size;
+}
+
+template<class Types>
+inline
+typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end)
+{
+  //   assert(start <= end);
+  //   assert(end < size);
+  //     return chart[start][end-start];
+  //     std::cout << "access("<<start<<","<<end<<") = "<<start + ( (end-start)*(2*size - (end-start) + 1))/2 << std::endl; std::cout.flush();
+  return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
+}
+
+template<class Types>
+inline
+const typename Types::Cell& ChartCKY<Types>::access(unsigned start, unsigned end) const
+{
+  //   assert(start <= end);
+  //   assert(end < size);
+  //     return chart[start][end-start];
+  return the_cells[start + ( (end-start)*(2*size - (end-start) + 1))/2 ];
+}
 
 
 #endif /*CHARTCKY_H_*/

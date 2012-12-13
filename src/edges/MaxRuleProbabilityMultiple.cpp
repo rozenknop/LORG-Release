@@ -28,4 +28,9 @@ const double& MaxRuleProbabilityMultiple::get_log_normalisation_factor()
   return log_normalisation_factor;
 }
 
+std::ostream& operator<<(std::ostream& out, const MaxRuleProbabilityMultiple & prob)
+{
+  return out << "(MaxRuleMulltipleProb: " << &prob << ")";
+}
+
 #endif /* _MAXRULEMULTIPLEPROBABILITY_CPP_ */

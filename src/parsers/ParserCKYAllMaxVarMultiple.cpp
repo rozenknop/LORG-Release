@@ -4,7 +4,7 @@
 
 #include "ParserCKYAll.hpp"
 #include "ParserCKYAllMaxVarMultiple.h"
-
+#include "edges/MaxRuleProbabilityMultiple.hpp"
 
 
 ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,
@@ -38,7 +38,7 @@ ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>&
   create_coarse_to_fine_mapping(maxn_mapping);
 
   //TODO calculate this properly for multiple grammars
-  Edge::set_unary_chains(grammars.back()->get_unary_decoding_paths());
+  UEdge::set_unary_chains(grammars.back()->get_unary_decoding_paths());
 }
 
 
@@ -65,13 +65,15 @@ void ParserCKYAllMaxRuleMultiple::change_rules_reset()
 void ParserCKYAllMaxRuleMultiple::change_rules_load_backup(unsigned backup_idx, unsigned size) const
 {
   //  std::cout << "change_rules_load_backup" << std::endl;
-  function<void(Edge&)> replace_rules = std::bind(&Edge::replace_rule_probabilities, std::placeholders::_1, size);
-  function<void(Edge&)> replace_annotations = [backup_idx](Edge& e){e.get_annotations() = e.get_prob_model().get_annotations_backup()[backup_idx];};
+  function<void(UEdge&)> replace_rules_u = std::bind(&UEdge::replace_rule_probabilities, std::placeholders::_1, size);
+  function<void(LBEdge&)> replace_rules_lb = std::bind(&LBEdge::replace_rule_probabilities, std::placeholders::_1, size);
+  function<void(PEdge&)> replace_annotations = [backup_idx](PEdge& e){e.get_annotations() = e.get_best().get_annotations_backup()[backup_idx];};
 
   chart->opencells_apply(
-    [&replace_rules, &replace_annotations](Cell&cell){
+    [&replace_rules_u, &replace_rules_lb, &replace_annotations](Cell&cell){
       cell.apply_on_edges(
-        replace_rules,
+        replace_rules_u,
+        replace_rules_lb,
         replace_annotations
       );
     }
@@ -80,7 +82,7 @@ void ParserCKYAllMaxRuleMultiple::change_rules_load_backup(unsigned backup_idx, 
 
 void ParserCKYAllMaxRuleMultiple::modify_backup(unsigned backup_idx) const
 {
-  function<void(Edge&)> modify = [backup_idx](Edge& e){e.get_prob_model().get_annotations_backup()[backup_idx] = e.get_annotations();};
+  function<void(PEdge&)> modify = [backup_idx](PEdge& e){e.get_best().get_annotations_backup()[backup_idx] = e.get_annotations();};
   chart->opencells_apply([&modify](Cell&cell){cell.apply_on_edges(modify);});
 }
 
@@ -129,7 +131,7 @@ void ParserCKYAllMaxRuleMultiple::multiple_inside_outside_specific()
 
 
     if(!chart->get_root().is_closed() && chart->get_root().exists_edge(start_symbol)) {
-      chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
+      chart->get_root().get_edge(start_symbol).uedge().get_annotations().reset_outside_probabilities(1.0);
       compute_outside_probabilities();
 
       MaxRuleProbabilityMultiple::set_log_normalisation_factor(std::log(get_sentence_probability()));
@@ -214,7 +216,7 @@ void ParserCKYAllMaxRuleMultiple::extend_all_derivations()
   for (unsigned i = 2; i <= k; ++i)
     {
       //      std::cout << "before extend" << std::endl;
-      chart->get_root().get_edge(start_symbol).extend_derivation(i,true);
+      chart->get_root().get_edge(start_symbol).uedge().extend_derivation(i,true);
     }
 }
 
