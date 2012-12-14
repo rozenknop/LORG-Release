@@ -87,8 +87,9 @@ class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, Lexic
 
   virtual void clean() = 0;
 
-
- protected: // attributes
+  virtual void dump(std::ostream & out) = 0;
+ 
+protected: // attributes
   std::vector<AGrammar *> grammars; ///< the grammars to beam
   const std::vector<double> priors;  ///< used for prior-based beam
 
@@ -296,9 +297,13 @@ protected:
                   std::vector<std::pair<PtbPsTree *,double> >& best_trees, bool unary_start_edge=true);
 
 
- protected: // attributes
+protected: // attributes
   Chart * chart; // the chart
+  
+public:
+  virtual void dump(std::ostream & out) { out << *chart ; }
 };
 
+inline std::ostream & operator<<(std::ostream & out, ParserCKYAll & p) { p.dump(out); return out; }
 
 #endif /*PARSERCKYALL_H*/

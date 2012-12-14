@@ -467,7 +467,7 @@ template<class Types>
 void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_annotations,
                                               const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current)
 {
-  auto c_r_s = [&](PEdge & edge, int i)->void {
+  auto c_r_s = [&](PEdge & edge, int i)->bool {
     if(not edge.is_closed()) {
       
       AnnotationInfo a(next_annotations.get_number_of_annotations(i), 0.0);
@@ -486,13 +486,15 @@ void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_ann
 
       //replace annot
       edge.get_annotations() = std::move(a);
+      return true;
     }
+    return false;
   };
   
   for(size_t i=0; i<max_size; ++i) {
     Edge & edge = edges[i];
-    c_r_s(edge.uedge(), i); edge.uedge().replace_rule_probabilities(0);
-    c_r_s(edge.lbedge(), i); edge.lbedge().replace_rule_probabilities(0);
+    if (c_r_s(edge. uedge(), i)) edge. uedge().replace_rule_probabilities(0);
+    if (c_r_s(edge.lbedge(), i)) edge.lbedge().replace_rule_probabilities(0);
   }
 }
 
@@ -523,16 +525,16 @@ void PCKYAllCell<Types>::change_rules_resize(unsigned new_size, unsigned finer_i
 
 //simple stuff
 template<class Types>
-std::ostream& operator<<(std::ostream& out, const PCKYAllCell<Types>& cell)
+void PCKYAllCell<Types>::dump(std::ostream& out) const
 {
-  out << "(cell: span=" << cell.get_end() - cell.get_begin() << ", beg=" << cell.get_begin() << " :"<< std::endl;
+  out << "(cell: span=" << get_end() - get_begin() << ", beg=" << get_begin() << " :"<< std::endl;
   int nb_entries = 0;
-  for(unsigned i = 0; i < cell.max_size ; ++i)
-    if(not cell.edges[i].is_closed()) {
+  for(unsigned i = 0; i < max_size ; ++i)
+    if(not edges[i].is_closed()) {
       ++nb_entries;
-      out << " " << i << ":" << cell.edges[i] << std::endl;
+      out << " " << i << ":" << edges[i] << std::endl;
     }
-  return out << "filled entries: " << nb_entries << ")";
+  out << "filled entries: " << nb_entries << ")";
 }
 
 

@@ -198,6 +198,9 @@ private:
   bool top;
 
   static unsigned max_size;
+
+public:
+  void dump(std::ostream & out) const;
 };
 
 template<class Types>
@@ -304,4 +307,8 @@ void PCKYAllCell<Types>::set_max_size(unsigned size)
 {
   max_size =  size;
 }
+
+template<class Types>
+inline std::ostream& operator<<(std::ostream& out, const PCKYAllCell<Types>& cell) { cell.dump(out); return out; }
+
 #endif //PCKYALLCELL_H

@@ -93,8 +93,7 @@ public:
 
   inline bool is_valid(int start_symbol) const;
 
-  inline ostream & to_stream(ostream & s) const;
-  inline std::string toString() const ;
+  void dump(ostream & s) const ;
 
   inline void opencells_apply( std::function<void(Cell &)> f );
   inline void opencells_apply_nothread( std::function<void(Cell &)> f );
@@ -103,9 +102,10 @@ public:
   inline void opencells_apply_top_down( std::function<void(Cell &)> f );
   inline void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
   inline void opencells_apply_top_down_nothread( std::function<void(const Cell &)> f ) const;
-
-  inline std::ostream & operator>>(std::ostream & out) { opencells_apply_bottom_up([out](Cell & cell){return out << cell << endl; }); return out; }
 };
+
+template<class OPEP>
+inline std::ostream & operator<<(std::ostream & out, const ChartCKY<OPEP> & chart) { chart.dump(out); return out; }
 
 template <class Types>
 inline bool ChartCKY<Types>::is_valid(int start_symbol) const

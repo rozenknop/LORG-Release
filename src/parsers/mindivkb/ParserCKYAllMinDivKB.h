@@ -64,6 +64,11 @@ private:
   };
 };
 
+inline std::ostream& operator<<(std::ostream& out, const MinDivBest & best)
+{
+  return out << "(Best: " << &best << ")";
+}
+
 class MinDivProbabilityKB
 {
 

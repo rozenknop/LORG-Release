@@ -67,12 +67,14 @@ int TwoStageLorgParseApp::run()
             {
 //                             BLOCKTIMING("initialise_chart");
               parser->initialise_chart(sentence, brackets);
+              std::cout << *parser << std::endl;
             }
             
             // parse, aka create the coarse forest
             {
 //                             BLOCKTIMING("parse");
               parser->parse(start_symbol);
+              std::cout << *parser << std::endl;
             }
             //use intermediate grammars to prune the chart
             {

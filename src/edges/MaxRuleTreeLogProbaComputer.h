@@ -33,15 +33,8 @@ public:
     
     double probability = 0.0;
     
-    bool uleft = not static_cast<const UEdge&>(left).is_closed();
-    bool uright = not static_cast<const UEdge&>(right).is_closed();
-    bool lbleft = not static_cast<const LBEdge&>(left).is_closed();
-    bool lbright = not static_cast<const LBEdge&>(right).is_closed();
-    const scaled_array * uleft_inside  = uleft ? nullptr : & static_cast<const UEdge&>(left).get_annotations ().inside_probabilities;
-    const scaled_array * uright_inside = uright ? nullptr : & static_cast<const UEdge&>(right).get_annotations ().inside_probabilities;
-    const scaled_array * lbleft_inside  = lbleft ? nullptr : & static_cast<const LBEdge&>(left).get_annotations ().inside_probabilities;
-    const scaled_array * lbright_inside = lbright ? nullptr : & static_cast<const LBEdge&>(right).get_annotations ().inside_probabilities;
-
+    const scaled_array & left_inside  = left.get_annotations ().inside_probabilities;
+    const scaled_array & right_inside = right.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
     const std::vector<std::vector<std::vector<double >>> & rule_probs = dtr.get_rule ()->get_probability ();
     
@@ -86,9 +79,9 @@ public:
         for (unsigned k = 0; k < size_ij; ++k)
         {
           if (right.valid_prob_at (k))
-            inner += rule_probs_ij[k] * ((uright ? uright_inside->array[k] : 0) + (lbright ? lbright_inside->array[k] : 0));
+            inner += rule_probs_ij[k] * right_inside.array[k];
         }
-        temp += inner * ((uleft ? uleft_inside->array[j] : 0) + (lbleft ? lbleft_inside->array[j] : 0));
+        temp += inner * left_inside.array[j];
       }
       probability += up_outside.array[i] * temp;
     }

@@ -444,33 +444,17 @@ public:
   
   
   
-  template<class Types>
-  ostream & operator<<(ostream & out, const ChartCKY<Types> & chart) { return chart.to_stream(out) ; }
   
-  template<class Types>
-  ostream & ChartCKY<Types>::to_stream(ostream & s) const {
-    s << "(begin chart:"<< this << ")" << std::endl;
-    opencells_apply_top_down_nothread( [&s](const Cell & cell){
-      s << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
-      s << cell << std::endl;
-    } );
-    s << "(end   chart "<< this << ")" << std::endl;
-    return s;
-  }
+template<class Types>
+void ChartCKY<Types>::dump(ostream & s) const {
+  s << "(begin chart:"<< this << ")" << std::endl;
+  opencells_apply_top_down_nothread( [&s](const Cell & cell){
+    s << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
+    s << cell << std::endl;
+  } );
+  s << "(end   chart "<< this << ")" << std::endl;
+}
   
-#include <sstream>
-
-  template<class Types>
-  std::string ChartCKY<Types>::toString() const {
-    std::string ret;
-    std::ostringstream stream(ret);
-    opencells_apply_top_down_nothread( [&stream](const Cell & cell){
-      
-      stream << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
-      stream << cell << std::endl;
-    } );
-    return ret;
-  }
   
   //#include "utils/SymbolTable.h"
   

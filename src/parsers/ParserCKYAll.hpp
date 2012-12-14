@@ -213,7 +213,7 @@ void ParserCKYAll_Impl<Types>::add_unary_internal(Cell& cell, bool isroot) const
   std::vector<short>::const_iterator unary_rhs_itr_end = unary_rhs_from_binary.end();
   for(std::vector<short>::const_iterator unary_rhs_itr = unary_rhs_from_binary.begin();unary_rhs_itr!=unary_rhs_itr_end;++unary_rhs_itr) {
 
-    if (cell.exists_edge(*unary_rhs_itr)) {
+    if (cell.exists_lbedge(*unary_rhs_itr)) {
       //BLOCKTIMING("ParserCKYAll_Impl<Types>::add_unary_internal");
       process_unary(cell,*unary_rhs_itr,isroot);
     }
@@ -403,7 +403,7 @@ void ParserCKYAll_Impl<Types>::create_coarse_to_fine_mapping(std::vector<AGramma
 template <class Types>
 void ParserCKYAll_Impl<Types>::beam_c2f(int start_symbol)
 {
-  if(!chart->get_root().is_closed() && chart->get_root().exists_edge(start_symbol)) {
+  if(!chart->get_root().is_closed() && chart->get_root().exists_uedge(start_symbol)) {
     beam_c2f(grammars, annot_descendants);
   }
 }
@@ -438,7 +438,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // else if(!chart->get_root().exists_edge(top_idx))
     //   std::cout << "top is not in root cell" << std::endl;
 
-    if(chart->get_root().is_closed() || !chart->get_root().exists_edge(top_idx)) {
+    if(chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx)) {
       //      std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
       break;
     }

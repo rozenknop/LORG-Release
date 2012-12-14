@@ -511,22 +511,30 @@ void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
 
 
 template<class OPEP>
-std::ostream& operator<<(std::ostream& out, const LBPackedEdge<OPEP>& edge)
+void LBPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(edge: " << &edge << ": inside(0): " << edge.get_annotations().get_inside(0) << " best:" << edge.best;
-  edge.apply(std::function<void(const typename OPEP::LexicalDaughter&)>([&out](const typename OPEP::LexicalDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
-  edge.apply(std::function<void(const typename OPEP::BinaryDaughter&)>([&out](const typename OPEP::BinaryDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
-  return out << ") ";
+  out << "(edge: " << this<< ": inside(0): " << BasePackedEdge<OPEP>::get_annotations().get_inside(0) << " best:" << BasePackedEdge<OPEP>::best;
+  for (const auto & dtr: lexical_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
+  for (const auto & dtr: binary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
+  out << ") ";
 }
 
 template<class OPEP>
-std::ostream& operator<<(std::ostream& out, const UPackedEdge<OPEP>& edge)
+void UPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(edge: " << &edge << ": inside(0): " << edge.get_annotations().get_inside(0) << " best:" << edge.best;
-  edge.apply(std::function<void(const typename OPEP::LexicalDaughter&)>([&out](const typename OPEP::LexicalDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
-  edge.apply(std::function<void(const typename OPEP::BinaryDaughter&)>([&out](const typename OPEP::BinaryDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
-  edge.apply(std::function<void(const typename OPEP::UnaryDaughter&)>([&out](const typename OPEP::UnaryDaughter & dtr){out<<"(dtr: " << *dtr.get_rule() << ") ";}));
-  return out << ") ";
+  out << "(edge: " << this << ": inside(0): " << BasePackedEdge<OPEP>::get_annotations().get_inside(0) << " best:" << BasePackedEdge<OPEP>::best;
+  for (const auto & dtr: unary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
+  out << ") ";
+}
+
+template<class OPEP>
+void PackedEdge<OPEP>::dump(std::ostream& out) const
+{
+  out << "(edge: " << this << " : unaries = " ;
+  if (u.is_closed()) out << "none" ; else out << u ;
+  out << " -- binaries = ";
+  if (lb.is_closed()) out << "none" ; else out << lb ;
+  out << ")";
 }
 
 /* ********************************************************

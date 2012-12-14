@@ -115,7 +115,7 @@ public:
   template<class OPEP>
   friend std::ostream& operator<<(std::ostream& out, const BasePackedEdge<OPEP>& edge);
 
-
+  void dump(std::ostream & out) const;
 
   /**
      \brief return an AnnotationInfo (inside/outside probs +scaling values)
@@ -214,10 +214,11 @@ public:
   static void set_unary_chains(const PathMatrix& pathmatrix);
   static const PathMatrix& get_unary_chains();
 
+  void dump(std::ostream & out) const;
 
 
   inline bool no_daughters() { return unary_daughters.empty(); } 
-  void close() { this->open=false; UPackedEdge::~UPackedEdge(); }
+  void close() { std::cout << "closing unary edge " << this << std::endl; std::cout.flush(); this->open=false; UPackedEdge::~UPackedEdge(); }
 };
 
 
@@ -298,7 +299,7 @@ public:
   void clean_invalidated_binaries();
 
   bool no_daughters() { return binary_daughters.empty() and lexical_daughters.empty(); } 
-  void close() { this->open=false; LBPackedEdge<Types>::~LBPackedEdge(); }
+  void close() { std::cout << "closing binary edge " << this << std::endl; std::cout.flush(); this->open=false; LBPackedEdge<Types>::~LBPackedEdge(); }
 
 
   PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
@@ -310,7 +311,10 @@ private:
   void to_ptbpstree(PtbPsTree& tree, PtbPsTree::depth_first_iterator& pos, int lhs, unsigned index,
                     bool append_annot, bool outpu_forms) const;
                     
-friend class BasePackedEdge<Types>;
+  friend class BasePackedEdge<Types>;
+  
+public:
+    void dump(std::ostream & out) const;
 };
 
 
@@ -421,8 +425,19 @@ public:
   template<typename Function, typename... OtherFunctions>
   void apply(Function&& f, OtherFunctions&&... o) const {process(toFunc(f));apply(o...);}
 
+  template<class OPEP>
+  friend std::ostream& operator<<(std::ostream& out, const PackedEdge<OPEP>& edge);
+  void dump(std::ostream & out) const;
 };
 
+template<class OPEP>
+inline std::ostream& operator<<(std::ostream& out, const BasePackedEdge<OPEP>& edge) {edge.dump(out); return out; }
+template<class OPEP>
+inline std::ostream& operator<<(std::ostream& out, const UPackedEdge<OPEP>& edge) {edge.dump(out); return out; }
+template<class OPEP>
+inline std::ostream& operator<<(std::ostream& out, const LBPackedEdge<OPEP>& edge) {edge.dump(out); return out; }
+template<class OPEP>
+inline std::ostream& operator<<(std::ostream& out, const PackedEdge<OPEP>& edge) {edge.dump(out); return out; }
 
 
 #endif /*PACKEDEDGE_H_*/
