@@ -57,12 +57,6 @@ struct AnnotationInfo
   scaled_array inside_probabilities;
   scaled_array outside_probabilities;
 
-  scaled_array inside_probabilities_unary_temp;
-  scaled_array outside_probabilities_unary_temp;
-
-
-  AnnotationInfo();
-
   AnnotationInfo(unsigned i, double d);
 
   AnnotationInfo(const AnnotationInfo& other);

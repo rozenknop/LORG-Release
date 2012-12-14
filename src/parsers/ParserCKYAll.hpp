@@ -47,7 +47,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
     if(ntries == 0)
       beam_threshold = 0;
 
-    //    std::clog << "ParserCKY::parse ntries = " << ntries << " threshold : " << beam_threshold << std::endl;
+//        std::clog << "ParserCKY::parse ntries = " << ntries << " threshold : " << beam_threshold << std::endl;
 
 
     //init
@@ -65,15 +65,20 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
 
           // if(cell.is_closed())
             //   std::cout << "(" << i << "," <<j << ") is closed" << std::endl;
+//           std::cout << cell << std::endl;
         }
       }
       );
     }
+//     std::clog << "ParserCKY::parse after init" << std::endl;
+
     //actual cky is here
     {
       //               BLOCKTIMING("process_internal_rules");
       process_internal_rules(beam_threshold);
     }
+//     std::clog << "ParserCKY::parse after process_internal_rules(beam_threshold)" << std::endl;
+
     if(ntries == 0)
       break;
 
@@ -92,6 +97,7 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
                                               Cell& right_cell,
                                               Cell& result_cell) const
 {
+//   std::clog << "ParserCKYAll_Impl<Types>::get_candidates("<<&left_cell<<","<<&right_cell<<","<<&result_cell<<")"<<std::endl;
   //   {
     //               BLOCKTIMING("get_candidates counting");
     // count the number of daughters to create
@@ -116,22 +122,23 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
     for (const auto & same_rhs0_rules: brules) {
       Edge & left_edges = left_cell.get_edge(same_rhs0_rules.rhs0) ;
       for(PEdge *  left_edge: std::vector<PEdge*>({&left_edges.uedge(), &left_edges.lbedge()}))
-      if (not left_edge->is_closed()) {
-        double LR1 = left_edge->get_annotations().inside_probabilities.array[0];
-        //iterating through all the rules P -> L R, indexed by R, L fixed
-        for(const auto & same_rhs: same_rhs0_rules) {
-          Edge & right_edges = right_cell.get_edge(same_rhs.rhs1);
-          for(PEdge *  right_edge: std::vector<PEdge*>({&right_edges.uedge(), &right_edges.lbedge()}))
-          if (not right_edge->is_closed()) {
-            double LR = LR1 * right_edge->get_annotations().inside_probabilities.array[0];
-            
-            //iterating through all the rules P -> L R, indexed by P, R and L fixed
-            for(const auto & rule: same_rhs) {
-              result_cell.process_candidate(*left_edge,*right_edge, rule, LR);
-            }
+        if (not left_edge->is_closed()) {
+          double LR1 = left_edge->get_annotations().inside_probabilities.array[0];
+          //iterating through all the rules P -> L R, indexed by R, L fixed
+          for(const auto & same_rhs: same_rhs0_rules) {
+            Edge & right_edges = right_cell.get_edge(same_rhs.rhs1);
+            for(PEdge *  right_edge: std::vector<PEdge*>({&right_edges.uedge(), &right_edges.lbedge()}))
+              if (not right_edge->is_closed()) {
+                double LR = LR1 * right_edge->get_annotations().inside_probabilities.array[0];
+                
+                //iterating through all the rules P -> L R, indexed by P, R and L fixed
+                for(const auto & rule: same_rhs) {
+//                   std::clog << "calling result_cell.process_candidate(" << left_edge << " , " << right_edge << " , " << rule << " , " << LR << ")" << std::endl;
+                  result_cell.process_candidate(*left_edge,*right_edge, rule, LR);
+                }
+              }
           }
         }
-      }
     }
   }
 }
@@ -142,6 +149,8 @@ void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) con
   chart->opencells_apply_bottom_up(
     [&,beam_threshold](Cell&cell)
     {
+//       std::clog << "ParserCKYAll_Impl<Types>::process_internal_rules : before process_cell(" << cell.get_end() - cell.get_begin() + 1 << ","<< cell.get_begin() << ") (" << &cell << ")" << std::endl;
+//       std::clog << cell << std::endl;
       this->process_cell(cell, beam_threshold);
     },
     1 // start from span = 1 (i.e. 2 words !)
@@ -170,18 +179,20 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
           get_candidates(left_cell,right_cell,cell);
       }
     }
-    //  std::cout << result_cell << std::endl;
+//     std::clog << "ParserCKYAll_Impl<Types>::process_cell : " << cell << std::endl;
   }
   //unary rules
   {
     // BLOCKTIMING("process_cell unary");
     add_unary_internal(cell, isroot);
   }
+//   std::clog << "ParserCKYAll_Impl<Types>::process_cell : after add_unary_internal : " << cell << std::endl;
   // pruning
   if(chart->get_size() >= min_length_beam)
   {
     // BLOCKTIMING("process_cell beam");
     cell.beam(priors, beam_threshold);
+//     std::clog << "ParserCKYAll_Impl<Types>::process_cell : after cell.beam : " << cell << std::endl;
   }
   // if(cell.is_closed())
   //   std::cout << "(" << begin << "," << end << ") is closed" << std::endl;
@@ -301,11 +312,11 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
       [log_sent_prob, log_threshold, huang]
       (Cell& cell)
       {
-        cell.apply_on_edges(&Types::LBEdge::clean_invalidated_binaries);
+        cell.apply_on_lbedges(&Types::LBEdge::clean_invalidated_binaries);
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
         if(!cell.is_closed() && huang) {
-          cell.apply_on_edges(&Types::LBEdge::clean_invalidated_binaries);
+          cell.apply_on_lbedges(&Types::LBEdge::clean_invalidated_binaries);
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
         }

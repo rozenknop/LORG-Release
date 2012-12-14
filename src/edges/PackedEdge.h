@@ -134,6 +134,7 @@ public:
   inline bool valid_prob_at(unsigned i) const;
 
   inline bool is_closed() const { return not open; }
+  inline bool is_opened() const { return open; }
 
   inline Best& get_best();
   inline const Best& get_best() const;
@@ -218,7 +219,7 @@ public:
 
 
   inline bool no_daughters() { return unary_daughters.empty(); } 
-  void close() { std::cout << "closing unary edge " << this << std::endl; std::cout.flush(); this->open=false; UPackedEdge::~UPackedEdge(); }
+  void close() { this->open=false; UPackedEdge::~UPackedEdge(); }
 };
 
 
@@ -299,7 +300,7 @@ public:
   void clean_invalidated_binaries();
 
   bool no_daughters() { return binary_daughters.empty() and lexical_daughters.empty(); } 
-  void close() { std::cout << "closing binary edge " << this << std::endl; std::cout.flush(); this->open=false; LBPackedEdge<Types>::~LBPackedEdge(); }
+  void close() { this->open=false; LBPackedEdge<Types>::~LBPackedEdge(); }
 
 
   PtbPsTree * to_ptbpstree(int lhs, unsigned ith_deriv, bool append_annot, bool output_forms) const
@@ -369,55 +370,55 @@ public:
 
   
   void process(function<void(PEdge &)> f) {
-    if (not lb.is_closed()) lb.process(f);
-    if (not u.is_closed()) u.process(f); }
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
   void process(function<void(Best&)> f) {
-    if (not lb.is_closed()) lb.process(f);
-    if (not u.is_closed()) u.process(f); }
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
   void process(function<void(ProbaModel&)> f) {
-    if (not lb.is_closed()) lb.process(f);
-    if (not u.is_closed()) u.process(f); }
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
   void process(function<void(Best&, const AnnotationInfo&)> f) { 
-    if (not lb.is_closed()) lb.process(f);
-    if (not u.is_closed()) u.process(f); }
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
   
-  void process(function<void(UEdge &)> f) { f(u); }
-  void process(function<void(const UnaryDaughter &)> f) const { for(const auto& d: u.get_unary_daughters()) f(d); }
-  void process(function<void(UEdge &, UnaryDaughter &)> f) { for(auto& d: u.get_unary_daughters()) f(u, d); }
-  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: u.get_unary_daughters()) f(d, u.get_annotations()); }
-  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { for(auto& d: u.get_unary_daughters()) f(d, u.get_annotations()); }
-  void process(function<void(Best &, UEdge &, const UnaryDaughter &)> f) {for(const auto& d: u.get_unary_daughters()) f(u.get_best(), u, d);}
-  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {for(const auto& d: u.get_unary_daughters()) f(u.get_prob_model(), d);}
-  void process(function<void(ProbaModel &, UnaryDaughter &)> f) {for(auto& d: u.get_unary_daughters()) f(u.get_prob_model(), d);}
-  void process(function<void(Best &, const UnaryDaughter &)> f) {for(const auto& d: u.get_unary_daughters()) f(u.get_best(), d);}
-  void process(function<void(Best &, UnaryDaughter &)> f) {for(auto& d: u.get_unary_daughters()) f(u.get_best(), d);}
+  void process(function<void(UEdge &)> f) { if (u.is_opened()) f(u); }
+  void process(function<void(const UnaryDaughter &)> f) const { if (u.is_opened()) for(const auto& d: u.get_unary_daughters()) f(d); }
+  void process(function<void(UEdge &, UnaryDaughter &)> f) { if (u.is_opened()) for(auto& d: u.get_unary_daughters()) f(u, d); }
+  void process(function<void(const UnaryDaughter &, AnnotationInfo &)> f) { if (u.is_opened()) for(const auto& d: u.get_unary_daughters()) f(d, u.get_annotations()); }
+  void process(function<void(UnaryDaughter &, AnnotationInfo &)> f) { if (u.is_opened()) for(auto& d: u.get_unary_daughters()) f(d, u.get_annotations()); }
+  void process(function<void(Best &, UEdge &, const UnaryDaughter &)> f) {if (u.is_opened()) for(const auto& d: u.get_unary_daughters()) f(u.get_best(), u, d);}
+  void process(function<void(ProbaModel &, const UnaryDaughter &)> f) {if (u.is_opened()) for(const auto& d: u.get_unary_daughters()) f(u.get_prob_model(), d);}
+  void process(function<void(ProbaModel &, UnaryDaughter &)> f) {if (u.is_opened()) for(auto& d: u.get_unary_daughters()) f(u.get_prob_model(), d);}
+  void process(function<void(Best &, const UnaryDaughter &)> f) {if (u.is_opened()) for(const auto& d: u.get_unary_daughters()) f(u.get_best(), d);}
+  void process(function<void(Best &, UnaryDaughter &)> f) {if (u.is_opened()) for(auto& d: u.get_unary_daughters()) f(u.get_best(), d);}
 
-  void process(function<void(LBEdge &)> f) { f(lb); }
+  void process(function<void(LBEdge &)> f) { if (lb.is_opened()) f(lb); }
 
-  void process(function<void(const LexicalDaughter &)> f) const {for(const auto& d: lb.get_lexical_daughters()) f(d);}
-  void process(function<void(const BinaryDaughter &)> f) const { for(const auto& d: lb.get_binary_daughters()) f(d); }
+  void process(function<void(const LexicalDaughter &)> f) const {if (lb.is_opened()) for(const auto& d: lb.get_lexical_daughters()) f(d);}
+  void process(function<void(const BinaryDaughter &)> f) const { if (lb.is_opened()) for(const auto& d: lb.get_binary_daughters()) f(d); }
 
-  void process(function<void(LBEdge &, LexicalDaughter &)> f) {for(auto& d: lb.get_lexical_daughters()) f(lb, d);}
-  void process(function<void(LBEdge &, BinaryDaughter &)> f) { for(auto& d: lb.get_binary_daughters()) f(lb, d); }
+  void process(function<void(LBEdge &, LexicalDaughter &)> f) {if (lb.is_opened()) for(auto& d: lb.get_lexical_daughters()) f(lb, d);}
+  void process(function<void(LBEdge &, BinaryDaughter &)> f) { if (lb.is_opened()) for(auto& d: lb.get_binary_daughters()) f(lb, d); }
 
-  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(d, lb.get_annotations());}
-  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { for(const auto& d: lb.get_binary_daughters()) f(d, lb.get_annotations()); }
+  void process(function<void(const LexicalDaughter &, AnnotationInfo &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_lexical_daughters()) f(d, lb.get_annotations());}
+  void process(function<void(const BinaryDaughter &, AnnotationInfo &)> f) { if (lb.is_opened()) for(const auto& d: lb.get_binary_daughters()) f(d, lb.get_annotations()); }
 
-  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {for(auto& d: lb.get_lexical_daughters()) f(d, lb.get_annotations());}
-  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { for(auto& d: lb.get_binary_daughters()) f(d, lb.get_annotations()); }
+  void process(function<void(LexicalDaughter &, AnnotationInfo &)> f) {if (lb.is_opened()) for(auto& d: lb.get_lexical_daughters()) f(d, lb.get_annotations());}
+  void process(function<void(BinaryDaughter &, AnnotationInfo &)> f) { if (lb.is_opened()) for(auto& d: lb.get_binary_daughters()) f(d, lb.get_annotations()); }
 
-  void process(function<void(Best &, LBEdge &, const LexicalDaughter &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(lb.get_best(), lb, d);}
-  void process(function<void(Best &, LBEdge &, const BinaryDaughter &)> f) {for(const auto& d: lb.get_binary_daughters()) f(lb.get_best(), lb, d);}
+  void process(function<void(Best &, LBEdge &, const LexicalDaughter &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_lexical_daughters()) f(lb.get_best(), lb, d);}
+  void process(function<void(Best &, LBEdge &, const BinaryDaughter &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_binary_daughters()) f(lb.get_best(), lb, d);}
 
-  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(lb.get_prob_model(), d);}
-  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {for(const auto& d: lb.get_binary_daughters()) f(lb.get_prob_model(), d);}
-  void process(function<void(ProbaModel &, LexicalDaughter &)> f) {for(auto& d: lb.get_lexical_daughters()) f(lb.get_prob_model(), d);}
-  void process(function<void(ProbaModel &, BinaryDaughter &)> f) {for(auto& d: lb.get_binary_daughters()) f(lb.get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const LexicalDaughter &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_lexical_daughters()) f(lb.get_prob_model(), d);}
+  void process(function<void(ProbaModel &, const BinaryDaughter &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_binary_daughters()) f(lb.get_prob_model(), d);}
+  void process(function<void(ProbaModel &, LexicalDaughter &)> f) {if (lb.is_opened()) for(auto& d: lb.get_lexical_daughters()) f(lb.get_prob_model(), d);}
+  void process(function<void(ProbaModel &, BinaryDaughter &)> f) {if (lb.is_opened()) for(auto& d: lb.get_binary_daughters()) f(lb.get_prob_model(), d);}
 
-  void process(function<void(Best &, const LexicalDaughter &)> f) {for(const auto& d: lb.get_lexical_daughters()) f(lb.get_best(), d);}
-  void process(function<void(Best &, const BinaryDaughter &)> f) {for(const auto& d: lb.get_binary_daughters()) f(lb.get_best(), d);}
-  void process(function<void(Best &, LexicalDaughter &)> f) {for(auto& d: lb.get_lexical_daughters()) f(lb.get_best(), d);}
-  void process(function<void(Best &, BinaryDaughter &)> f) {for(auto& d: lb.get_binary_daughters()) f(lb.get_best(), d);}
+  void process(function<void(Best &, const LexicalDaughter &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_lexical_daughters()) f(lb.get_best(), d);}
+  void process(function<void(Best &, const BinaryDaughter &)> f) {if (lb.is_opened()) for(const auto& d: lb.get_binary_daughters()) f(lb.get_best(), d);}
+  void process(function<void(Best &, LexicalDaughter &)> f) {if (lb.is_opened()) for(auto& d: lb.get_lexical_daughters()) f(lb.get_best(), d);}
+  void process(function<void(Best &, BinaryDaughter &)> f) {if (lb.is_opened()) for(auto& d: lb.get_binary_daughters()) f(lb.get_best(), d);}
 
   void apply() const {}
   template<typename Function, typename... OtherFunctions>

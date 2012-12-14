@@ -37,15 +37,11 @@ inline void MinDivUnaryDaughter::outside_and_marginal(AnnotationInfo & annotatio
   auto & leftannot = left_daughter().get_annotations();
   q = mp = get_rule()->update_outside_annotations_return_marginal(annotations.outside_probabilities.array,
                                                                 leftannot.inside_probabilities.array,
-                                                                leftannot.outside_probabilities_unary_temp.array)
+                                                                leftannot.outside_probabilities.array)
   / MinDivProbabilityKB::get_normalisation_factor();
 }
 inline double MinDivUnaryDaughter::tree_log_proba(unsigned left_idx) const {
-  #warning dirty hack, false result
-  // the chart should not aggregate heads of unary rules with heads of binary and lexical rules
-  // see edges/MaxRuleTreeLogProbaComputer.h:195
-  if (left_daughter().get_best().n_deriv() > left_idx
-    /*and left_daughter()->get_edge(get_rule()->get_rhs0()).get_unary_daughters().size() == 0*/)
+  if (left_daughter().get_best().n_deriv() > left_idx)
   {
 //     std::cout << "left " << left << ": " << *left << std::endl;
 //     std::cout << "a_" << get_rule() << std::endl;

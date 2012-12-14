@@ -171,19 +171,19 @@ public:
   template<typename... Function>
   void apply_on_edges(Function&&... args) {
     for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
-      if(exists_edge(i)) get_edge(i).apply(args...);
+      /*if(exists_edge(i))*/ get_edge(i).apply(args...);
     }
   }
   template<typename... Function>
   void apply_on_uedges(Function&&... args) {
     for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
-      if(exists_uedge(i)) get_edge(i).apply(args...);
+      /*if(exists_uedge(i))*/ get_edge(i).apply(args...);
     }
   }
   template<typename... Function>
   void apply_on_lbedges(Function&&... args) {
     for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
-      if(exists_lbedge(i)) get_edge(i).apply(args...);
+      /*if(exists_lbedge(i))*/ get_edge(i).apply(args...);
     }
   }
   

@@ -449,7 +449,6 @@ template<class Types>
 void ChartCKY<Types>::dump(ostream & s) const {
   s << "(begin chart:"<< this << ")" << std::endl;
   opencells_apply_top_down_nothread( [&s](const Cell & cell){
-    s << "(span " << cell.get_end()-cell.get_begin()+1 << ", begin " << cell.get_begin() << ")" << std::endl;
     s << cell << std::endl;
   } );
   s << "(end   chart "<< this << ")" << std::endl;

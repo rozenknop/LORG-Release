@@ -95,7 +95,9 @@ void PCKYAllCell<Types>::process_candidate(PEdge & left,
                                             double LR_inside)
 {
   LBEdge & e = edges[rule->get_lhs()].lbedge();
+//   std::clog << "PCKYAllCell<Types>::process_candidate add_daughters" << &e << ", " <<&left <<", "<<&right <<")" <<std::endl;
   e.add_daughters(left,right,rule);
+//   std::clog << "PCKYAllCell<Types>::process_candidate inside_probabilities" << &e << ", " <<&left <<", "<<&right <<")" <<std::endl;
   e.get_annotations().inside_probabilities.array[0] += LR_inside * rule->get_probability()[0][0][0];
 }
 
@@ -111,7 +113,7 @@ void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double L_insid
   e.add_daughters(edges[rule->get_rhs0()].lbedge(),rule);
 
   //   std::cout << "PCKYAllCell<Types>::process_candidate. array at " << & e.get_annotations().inside_probabilities_unary_temp.array[0] << std::endl; std::cout.flush();
-  e.get_annotations().inside_probabilities_unary_temp.array[0] += L_inside * rule->get_probability()[0][0];
+  e.get_annotations().inside_probabilities.array[0] += L_inside * rule->get_probability()[0][0];
   
 }
 
@@ -149,18 +151,18 @@ void PCKYAllCell<Types>::compute_inside_probabilities()
 {
 //     apply_on_edges( & Edge::clean_invalidated_binaries);
 
-  apply_on_edges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
+  apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}) ,
                  & LexicalDaughter::update_inside_annotations  ,
                  &  BinaryDaughter::update_inside_annotations  );
 
-  apply_on_edges(& UnaryDaughter::update_inside_annotations);
+  apply_on_uedges(& UnaryDaughter::update_inside_annotations);
 }
 
 template<class Types>
 void PCKYAllCell<Types>::compute_outside_probabilities()
 {
-  apply_on_edges(&     UnaryDaughter::update_outside_annotations);
-  apply_on_edges(&    BinaryDaughter::update_outside_annotations);
+  apply_on_uedges(&     UnaryDaughter::update_outside_annotations);
+  apply_on_lbedges(&    BinaryDaughter::update_outside_annotations);
 }
 
 
@@ -196,10 +198,12 @@ void PCKYAllCell<Types>::clean()
   // TODO: benchmark this carefully
   bool all_null = true;
   for(auto & edge : edges)
-    if(not edge.is_closed()) {
+    if(not edge.uedge().is_closed()) {
       edge.uedge().get_unary_daughters().shrink_to_fit();
       all_null = false ;
     }
+    else if(not edge.lbedge().is_closed())
+      all_null = false ;
 
   // //if all edge pointers are NULL, close the cell
   if(all_null)
@@ -527,7 +531,7 @@ void PCKYAllCell<Types>::change_rules_resize(unsigned new_size, unsigned finer_i
 template<class Types>
 void PCKYAllCell<Types>::dump(std::ostream& out) const
 {
-  out << "(cell: span=" << get_end() - get_begin() << ", beg=" << get_begin() << " :"<< std::endl;
+  out << "(cell: span=" << get_end() - get_begin() + 1 << ", beg=" << get_begin() << " :"<< std::endl;
   int nb_entries = 0;
   for(unsigned i = 0; i < max_size ; ++i)
     if(not edges[i].is_closed()) {

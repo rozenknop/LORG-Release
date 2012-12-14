@@ -21,9 +21,12 @@ void LBPackedEdge<Types>::add_daughters(PEdge & left,
 {
   //               BLOCKTIMING("PackedEdge add_daughters(binary)");
   if (not this->open) {
+//     std::clog << "LBPackedEdge<Types>::add_daughters (this=" << this << "). opening" << std::endl;
     this->open = true;
+//     std::clog << "LBPackedEdge<Types>::add_daughters (this=" << this << "). resize_annotations (actually: " << this->annotations.get_size() << ")"<< std::endl;
     this->local_resize_annotations(1);
   }
+//   std::clog << "LBPackedEdge<Types>::add_daughters (this=" << this << "). push_back" << std::endl;
   binary_daughters.push_back(BinaryDaughter(left,right,rule));
 }
 

@@ -104,17 +104,11 @@ double scaled_array::calculate_logscalingfactor(int previous)
 ////////////////////////////////
 
 
-AnnotationInfo::AnnotationInfo() : inside_probabilities(), outside_probabilities(),
-                                   inside_probabilities_unary_temp(), outside_probabilities_unary_temp() {}
-
-AnnotationInfo::AnnotationInfo(unsigned i, double d) : inside_probabilities(i,d), outside_probabilities(i,d),
-                                                       inside_probabilities_unary_temp(i,d), outside_probabilities_unary_temp(i,d){}
+AnnotationInfo::AnnotationInfo(unsigned i, double d) : inside_probabilities(i,d), outside_probabilities(i,d){}
 
 AnnotationInfo::AnnotationInfo(const AnnotationInfo& other)
   : inside_probabilities(other.inside_probabilities),
-    outside_probabilities(other.outside_probabilities),
-    inside_probabilities_unary_temp(other.inside_probabilities_unary_temp),
-    outside_probabilities_unary_temp(other.outside_probabilities_unary_temp)
+    outside_probabilities(other.outside_probabilities)
  {}
 
 
@@ -163,8 +157,6 @@ void AnnotationInfo::resize(unsigned new_size)
 {
   inside_probabilities.resize(new_size);
   outside_probabilities.resize(new_size);
-  inside_probabilities_unary_temp.resize(new_size);
-  outside_probabilities_unary_temp.resize(new_size);
 }
 
 bool AnnotationInfo::valid_prob_at(unsigned i, double invalid) const
