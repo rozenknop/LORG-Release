@@ -88,15 +88,13 @@ private:
 
   double inside_prob;
   double outside_prob;
-  double inside_unary_temp ;
-  double outside_unary_temp ;
 
   static double log_normalisation_factor;
   static double normalisation_factor;
 
 public:
 
-  MinDivProbabilityKB() :  inside_prob(0), outside_prob(0), inside_unary_temp(0), outside_unary_temp(0) {}
+  MinDivProbabilityKB() :  inside_prob(0), outside_prob(0) {}
   ~MinDivProbabilityKB() {}
 
   inline static void   set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};

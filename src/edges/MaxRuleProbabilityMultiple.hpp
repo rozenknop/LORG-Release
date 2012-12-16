@@ -181,10 +181,10 @@ void MaxRuleProbabilityMultiple::pick_best_binary(const BinaryDaughter& dtr)
 
     const BinaryDaughter * d = static_cast<const BinaryDaughter*>(p.dtrs);
 
-    PEdge& left  = d->left_daughter();
+    PEdge& left  = d->left_pdaughter();
     const std::vector<AnnotationInfo>& leftannots = left.get_best().get_annotations_backup();
 
-    PEdge& right = d->right_daughter();
+    PEdge& right = d->right_pdaughter();
     const std::vector<AnnotationInfo>& rightannots = right.get_best().get_annotations_backup();
 
     p.probability = 0;
@@ -410,10 +410,10 @@ void MaxRuleProbabilityMultiple::find_succ(PEdge* edge, packed_edge_probability_
 
     const BinaryDaughter* d = static_cast<const BinaryDaughter*>(pep.dtrs);
 
-    PEdge& left  = d->left_daughter();
+    PEdge& left  = d->left_pdaughter();
     const std::vector<AnnotationInfo>& leftannots = left.get_best().get_annotations_backup();
 
-    PEdge& right = d->right_daughter();
+    PEdge& right = d->right_pdaughter();
     const std::vector<AnnotationInfo>& rightannots = right.get_best().get_annotations_backup();
 
     //extend to the left

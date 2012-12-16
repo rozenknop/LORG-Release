@@ -44,11 +44,11 @@ void LBPackedEdge<Types>::add_daughters(const LexicalRule* rule, const Word* w)
 
 template<class Types>
 inline
-AnnotationInfo& BasePackedEdge<Types>::get_annotations() {return annotations;}
+AnnotationInfo& AnnotatedEdge<Types>::get_annotations() {return annotations;}
 
 template<class Types>
 inline
-const AnnotationInfo& BasePackedEdge<Types>::get_annotations() const {return annotations;}
+const AnnotationInfo& AnnotatedEdge<Types>::get_annotations() const {return annotations;}
 
 // template<class Types>
 // inline
@@ -114,7 +114,7 @@ const typename LBPackedEdge<Types>::LexicalDaughter& LBPackedEdge<Types>::get_le
 
 template<class Types>
 inline
-void BasePackedEdge<Types>::local_resize_annotations(unsigned size) {annotations.resize(size);}
+void AnnotatedEdge<Types>::local_resize_annotations(unsigned size) {annotations.resize(size);}
 
 /////////////////////////////////////////////////////
 // parsing
@@ -138,7 +138,7 @@ inline void BasePackedEdge<Types>::extend_derivation(unsigned i, bool licence_un
 
 template<class Types>
 inline
-bool BasePackedEdge<Types>::valid_prob_at(unsigned i) const
+bool AnnotatedEdge<Types>::valid_prob_at(unsigned i) const
 {
   return get_annotations().valid_prob_at(i, LorgConstants::NullProba);
 }
@@ -371,9 +371,9 @@ PtbPsTree * BasePackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, boo
 
       const BinaryDaughter * daughters =  static_cast<const BinaryDaughter*>(best.get(ith_deriv).dtrs);
       int rhs0 = daughters->get_rule()->get_rhs0();
-      daughters->left_daughter().to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
+      daughters->left_pdaughter().to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
       int rhs1 = daughters->get_rule()->get_rhs1();
-      daughters->right_daughter().to_ptbpstree(*tree, pos, rhs1, best.get(ith_deriv).get_right_index(), append_annot, output_forms);
+      daughters->right_pdaughter().to_ptbpstree(*tree, pos, rhs1, best.get(ith_deriv).get_right_index(), append_annot, output_forms);
     }
     else {
 
@@ -468,10 +468,10 @@ void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
       const BinaryDaughter * daughters =  static_cast<const BinaryDaughter*>(best.get(index).dtrs);
 
       int rhs0 = daughters->get_rule()->get_rhs0();
-      daughters->left_daughter().to_ptbpstree(tree, pos, rhs0,
+      daughters->left_pdaughter().to_ptbpstree(tree, pos, rhs0,
                                               best.get(index).get_left_index(), append_annot, output_forms);
       int rhs1 = daughters->get_rule()->get_rhs1();
-      daughters->right_daughter().to_ptbpstree(tree, pos, rhs1,
+      daughters->right_pdaughter().to_ptbpstree(tree, pos, rhs1,
                                                best.get(index).get_right_index(), append_annot, output_forms);
     } // if(best.get(index).dtrs->is_binary())
     else { //unary branching

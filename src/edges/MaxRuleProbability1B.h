@@ -22,6 +22,7 @@ struct MaxRule1BTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRule1BTypes > Edge ;
+  typedef AnnotatedEdge< MaxRule1BTypes > AEdge ;
   typedef BasePackedEdge< MaxRule1BTypes > PEdge ;
   typedef UPackedEdge< MaxRule1BTypes > UEdge ;
   typedef LBPackedEdge< MaxRule1BTypes > LBEdge ;
@@ -37,6 +38,7 @@ class MaxRuleProbability1B
 {
 public:
   typedef typename MaxRule1BTypes::Edge Edge;
+  typedef typename MaxRule1BTypes::AEdge AEdge;
   typedef typename MaxRule1BTypes::PEdge PEdge;
   typedef typename MaxRule1BTypes::UEdge UEdge;
   typedef typename MaxRule1BTypes::LBEdge LBEdge;

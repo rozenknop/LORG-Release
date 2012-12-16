@@ -57,10 +57,11 @@ class BinaryPackedEdgeDaughters : public TypedRulePackedEdgeDaughters<typename T
 public:
   typedef TypedRulePackedEdgeDaughters<typename Types::BRule> Parent;
   typedef typename Types::Cell Cell;
+  typedef typename Types::AEdge AEdge;
   typedef typename Types::PEdge PEdge;
   typedef typename Types::LBEdge LBEdge;
   typedef typename Types::UEdge UEdge;
-  typedef typename Types::PEdge * EdgePtr ;
+  typedef typename Types::AEdge * EdgePtr ;
   typedef typename Types::BRule Rule;
 
 protected:
@@ -68,7 +69,7 @@ protected:
   EdgePtr right;
 //   friend class Types::Edge ;
 public:
-  BinaryPackedEdgeDaughters(PEdge& le, PEdge& ri, const typename Types::BRule * ru) :
+  BinaryPackedEdgeDaughters(AEdge& le, AEdge& ri, const typename Types::BRule * ru) :
     Parent(ru), left(&le),right(&ri)
   {};
 
@@ -76,8 +77,10 @@ public:
 
 //   inline const Edge& left_daughter() const  {return *left;}
 //   inline const Edge& right_daughter() const {return *right;}
-  inline PEdge& left_daughter() const {return *left;}
-  inline PEdge& right_daughter() const {return *right;}
+  inline AEdge& left_daughter() const {return *left;}
+  inline AEdge& right_daughter() const {return *right;}
+  inline PEdge& left_pdaughter() const {return (PEdge &) *left;}
+  inline PEdge& right_pdaughter() const {return (PEdge &) *right;}
 
   inline bool operator==(const BinaryPackedEdgeDaughters& other)
   {

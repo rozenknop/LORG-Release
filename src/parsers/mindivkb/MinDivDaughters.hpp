@@ -25,8 +25,8 @@ inline double MinDivBinaryDaughter::tree_log_proba(unsigned left_idx, unsigned r
 {
   return std::min(0.0,
                   log(q) 
-                  + left_daughter().get_best().get(left_idx).probability
-                  + right_daughter().get_best().get(right_idx).probability);
+                  + ((PEdge&)left_daughter()).get_best().get(left_idx).probability
+                  + ((PEdge&)right_daughter()).get_best().get(right_idx).probability);
 }
 
 /***********************************************************/

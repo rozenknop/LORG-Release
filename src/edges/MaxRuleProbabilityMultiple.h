@@ -27,6 +27,7 @@ struct MaxRuleMultipleTypes {
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge< MaxRuleMultipleTypes > Edge ;
+  typedef AnnotatedEdge< MaxRuleMultipleTypes > AEdge ;
   typedef BasePackedEdge< MaxRuleMultipleTypes > PEdge ;
   typedef UPackedEdge< MaxRuleMultipleTypes > UEdge ;
   typedef LBPackedEdge< MaxRuleMultipleTypes > LBEdge ;
@@ -64,6 +65,7 @@ private:
 
 public:
   typedef typename MaxRuleMultipleTypes::Edge Edge;
+  typedef typename MaxRuleMultipleTypes::AEdge AEdge;
   typedef typename MaxRuleMultipleTypes::PEdge PEdge;
   typedef typename MaxRuleMultipleTypes::UEdge UEdge;
   typedef typename MaxRuleMultipleTypes::LBEdge LBEdge;

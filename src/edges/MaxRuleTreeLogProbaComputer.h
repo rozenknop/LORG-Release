@@ -28,8 +28,8 @@ public:
     //    std::cout << left_idx << " : " << right_idx << std::endl;
     //    std::cout << *(dtr.get_rule()) << std::endl;
     
-    const PEdge & left  = dtr.left_daughter ();
-    const PEdge & right = dtr.right_daughter ();
+    const PEdge & left  = dtr.left_pdaughter ();
+    const PEdge & right = dtr.right_pdaughter ();
     
     double probability = 0.0;
     

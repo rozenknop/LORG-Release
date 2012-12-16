@@ -51,8 +51,8 @@ inline void ViterbiProbability::update_binary(LBEdge& edge, const BinaryDaughter
   const AnnotationInfo& a = edge.get_annotations();
   const std::vector<std::vector<std::vector<double> > >& rule_probs = dtr.get_rule()->get_probability();
 
-  const PEdge& left  = dtr.left_daughter();
-  const PEdge& right = dtr.right_daughter();
+  const PEdge& left  = (PEdge &) dtr.left_daughter();
+  const PEdge& right = (PEdge &) dtr.right_daughter();
 
   for (unsigned i = 0; i < rule_probs.size(); ++i) {
     if(!a.valid_prob_at(i, LorgConstants::NullProba)) continue;

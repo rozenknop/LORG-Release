@@ -138,7 +138,7 @@ void PCKYAllCell<Types>::add_word(const Word & word)
 template<class Types>
 void PCKYAllCell<Types>::reset_probabilities()
 {
-  apply_on_edges(toFunc(&AnnotationInfo::reset_probabilities));
+  apply_on_edges(toFunc(&Edge::reset_probabilities));
 }
 
 
@@ -397,7 +397,7 @@ void PCKYAllCell<Types>::beam_huang(double log_threshold, double log_sent_prob)
 
       total_out = std::log(total_out);
 
-      pred_beam_huang_binary<typename Types::PEdge> huang(log_threshold, log_sent_prob, total_out);
+      pred_beam_huang_binary<typename Types::AEdge> huang(log_threshold, log_sent_prob, total_out);
 
       std::vector<typename Types::BinaryDaughter >& bdaughters = edge.lbedge().get_binary_daughters();
       bdaughters.erase(std::remove_if(bdaughters.begin(), bdaughters.end(), huang),

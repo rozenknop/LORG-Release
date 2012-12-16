@@ -21,6 +21,7 @@ struct MinDivKBTypes {
   typedef Word ChartWord ;
   
   typedef PackedEdge< MinDivKBTypes > Edge ;
+  typedef AnnotatedEdge< MinDivKBTypes > AEdge ;
   typedef BasePackedEdge< MinDivKBTypes > PEdge ;
   typedef UPackedEdge< MinDivKBTypes > UEdge ;
   typedef LBPackedEdge< MinDivKBTypes > LBEdge ;
