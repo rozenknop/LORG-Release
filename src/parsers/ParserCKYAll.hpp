@@ -87,8 +87,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
   }
   while (stubbornness >=0 &&
          beam_threshold > 0 &&
-         (chart->get_root().is_closed() || !chart->get_root().exists_edge(start_symbol)));
-
+         !chart->get_root().exists_uedge(start_symbol));
 }
 
 template <class Types>
@@ -97,6 +96,7 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
                                               Cell& right_cell,
                                               Cell& result_cell) const
 {
+  BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates (binaires)");
 //   std::clog << "ParserCKYAll_Impl<Types>::get_candidates("<<&left_cell<<","<<&right_cell<<","<<&result_cell<<")"<<std::endl;
   //   {
     //               BLOCKTIMING("get_candidates counting");
@@ -121,18 +121,19 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
     //iterating through all the rules P -> L R, indexed by L
     for (const auto & same_rhs0_rules: brules) {
       Edge & left_edges = left_cell.get_edge(same_rhs0_rules.rhs0) ;
-      for(PEdge *  left_edge: std::vector<PEdge*>({&left_edges.uedge(), &left_edges.lbedge()}))
-        if (not left_edge->is_closed()) {
-          double LR1 = left_edge->get_annotations().inside_probabilities.array[0];
+      for(PEdge *  left_edge: (PEdge*[]){&left_edges.uedge(), &left_edges.lbedge()})
+        if (left_edge->is_opened()) {
+          const double & L = left_edge->get_annotations().inside_probabilities.array[0];
           //iterating through all the rules P -> L R, indexed by R, L fixed
           for(const auto & same_rhs: same_rhs0_rules) {
             Edge & right_edges = right_cell.get_edge(same_rhs.rhs1);
-            for(PEdge *  right_edge: std::vector<PEdge*>({&right_edges.uedge(), &right_edges.lbedge()}))
-              if (not right_edge->is_closed()) {
-                double LR = LR1 * right_edge->get_annotations().inside_probabilities.array[0];
+            for(PEdge *  right_edge: (PEdge*[]){&right_edges.uedge(), &right_edges.lbedge()})
+              if (right_edge->is_opened()) {
+                double LR = L * right_edge->get_annotations().inside_probabilities.array[0];
                 
                 //iterating through all the rules P -> L R, indexed by P, R and L fixed
                 for(const auto & rule: same_rhs) {
+                  BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates result_cell.process_candidate(*left_edge,*right_edge, rule, LR);");
 //                   std::clog << "calling result_cell.process_candidate(" << left_edge << " , " << right_edge << " , " << rule << " , " << LR << ")" << std::endl;
                   result_cell.process_candidate(*left_edge,*right_edge, rule, LR);
                 }
@@ -175,8 +176,10 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
       Cell& left_cell = chart->access(begin,m);
       if(!left_cell.is_closed()) {
         Cell& right_cell = chart->access(m+1,end);
-        if( !right_cell.is_closed())
+        if( !right_cell.is_closed()) {
           get_candidates(left_cell,right_cell,cell);
+          
+        }
       }
     }
 //     std::clog << "ParserCKYAll_Impl<Types>::process_cell : " << cell << std::endl;
@@ -236,11 +239,11 @@ template <class Cell>
 struct processunary
 {
   Cell& cell;
-  double L_inside;
-  processunary(Cell& c, double L) : cell(c), L_inside(L) {};
+  double R_inside;
+  processunary(Cell& c, double L) : cell(c), R_inside(L) {};
   void operator()(const URuleC2f* r) const
   {
-    cell.process_candidate((typename Cell::UnaryRule *)r,L_inside);
+    cell.process_candidate((typename Cell::UnaryRule *)r,R_inside);
   }
 };
 
@@ -284,20 +287,6 @@ double ParserCKYAll_Impl<Types>::get_sentence_probability() const
     return LorgConstants::NullProba;
 }
 
-// relative beam
-template <class Types>
-void ParserCKYAll_Impl<Types>::beam_chart_io_relative() const
-{
-  static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-
-  chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
-  compute_outside_probabilities();
-
-  chart->opencells_apply(
-      [this](Cell & cell)
-      {cell.beam(this->io_beam_thresholds[0]);}
-                         );
-}
 
 //absolute beam
 template <class Types>
@@ -312,11 +301,14 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
       [log_sent_prob, log_threshold, huang]
       (Cell& cell)
       {
-        cell.apply_on_lbedges(&Types::LBEdge::clean_invalidated_binaries);
+        cell.apply_on_edges(&LBEdge::clean_invalidated_binaries);
+        cell.apply_on_edges(std::function<void(LBEdge&)>([](LBEdge&e){if (e.no_daughters()) e.close();}));
         cell.beam(log_threshold, log_sent_prob);
         cell.clean();
+        
         if(!cell.is_closed() && huang) {
-          cell.apply_on_lbedges(&Types::LBEdge::clean_invalidated_binaries);
+          cell.apply_on_edges(&LBEdge::clean_invalidated_binaries);
+          cell.apply_on_edges(std::function<void(LBEdge&)>([](LBEdge&e){if (e.no_daughters()) e.close();}));
           cell.beam_huang(std::log(0.0001), log_sent_prob);
           cell.clean();
         }
@@ -414,7 +406,7 @@ void ParserCKYAll_Impl<Types>::create_coarse_to_fine_mapping(std::vector<AGramma
 template <class Types>
 void ParserCKYAll_Impl<Types>::beam_c2f(int start_symbol)
 {
-  if(!chart->get_root().is_closed() && chart->get_root().exists_uedge(start_symbol)) {
+  if(chart->get_root().exists_uedge(start_symbol)) {
     beam_c2f(grammars, annot_descendants);
   }
 }
@@ -437,10 +429,10 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
 
     // FIX: This test messes with product grammar parsing
     // TODO: Do this test only with the first grammar
-    //    if(i != 0) {// inside_probs already computed when bulding the chart
-    //      std::cout << "before inside" << std::endl;
-    compute_inside_probabilities();
-    //    }
+//     if(i != 0) {// inside_probs already computed when bulding the chart
+         std::clog << "ParserCKYAll_Impl<Types>::beam_c2f before inside, sentence probability = " << std::log(get_sentence_probability()) << std::endl;
+         compute_inside_probabilities();
+//     }
 
 
 
@@ -456,7 +448,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     //    std::cout << "after inside" << std::endl;
     //    std::cout << "before beam" << std::endl;
     double sp = std::log(get_sentence_probability());
-    //    std::cout << "sentence probability: " << sp << std::endl;
+    std::clog << "ParserCKYAll_Impl<Types>::beam_c2f after inside, sentence probability: " << sp << std::endl;
 
     // huang beam seems to affect only the first pass
     //bool huang = i == 0;

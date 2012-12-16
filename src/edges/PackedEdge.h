@@ -152,6 +152,7 @@ public:
   void process(function<void(ProbaModel &, const AnnotationInfo &)> f) {f(get_prob_model(), get_annotations());}
   void process(function<void(ProbaModel &)> f) {f(get_prob_model());}
   void process(function<void(Best &, const AnnotationInfo &)> f) {f(get_best(), get_annotations());}
+  void process(function<void(AnnotationInfo &)> f) {f(get_annotations());}
   void process(function<void(Best &)> f) {f(get_best());}
   void process(function<void(BasePackedEdge &)> f) { f(*this); }
 };
@@ -379,6 +380,9 @@ public:
     if (lb.is_opened()) lb.process(f);
     if (u.is_opened()) u.process(f); }
   void process(function<void(Best&, const AnnotationInfo&)> f) { 
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
+  inline void process(function<void(AnnotationInfo&)> f) { 
     if (lb.is_opened()) lb.process(f);
     if (u.is_opened()) u.process(f); }
   

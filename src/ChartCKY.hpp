@@ -532,11 +532,7 @@ void ChartCKY<Types>::dump(ostream & s) const {
   template<class Types>
   void ChartCKY<Types>::reset_probabilities()
   {
-    for(unsigned i = 0; i < size; ++i)
-      for(unsigned j = i; j < size; ++j) {
-        //      std::cout << "(" << i << "," << j << ")" << std::endl;
-        access(i,j).reset_probabilities();
-      }
+    opencells_apply(&Cell::reset_probabilities);
   }
   
   

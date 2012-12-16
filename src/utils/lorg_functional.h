@@ -6,7 +6,7 @@
 
 // transform a method into a function
 template<class Class, class Return, class... Args>
-std::function<Return(Class&, Args&... args)> toFunc( Return(Class::*f)(Args&... args) )  {
+inline std::function<Return(Class&, Args&... args)> toFunc( Return(Class::*f)(Args&... args) )  {
   return std::function<Return(Class&, Args&... args)> (f);
 }
 

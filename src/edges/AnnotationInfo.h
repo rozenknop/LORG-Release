@@ -73,7 +73,8 @@ struct AnnotationInfo
 
   void reset_outside_probabilities(double value = 0.0);
 
-  void reset_probabilities( double value = 0.0);
+  void reset_probabilities( double value );
+  inline void reset_probabilities() {reset_probabilities(0); }
 
   unsigned get_size() const;
 

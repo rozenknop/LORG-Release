@@ -1,6 +1,6 @@
+#include "edges/ViterbiProbability.hpp"
 #include "ParserCKYAll.hpp"
 #include "ParserCKYAllViterbi.h"
-#include "edges/ViterbiProbability.hpp"
 
 #include "grammars/GrammarAnnotated.hpp"
 
