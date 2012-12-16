@@ -468,19 +468,6 @@ public:
       lb.open = false;
   }
   
-  inline void process(function<void(PEdge &)> f) {
-    if (lb.is_opened()) lb.process(f);
-    if (u.is_opened()) u.process(f); }
-  inline void process(function<void(Best&)> f) {
-    if (lb.is_opened()) lb.process(f);
-    if (u.is_opened()) u.process(f); }
-  inline void process(function<void(ProbaModel&)> f) {
-    if (lb.is_opened()) lb.process(f);
-    if (u.is_opened()) u.process(f); }
-  inline void process(function<void(Best&, const AnnotationInfo&)> f) { 
-    if (lb.is_opened()) lb.process(f);
-    if (u.is_opened()) u.process(f); }
-  
   inline void reset_probabilities() {
     this->get_annotations().reset_probabilities();
     if (lb.is_opened()) lb.get_annotations().reset_probabilities();
@@ -498,10 +485,36 @@ public:
       u.get_annotations().resize(size);
     }
   }
-  inline void add_unary_insides() {
+  inline void add_from_unary_insides() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
       this->annotations.inside_probabilities.array[i] += u.annotations.inside_probabilities.array[i];
   }
+  inline void add_from_lb_insides() {
+    for(unsigned i=0; i<this->annotations.get_size(); ++i)
+      this->annotations.inside_probabilities.array[i] += lb.annotations.inside_probabilities.array[i];
+  }
+  inline void add_to_unary_outsides() {
+    for(unsigned i=0; i<this->annotations.get_size(); ++i)
+      u.annotations.inside_probabilities.array[i] += this->annotations.inside_probabilities.array[i];
+  }
+  inline void add_to_lb_outsides() {
+    for(unsigned i=0; i<this->annotations.get_size(); ++i)
+      lb.annotations.inside_probabilities.array[i] += this->annotations.inside_probabilities.array[i];
+  }
+
+  
+  inline void process(function<void(PEdge &)> f) {
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
+  inline void process(function<void(Best&)> f) {
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
+  inline void process(function<void(ProbaModel&)> f) {
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
+  inline void process(function<void(Best&, const AnnotationInfo&)> f) { 
+    if (lb.is_opened()) lb.process(f);
+    if (u.is_opened()) u.process(f); }
   
   
   inline void process(function<void(Edge &)> f) { f(*this); }

@@ -146,16 +146,21 @@ void PCKYAllCell<Types>::compute_inside_probabilities()
 
   apply_on_edges(toFunc(&Edge::reset_probabilities));
   apply_on_lbedges(& LexicalDaughter::update_inside_annotations  ,
-                   &  BinaryDaughter::update_inside_annotations  );
+                   &  BinaryDaughter::update_inside_annotations  ,
+                   & Edge::add_from_lb_insides
+                  );
 
-  apply_on_uedges(& UnaryDaughter::update_inside_annotations);
+  apply_on_uedges(& UnaryDaughter::update_inside_annotations,
+                  & Edge::add_from_unary_insides  );
 }
 
 template<class Types>
 void PCKYAllCell<Types>::compute_outside_probabilities()
 {
-  apply_on_uedges(&     UnaryDaughter::update_outside_annotations);
-  apply_on_lbedges(&    BinaryDaughter::update_outside_annotations);
+  apply_on_uedges( &           Edge::add_to_unary_outsides,
+                   &  UnaryDaughter::update_outside_annotations);
+  apply_on_lbedges(&           Edge::add_to_lb_outsides,
+                   & BinaryDaughter::update_outside_annotations);
 }
 
 

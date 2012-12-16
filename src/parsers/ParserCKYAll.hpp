@@ -58,7 +58,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
         if(!cell.is_empty()) {
           this->add_unary_init(cell,cell.get_top());
           //           std::cout << cell << std::endl;
-          cell.apply_on_uedges( &Edge::add_unary_insides );
+          cell.apply_on_uedges( &Edge::add_from_unary_insides );
 
           // prevent short sentences from being skipped ...
           if(beam_short)
@@ -89,6 +89,65 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
   while (stubbornness >=0 &&
          beam_threshold > 0 &&
          !chart->get_root().exists_uedge(start_symbol));
+}
+
+template <class Types>
+void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) const
+{
+  chart->opencells_apply_bottom_up(
+    [&,beam_threshold](Cell&cell)
+    {
+//       std::clog << "ParserCKYAll_Impl<Types>::process_internal_rules : before process_cell(" << cell.get_end() - cell.get_begin() + 1 << ","<< cell.get_begin() << ") (" << &cell << ")" << std::endl;
+//       std::clog << cell << std::endl;
+      this->process_cell(cell, beam_threshold);
+    },
+    1 // start from span = 1 (i.e. 2 words !)
+  );
+}
+
+template <class Types>
+void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) const
+{
+//   BLOCKTIMING("ParserCKYAll_Impl<Types>::process_cell");
+  const unsigned & begin = cell.get_begin();
+  const unsigned & end   = cell.get_end();
+  const bool & isroot = cell.get_top();
+
+  // look for all possible new edges
+
+  //application of binary rules
+  {
+    // BLOCKTIMING("process_cell binary");
+    for (unsigned m = begin; m < end; ++m) {
+      // m is the mid-point
+      Cell& left_cell = chart->access(begin,m);
+      if(!left_cell.is_closed()) {
+        Cell& right_cell = chart->access(m+1,end);
+        if( !right_cell.is_closed()) {
+          get_candidates(left_cell,right_cell,cell);
+          
+        }
+      }
+    }
+//     std::clog << "ParserCKYAll_Impl<Types>::process_cell : " << cell << std::endl;
+  }
+  //unary rules
+  {
+    // BLOCKTIMING("process_cell unary");
+    add_unary_internal(cell, isroot);
+  }
+  cell.apply_on_uedges( &Edge::add_from_unary_insides );
+
+  //   std::clog << "ParserCKYAll_Impl<Types>::process_cell : after add_unary_internal : " << cell << std::endl;
+  // pruning
+  if(chart->get_size() >= min_length_beam)
+  {
+    // BLOCKTIMING("process_cell beam");
+    cell.beam(priors, beam_threshold);
+//     std::clog << "ParserCKYAll_Impl<Types>::process_cell : after cell.beam : " << cell << std::endl;
+  }
+  // if(cell.is_closed())
+  //   std::cout << "(" << begin << "," << end << ") is closed" << std::endl;
 }
 
 template <class Types>
@@ -141,65 +200,6 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
       }
     }
   }
-}
-
-template <class Types>
-void ParserCKYAll_Impl<Types>::process_internal_rules(double beam_threshold) const
-{
-  chart->opencells_apply_bottom_up(
-    [&,beam_threshold](Cell&cell)
-    {
-//       std::clog << "ParserCKYAll_Impl<Types>::process_internal_rules : before process_cell(" << cell.get_end() - cell.get_begin() + 1 << ","<< cell.get_begin() << ") (" << &cell << ")" << std::endl;
-//       std::clog << cell << std::endl;
-      this->process_cell(cell, beam_threshold);
-    },
-    1 // start from span = 1 (i.e. 2 words !)
-  );
-}
-
-template <class Types>
-void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) const
-{
-//   BLOCKTIMING("ParserCKYAll_Impl<Types>::process_cell");
-  const unsigned & begin = cell.get_begin();
-  const unsigned & end   = cell.get_end();
-  const bool & isroot = cell.get_top();
-
-  // look for all possible new edges
-
-  //application of binary rules
-  {
-    // BLOCKTIMING("process_cell binary");
-    for (unsigned m = begin; m < end; ++m) {
-      // m is the mid-point
-      Cell& left_cell = chart->access(begin,m);
-      if(!left_cell.is_closed()) {
-        Cell& right_cell = chart->access(m+1,end);
-        if( !right_cell.is_closed()) {
-          get_candidates(left_cell,right_cell,cell);
-          
-        }
-      }
-    }
-//     std::clog << "ParserCKYAll_Impl<Types>::process_cell : " << cell << std::endl;
-  }
-  //unary rules
-  {
-    // BLOCKTIMING("process_cell unary");
-    add_unary_internal(cell, isroot);
-  }
-  cell.apply_on_uedges( &Edge::add_unary_insides );
-
-  //   std::clog << "ParserCKYAll_Impl<Types>::process_cell : after add_unary_internal : " << cell << std::endl;
-  // pruning
-  if(chart->get_size() >= min_length_beam)
-  {
-    // BLOCKTIMING("process_cell beam");
-    cell.beam(priors, beam_threshold);
-//     std::clog << "ParserCKYAll_Impl<Types>::process_cell : after cell.beam : " << cell << std::endl;
-  }
-  // if(cell.is_closed())
-  //   std::cout << "(" << begin << "," << end << ") is closed" << std::endl;
 }
 
 
