@@ -5,40 +5,52 @@
 
 template<class Types>
 inline
-void UPackedEdge<Types>::add_daughters(LBPackedEdge<Types> & left, const UnaryRule* rule)
+void PackedEdge<Types>::add_daughters(LBPackedEdge<Types> & left, const UnaryRule* rule)
 {
-  if (not this->open) {
+  if (this->is_closed()) {
     this->open = true;
     this->local_resize_annotations(1);
   }
-  unary_daughters.push_back(UnaryDaughter(left,rule));
+  if (u.is_closed()) {
+    u.open = true;
+    u.local_resize_annotations(1);
+  }
+  u.unary_daughters.push_back(UnaryDaughter(left,rule));
 }
 
 template<class Types>
 inline
-void LBPackedEdge<Types>::add_daughters(PEdge & left,
-                                        PEdge & right, const BinaryRule* rule)
+void PackedEdge<Types>::add_daughters(Edge & left,
+                                      Edge & right, const BinaryRule* rule)
 {
   //               BLOCKTIMING("PackedEdge add_daughters(binary)");
-  if (not this->open) {
+  if (this->is_closed()) {
 //     std::clog << "LBPackedEdge<Types>::add_daughters (this=" << this << "). opening" << std::endl;
     this->open = true;
 //     std::clog << "LBPackedEdge<Types>::add_daughters (this=" << this << "). resize_annotations (actually: " << this->annotations.get_size() << ")"<< std::endl;
     this->local_resize_annotations(1);
   }
+  if (lb.is_closed()) {
+    lb.open = true;
+    lb.local_resize_annotations(1);
+  }
 //   std::clog << "LBPackedEdge<Types>::add_daughters (this=" << this << "). push_back" << std::endl;
-  binary_daughters.push_back(BinaryDaughter(left,right,rule));
+  lb.binary_daughters.push_back(BinaryDaughter(left,right,rule));
 }
 
 template<class Types>
 inline
-void LBPackedEdge<Types>::add_daughters(const LexicalRule* rule, const Word* w)
+void PackedEdge<Types>::add_daughters(const LexicalRule* rule, const Word* w)
 {
-  if (not this->open) {
+  if (this->is_closed()) {
     this->open = true;
     this->local_resize_annotations(1);
   }
-  lexical_daughters.push_back(LexicalDaughter(rule, w));
+  if (lb.is_closed()) {
+    lb.open = true;
+    lb.local_resize_annotations(1);
+  }
+  lb.lexical_daughters.push_back(LexicalDaughter(rule, w));
 }
 
 

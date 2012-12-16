@@ -75,7 +75,7 @@ public:
      \brief insert a candidate edge in the cell from application of a binary rule
      \param
   */
-  void process_candidate(PEdge & left, PEdge & right, const BinaryRule*, double LR_inside);
+  void process_candidate(Edge & left, Edge & right, const BinaryRule*, double LR_inside);
 
 
   /**
@@ -83,6 +83,12 @@ public:
      \param
   */
   void process_candidate(const UnaryRule *, double);
+
+  /**
+     \brief insert candidate edges in the cell from a word
+     \param
+  */
+  void process_candidates(const Word & word);
 
   /**
      \brief test if there's an edge of given lhs in the cell
@@ -147,8 +153,6 @@ public:
   void compute_inside_probabilities();
   void compute_outside_probabilities();
 
-  void add_word(const Word & word);
-
   void beam(const std::vector<double>& priors, double threshold);
   void beam(double threshold);
   void beam(double threshold, double sent_prob);
@@ -171,19 +175,19 @@ public:
   template<typename... Function>
   void apply_on_edges(Function&&... args) {
     for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
-      /*if(exists_edge(i))*/ get_edge(i).apply(args...);
+      if(exists_edge(i)) get_edge(i).apply(args...);
     }
   }
   template<typename... Function>
   void apply_on_uedges(Function&&... args) {
     for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
-      /*if(exists_uedge(i))*/ get_edge(i).apply(args...);
+      if(exists_uedge(i)) get_edge(i).apply_u(args...);
     }
   }
   template<typename... Function>
   void apply_on_lbedges(Function&&... args) {
     for(unsigned i=0; i<get_max_size(); ++i) {/*std::cout << "edge " << i << std::endl ;*/
-      /*if(exists_lbedge(i))*/ get_edge(i).apply(args...);
+      if(exists_lbedge(i)) get_edge(i).apply_lb(args...);
     }
   }
   

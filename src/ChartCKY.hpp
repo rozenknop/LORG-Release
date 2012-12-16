@@ -33,24 +33,6 @@ ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size,
 
   Edge * edge = the_edges;
   for(unsigned i = 0; i < size; ++i) {
-    
-    //    std::cout << "i: " << i << std::endl;
-    {
-      //         BLOCKTIMING("ChartCKY<Types>::ChartCKY chart[i] = line_start;");
-//         chart[i] = line_start;//new Cell[size-i];
-    }
-//     for(unsigned j = i; j < size;++j, edge+=grammar_size) {
-//       //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
-//       Cell& cell = access(i,j);
-//       struct cell_close_helper
-//       {
-//         const bracketing& brackets;
-//         cell_close_helper(const bracketing& b) : brackets(b) {}
-//         bool operator()(const bracketing& other) const
-//         {
-//           return brackets.overlap(other);
-//         }
-//       };
     for(unsigned j = i; j < size;++j, edge+=grammar_size) {
       //         BLOCKTIMING("ChartCKY<Types>::ChartCKY cell.init");
       Cell& cell = access(i,j);
@@ -60,14 +42,14 @@ ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size,
     }
   }
   
-  for (unsigned i = 0; i < sentence.size(); ++i)
+  for (const auto & word: sentence)
   {
     //       BLOCKTIMING("ChartCKY<Types>::ChartCKY add_word");
     // todo: proper error handling
-    if(access(sentence[i].get_start(), sentence[i].get_end()-1).is_closed())
+    Cell& cell = this->access(word.get_start(), word.get_end() -1);
+    if(cell.is_closed())
       std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
-    
-    access(sentence[i].get_start(), sentence[i].get_end()-1).add_word(sentence[i]);
+    cell.process_candidates(word);
   }    
 //     std::cout << "Chart is built and intialised" << std::endl;
 //     std::cout << *this << std::endl; std::cout.flush();
@@ -500,18 +482,6 @@ void ChartCKY<Types>::dump(ostream & s) const {
   }
   
   
-  template<class Types>
-  void ChartCKY<Types>::init(const std::vector< MyWord >& sentence)
-  {
-    //iterate through all the words in the sentence
-    for(typename std::vector<MyWord>::const_iterator w_itr(sentence.begin());
-        w_itr != sentence.end(); ++w_itr)
-        {
-          Cell& cell = this->access(w_itr->get_start(), w_itr->get_end() -1);
-          cell.add_word(*w_itr);
-        }
-  }
-  
   template<class MyWord>
   unsigned find_last_in_sentence(const std::vector< MyWord >& s)
   {
@@ -563,7 +533,7 @@ void ChartCKY<Types>::dump(ostream & s) const {
       // j == 0 -> word position
       Cell& cell = access(i,i); //the_chart[i]; //chart[i][0];
       cell.reinit(false);
-      cell.add_word(sentence[i]);
+      cell.process_candidates(sentence[i]);
       
       // regular chart cells
       for(unsigned j = 1; j < size-i;++j) {

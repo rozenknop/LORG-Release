@@ -288,7 +288,7 @@ inline void ParserCKYAllMinDivKB::compute_inside_q_probabilities()
     cell.apply_on_lbedges(& MinDivProbabilityKB::update_inside_lexical,
                           & MinDivProbabilityKB::update_inside_binary);
     
-    cell.apply_on_edges(& MinDivProbabilityKB::update_inside_unary);
+    cell.apply_on_uedges(& MinDivProbabilityKB::update_inside_unary);
   }
   );
 }
@@ -332,8 +332,8 @@ inline void ParserCKYAllMinDivKB::compute_outside_q_probabilities()
 {
   this->chart->opencells_apply_top_down([&](Cell & cell)
   {
-    cell.apply_on_edges(& MinDivProbabilityKB::update_outside_unary);
-    cell.apply_on_edges(& MinDivProbabilityKB::update_outside_binary);
+    cell.apply_on_uedges(& MinDivProbabilityKB::update_outside_unary);
+    cell.apply_on_lbedges(& MinDivProbabilityKB::update_outside_binary);
   }
   );
 }
@@ -397,9 +397,9 @@ inline void ParserCKYAllMinDivKB::update_q()
 {
   this->chart->opencells_apply([&](Cell & cell)
   {
-    cell.apply_on_edges(& MinDivProbabilityKB::update_q_lexical,
-                        & MinDivProbabilityKB::update_q_unary,
-                        & MinDivProbabilityKB::update_q_binary);
+    cell.apply_on_lbedges(& MinDivProbabilityKB::update_q_lexical,
+                          & MinDivProbabilityKB::update_q_binary);
+    cell.apply_on_uedges(& MinDivProbabilityKB::update_q_unary);
   });
 }
 
@@ -455,12 +455,12 @@ inline void ParserCKYAllMinDivKB::fill_bests()
     [](Cell & cell)
     {
 //       std::cout << "filling cell " << &cell << " : ======================================================" << cell << std::endl;
-      cell.apply_on_edges (/*function<void(Edge&)>([](Edge&e){(std::cout << "(edge.1:"<<&e <<" : " << e << ") ").flush();}), */
-                           toFunc(&Best::update_best<LexicalDaughter>),
+      cell.apply_on_lbedges (/*function<void(Edge&)>([](Edge&e){(std::cout << "(edge.1:"<<&e <<" : " << e << ") ").flush();}), */
+                             toFunc(&Best::update_best<LexicalDaughter>),
 //                            function<void(Edge&)>([](Edge&e){(std::cout << "(edge.2:"<<&e <<" : " << e << ") ").flush();}), 
-                           toFunc (&Best::update_best<BinaryDaughter>));
-      cell.apply_on_edges (toFunc(&Best::update_best<UnaryDaughter>),
-                           toFunc (&Best::finalize_best));
+                             toFunc (&Best::update_best<BinaryDaughter>));
+      cell.apply_on_uedges (toFunc(&Best::update_best<UnaryDaughter>));
+      cell.apply_on_edges (toFunc (&Best::finalize_best));
 //       std::cout << "best filled for cell " << &cell << " : " << cell << std::endl;
     }
   );

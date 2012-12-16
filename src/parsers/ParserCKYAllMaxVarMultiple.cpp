@@ -71,11 +71,9 @@ void ParserCKYAllMaxRuleMultiple::change_rules_load_backup(unsigned backup_idx, 
 
   chart->opencells_apply(
     [&replace_rules_u, &replace_rules_lb, &replace_annotations](Cell&cell){
-      cell.apply_on_edges(
-        replace_rules_u,
-        replace_rules_lb,
-        replace_annotations
-      );
+      cell.apply_on_uedges(replace_rules_u);
+      cell.apply_on_uedges(replace_rules_lb);
+      cell.apply_on_edges(replace_annotations);
     }
   );
 }
@@ -188,10 +186,10 @@ void ParserCKYAllMaxRuleMultiple::calculate_best_edge()
 {
   chart->opencells_apply_bottom_up( [](Cell&cell)
   {
-    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_lexical,
-                         &MaxRuleProbabilityMultiple::pick_best_binary );
-    cell.apply_on_edges( &MaxRuleProbabilityMultiple::pick_best_unary,
-                         &MaxRuleProbabilityMultiple::pick_best );
+    cell.apply_on_lbedges( &MaxRuleProbabilityMultiple::pick_best_lexical,
+                           &MaxRuleProbabilityMultiple::pick_best_binary );
+    cell.apply_on_uedges ( &MaxRuleProbabilityMultiple::pick_best_unary );
+    cell.apply_on_edges  ( &MaxRuleProbabilityMultiple::pick_best );
   }  );
 }
 

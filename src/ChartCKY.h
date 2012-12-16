@@ -81,8 +81,6 @@ public:
   inline double get_score(int start_symbol, unsigned k, bool unary_start=true) const;
 
 
-  inline void init(const std::vector< MyWord >& sentence);
-
   inline void reset_probabilities();
 
   inline bool has_solution(int symb, unsigned i, bool unary_start=true) const;
