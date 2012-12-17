@@ -58,7 +58,7 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
         if(!cell.is_empty()) {
           this->add_unary_init(cell,cell.get_top());
           //           std::cout << cell << std::endl;
-          cell.apply_on_uedges( &Edge::add_from_unary_insides );
+          cell.apply_on_uedges( &Edge::add_unary_insides_to_merged );
 
           // prevent short sentences from being skipped ...
           if(beam_short)
@@ -136,7 +136,7 @@ void ParserCKYAll_Impl<Types>::process_cell(Cell& cell, double beam_threshold) c
     // BLOCKTIMING("process_cell unary");
     add_unary_internal(cell, isroot);
   }
-  cell.apply_on_uedges( &Edge::add_from_unary_insides );
+  cell.apply_on_uedges( &Edge::add_unary_insides_to_merged );
 
   //   std::clog << "ParserCKYAll_Impl<Types>::process_cell : after add_unary_internal : " << cell << std::endl;
   // pruning
@@ -265,6 +265,18 @@ void ParserCKYAll_Impl<Types>::process_unary(Cell& cell, int rhs, bool isroot) c
 
 
 template <class Types>
+void ParserCKYAll_Impl<Types>::compute_merged_outside_probabilities()
+{
+  this->chart->opencells_apply_top_down( & Cell::compute_merged_outside_probabilities) ;
+}
+
+template <class Types>
+void ParserCKYAll_Impl<Types>::compute_merged_inside_probabilities()
+{
+  this->chart->opencells_apply_bottom_up( & Cell::compute_merged_inside_probabilities );
+}
+
+template <class Types>
 void ParserCKYAll_Impl<Types>::compute_outside_probabilities()
 {
   this->chart->opencells_apply_top_down( & Cell::compute_outside_probabilities) ;
@@ -294,13 +306,12 @@ template <class Types>
 void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_threshold, bool huang)
 {
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-  std::clog << *chart << std::endl;
+//   std::clog << *chart << std::endl;
   chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
-  compute_outside_probabilities();
-  std::clog << "After compute_outside_probabilities :" << *chart << std::endl;
-
-  if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
-    std::cout << "no axiom at root after beam_chart.compute_outside_probabilities" << std::endl;
+  compute_merged_outside_probabilities();
+//   std::clog << "After compute_outside_probabilities :" << *chart << std::endl;
+//   if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+//     std::cout << "no axiom at root after beam_chart.compute_outside_probabilities" << std::endl;
 
   this->chart->opencells_apply_bottom_up(
       [log_sent_prob, log_threshold, huang, &chart, &start_symbol]
@@ -308,17 +319,17 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
       {
         cell.apply_on_lbedges(&LBEdge::clean_invalidated_binaries,
                               std::function<void(Edge&)>([](Edge&e){if (e.lbedge().no_daughters()) e.close_lb();}));
-        std::clog << "after clean_invalidated_binaries :" << *chart << std::endl;
-        if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
-          std::cout << "no axiom at root after beam_chart.close_lb(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
+//         std::clog << "after clean_invalidated_binaries :" << *chart << std::endl;
+//         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+//           std::cout << "no axiom at root after beam_chart.close_lb(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         cell.beam(log_threshold, log_sent_prob);
-        std::clog << "after beam :" << *chart << std::endl;
-        if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
-          std::cout << "no axiom at root after beam_chart.beam of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
+//         std::clog << "after beam :" << *chart << std::endl;
+//         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+//           std::cout << "no axiom at root after beam_chart.beam of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         cell.clean();
-        std::clog << "after clean :" << *chart << std::endl;
-        if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
-          std::cout << "no axiom at root after beam_chart.clean(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
+//         std::clog << "after clean :" << *chart << std::endl;
+//         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+//           std::cout << "no axiom at root after beam_chart.clean(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         
         if(!cell.is_closed() && huang) {
           cell.apply_on_lbedges(&LBEdge::clean_invalidated_binaries,
@@ -445,7 +456,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // TODO: Do this test only with the first grammar
 //     if(i != 0) {// inside_probs already computed when bulding the chart
          std::clog << "ParserCKYAll_Impl<Types>::beam_c2f before inside, sentence probability = " << std::log(get_sentence_probability()) << std::endl;
-         compute_inside_probabilities();
+         compute_merged_inside_probabilities();
 //     }
 
 
@@ -456,7 +467,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     //   std::cout << "top is not in root cell" << std::endl;
 
     if(chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx)) {
-            std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
+//             std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
       break;
     }
     //    std::cout << "after inside" << std::endl;
@@ -482,7 +493,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // instead annot_descendants is changed in ParserCKYAllMaxVarMultiple::extract_solution
     // which is a bit .. hackish
     change_rules_resize(i, current_grammars);
-    std::clog << "after change_rules_resize :" << *chart << std::endl;
+    //     std::clog << "after change_rules_resize :" << *chart << std::endl;
   }
 }
 

@@ -31,6 +31,7 @@ class PCKYAllCell {
 
 public:
   typedef typename Types::Edge Edge;
+  typedef typename Types::AEdge AEdge;
   typedef typename Types::PEdge PEdge;
   typedef typename Types::UEdge UEdge;
   typedef typename Types::LBEdge LBEdge;
@@ -150,6 +151,8 @@ public:
   */
   void reset_probabilities();
 
+  void compute_merged_inside_probabilities();
+  void compute_merged_outside_probabilities();
   void compute_inside_probabilities();
   void compute_outside_probabilities();
 

@@ -239,6 +239,16 @@ public:
 
 protected:
   /**
+     \brief computes the inside probability for all merged nodes in chart
+  */
+  void compute_merged_inside_probabilities();
+
+  /**
+     \brief computes the outside probability for all merged nodes in chart
+  */
+  virtual void compute_merged_outside_probabilities();
+
+  /**
      \brief computes the inside probability for all nodes in chart
   */
   void compute_inside_probabilities();

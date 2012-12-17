@@ -488,11 +488,11 @@ public:
   /**
    * inside computation
    */
-  inline void update_inside_annotations_from_lex() {
+  inline void update_merged_inside_annotations_from_lex() {
     for(const auto& d: lb.get_lexical_daughters())
       d.update_inside_annotations(this->annotations);
   }
-  inline void update_inside_annotations_from_bin() {
+  inline void update_merged_inside_annotations_from_bin() {
     for(const auto& d: lb.get_binary_daughters()) {
       d.update_inside_annotations(this->annotations);
     }
@@ -502,7 +502,17 @@ public:
       d.update_inside_annotations(u.annotations);
     }
   }
-  inline void add_from_unary_insides() {
+  inline void update_binary_inside_annotations() {
+    for(const auto& d: lb.get_binary_daughters()) {
+      d.update_inside_annotations(lb.annotations);
+    }
+  }
+  inline void update_lexical_inside_annotations() {
+    for(const auto& d: lb.get_lexical_daughters()) {
+      d.update_inside_annotations(lb.annotations);
+    }
+  }
+  inline void add_unary_insides_to_merged() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
       if (u.annotations.inside_probabilities.array[i]!=LorgConstants::NullProba)
         this->annotations.inside_probabilities.array[i] += u.annotations.inside_probabilities.array[i];
@@ -511,16 +521,26 @@ public:
   /**
    * outside computation
    */
-  inline void copy_to_unary_outsides() {
+  inline void copy_merged_outsides_to_unary() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
       u.annotations.outside_probabilities.array[i] = this->annotations.outside_probabilities.array[i];
   }
-  inline void update_unary_dtrs_outside_annotations() {
+  inline void update_unary_outside_annotations() {
     for(const auto& d: u.get_unary_daughters()) {
       d.update_outside_annotations(u.annotations);
     }
   }
-  inline void update_binary_dtrs_outside_annotations() {
+  inline void update_binary_outside_annotations() {
+    for(const auto& d: lb.get_binary_daughters()) {
+      d.update_outside_annotations(lb.annotations);
+    }
+  }
+  inline void update_lexical_outside_annotations() {
+    for(const auto& d: lb.get_lexical_daughters()) {
+      d.update_outside_annotations(lb.annotations);
+    }
+  }
+  inline void update_binary_outside_annotations_from_merged() {
     for(const auto& d: lb.get_binary_daughters()) {
       d.update_outside_annotations(this->annotations);
     }

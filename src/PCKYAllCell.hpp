@@ -140,25 +140,51 @@ void PCKYAllCell<Types>::reset_probabilities()
 
 
 template<class Types>
-void PCKYAllCell<Types>::compute_inside_probabilities()
+void PCKYAllCell<Types>::compute_merged_inside_probabilities()
 {
-  apply_on_edges(toFunc(&Edge::reset_probabilities));
-  apply_on_lbedges(& Edge::update_inside_annotations_from_lex  ,
-                   & Edge::update_inside_annotations_from_bin
-                  );
+#warning usefull ?
+// warning comment : one of the two following lines is useless. Maybe both.
+// this is linked with the c_r_s function in PCKYAllCell<Types>::change_rules_resize
+// which is called by ParserCKYAll_Impl<Types>::change_rules_resize
+// which is called at the end of ParserCKYAll_Impl<Types>::beam_c2f
+// The c_r_s function extends the annotation probabilities vectors, and nullify them,
+// excepted for LorgConstants::NullProba, that are inherited from the previous pass in beam_c2f
+
+//   apply_on_edges(toFunc(&Edge::reset_probabilities)); // useful 1 ?
+  apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();})); // usefull 2 ?
+
+  apply_on_lbedges(& Edge::update_merged_inside_annotations_from_lex  ,
+                   & Edge::update_merged_inside_annotations_from_bin);
 
   apply_on_uedges(& Edge::update_unary_inside_annotations,
-                  & Edge::add_from_unary_insides  );
+                  & Edge::add_unary_insides_to_merged  );
+}
+
+template<class Types>
+void PCKYAllCell<Types>::compute_merged_outside_probabilities()
+{
+  apply_on_uedges( & Edge::copy_merged_outsides_to_unary,
+                   & Edge::update_unary_outside_annotations);
+  apply_on_lbedges(& Edge::update_binary_outside_annotations_from_merged);
+}
+
+
+
+template<class Types>
+void PCKYAllCell<Types>::compute_inside_probabilities()
+{
+  apply_on_edges(toFunc(&Edge::reset_probabilities)); // useful 1 ?
+  apply_on_lbedges(& Edge::update_lexical_inside_annotations,
+                   & Edge:: update_binary_inside_annotations);
+  apply_on_uedges (& Edge::  update_unary_inside_annotations);
 }
 
 template<class Types>
 void PCKYAllCell<Types>::compute_outside_probabilities()
 {
-  apply_on_uedges( & Edge::copy_to_unary_outsides,
-                   & Edge::update_unary_dtrs_outside_annotations);
-  apply_on_lbedges(& Edge::update_binary_dtrs_outside_annotations);
+  apply_on_uedges( & Edge:: update_unary_outside_annotations);
+  apply_on_lbedges(& Edge::update_binary_outside_annotations);
 }
-
 
 ///////////
 
@@ -419,7 +445,7 @@ template<class Types>
 void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_annotations,
                                               const std::vector<std::vector<std::vector<unsigned> > >& annot_descendants_current)
 {
-  auto c_r_s = [&](PEdge & edge, int i)->bool {
+  auto c_r_s = [&](AEdge & edge, int i)->bool {
     if(not edge.is_closed()) {
       
       AnnotationInfo a(next_annotations.get_number_of_annotations(i), 0.0);
@@ -428,10 +454,9 @@ void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_ann
       for(unsigned annot = 0; annot < edge.get_annotations().inside_probabilities.array.size(); ++annot) {
         if(!edge.valid_prob_at(annot)) {
 
-          const std::vector<unsigned>& next_invalids = annot_descendants_current[i][annot];
-          for(std::vector<unsigned>::const_iterator new_annot(next_invalids.begin()); new_annot != next_invalids.end(); ++new_annot) {
-            a.inside_probabilities.array[*new_annot] = LorgConstants::NullProba;
-            a.outside_probabilities.array[*new_annot] = LorgConstants::NullProba;
+          for(auto new_annot : annot_descendants_current[i][annot]) {
+            a.inside_probabilities.array[new_annot] = 
+            a.outside_probabilities.array[new_annot] = LorgConstants::NullProba;
           }
         }
       }
@@ -445,8 +470,10 @@ void PCKYAllCell<Types>::change_rules_resize(const AnnotatedLabelsInfo& next_ann
   
   for(size_t i=0; i<max_size; ++i) {
     Edge & edge = edges[i];
-    if (c_r_s(edge. uedge(), i)) edge. uedge().replace_rule_probabilities(0);
-    if (c_r_s(edge.lbedge(), i)) edge.lbedge().replace_rule_probabilities(0);
+    if (c_r_s(edge,          i)) {
+      if (c_r_s(edge. uedge(), i)) edge. uedge().replace_rule_probabilities(0);
+      if (c_r_s(edge.lbedge(), i)) edge.lbedge().replace_rule_probabilities(0);
+    }
   }
 }
 
