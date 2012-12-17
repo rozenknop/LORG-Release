@@ -294,18 +294,30 @@ template <class Types>
 void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_threshold, bool huang)
 {
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-
-  chart->get_root().get_edge(start_symbol).uedge().get_annotations().reset_outside_probabilities(1.0);
+  std::clog << *chart << std::endl;
+  chart->get_root().get_edge(start_symbol).get_annotations().reset_outside_probabilities(1.0);
   compute_outside_probabilities();
+  std::clog << "After compute_outside_probabilities :" << *chart << std::endl;
+
+  if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+    std::cout << "no axiom at root after beam_chart.compute_outside_probabilities" << std::endl;
 
   this->chart->opencells_apply_bottom_up(
-      [log_sent_prob, log_threshold, huang]
+      [log_sent_prob, log_threshold, huang, &chart, &start_symbol]
       (Cell& cell)
       {
         cell.apply_on_lbedges(&LBEdge::clean_invalidated_binaries,
                               std::function<void(Edge&)>([](Edge&e){if (e.lbedge().no_daughters()) e.close_lb();}));
+        std::clog << "after clean_invalidated_binaries :" << *chart << std::endl;
+        if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+          std::cout << "no axiom at root after beam_chart.close_lb(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         cell.beam(log_threshold, log_sent_prob);
+        std::clog << "after beam :" << *chart << std::endl;
+        if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+          std::cout << "no axiom at root after beam_chart.beam of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         cell.clean();
+        if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
+          std::cout << "no axiom at root after beam_chart.clean(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         
         if(!cell.is_closed() && huang) {
           cell.apply_on_lbedges(&LBEdge::clean_invalidated_binaries,
@@ -443,7 +455,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     //   std::cout << "top is not in root cell" << std::endl;
 
     if(chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx)) {
-      //      std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
+            std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
       break;
     }
     //    std::cout << "after inside" << std::endl;
@@ -456,11 +468,11 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     bool huang = false;
     if(chart->get_size() >= min_length_beam) // TODO if sentence is short skip everything but correct resizing
       beam_chart(sp, beam_threshold, huang);
-    //    std::cout << "after beam" << std::endl;
+    //        std::cout << "after beam" << std::endl;
 
     // PCKYAllCell& root = chart->get_root();
-    // if (!root.exists_edge(SymbolTable::instance_nt()->get_label_id(LorgConstants::tree_root_name)))
-    //   std::cout << "no axiom at root" << std::endl;
+    if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx))
+      std::cout << "no axiom at root after beam" << std::endl;
 
 
     //    std::cout << "before change" << std::endl;

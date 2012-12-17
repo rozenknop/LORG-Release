@@ -493,6 +493,10 @@ public:
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
       this->annotations.inside_probabilities.array[i] += lb.annotations.inside_probabilities.array[i];
   }
+  inline void add_from_lb_outsides() {
+    for(unsigned i=0; i<this->annotations.get_size(); ++i)
+      this->annotations.outside_probabilities.array[i] += lb.annotations.outside_probabilities.array[i];
+  }
   inline void add_to_unary_outsides() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
       u.annotations.inside_probabilities.array[i] += this->annotations.inside_probabilities.array[i];
@@ -577,6 +581,8 @@ public:
   void dump(std::ostream & out) const;
 };
 
+template<class OPEP>
+inline std::ostream& operator<<(std::ostream& out, const AnnotatedEdge<OPEP>& edge) {edge.dump(out); return out; }
 template<class OPEP>
 inline std::ostream& operator<<(std::ostream& out, const BasePackedEdge<OPEP>& edge) {edge.dump(out); return out; }
 template<class OPEP>

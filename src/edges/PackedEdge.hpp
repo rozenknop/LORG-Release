@@ -524,11 +524,16 @@ void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
 
 // TODO refile this method above
 
+template<class OPEP>
+void AnnotatedEdge<OPEP>::dump(std::ostream& out) const
+{
+  out << "(Annot: " << this<< ": (in,out)(0)=( " << get_annotations().get_inside(0) << " , " << get_annotations().get_outside(0) << " )";
+}
 
 template<class OPEP>
 void LBPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(edge: " << this<< ": inside(0): " << BasePackedEdge<OPEP>::get_annotations().get_inside(0) << " best:" << BasePackedEdge<OPEP>::best;
+  out << (AnnotatedEdge<OPEP>&)(*this) << " best:" << BasePackedEdge<OPEP>::best;
   for (const auto & dtr: lexical_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   for (const auto & dtr: binary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   out << ") ";
@@ -537,7 +542,7 @@ void LBPackedEdge<OPEP>::dump(std::ostream& out) const
 template<class OPEP>
 void UPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(edge: " << this << ": inside(0): " << BasePackedEdge<OPEP>::get_annotations().get_inside(0) << " best:" << BasePackedEdge<OPEP>::best;
+  out << (AnnotatedEdge<OPEP>&)(*this) << " best:" << BasePackedEdge<OPEP>::best;
   for (const auto & dtr: unary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   out << ") ";
 }
@@ -545,7 +550,7 @@ void UPackedEdge<OPEP>::dump(std::ostream& out) const
 template<class OPEP>
 void PackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(edge: " << this << " : unaries = " ;
+  out << "(edge: " << this << " " << (AnnotatedEdge<OPEP>&)(*this) << " : unaries = " ;
   if (u.is_closed()) out << "none" ; else out << u ;
   out << " -- binaries = ";
   if (lb.is_closed()) out << "none" ; else out << lb ;

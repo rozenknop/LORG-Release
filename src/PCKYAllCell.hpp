@@ -159,7 +159,8 @@ void PCKYAllCell<Types>::compute_outside_probabilities()
 {
   apply_on_uedges( &           Edge::add_to_unary_outsides,
                    &  UnaryDaughter::update_outside_annotations);
-  apply_on_lbedges(&           Edge::add_to_lb_outsides,
+  apply_on_lbedges(&           Edge::add_from_lb_outsides,
+                   &           Edge::add_to_lb_outsides,
                    & BinaryDaughter::update_outside_annotations);
 }
 
@@ -182,7 +183,11 @@ void PCKYAllCell<Types>::clean()
       
       if (edge.uedge().no_daughters())
       {
+        BLOCKTIMING("PCKYAllCell<Types>::clean - edge.close_u()");
         edge.close_u();
+        if (edge.is_closed()) {
+          BLOCKTIMING("PCKYAllCell<Types>::clean - edge.close_u() caused edge.is_closed()");
+        }
       }
     }
 
@@ -219,7 +224,7 @@ void PCKYAllCell<Types>::beam(const std::vector<double>& priors, double threshol
   //computing unannotated inside probabilities
   //looking for the probablity of the most probable symbol
   for(unsigned i = 0; i < max_size; ++i)
-    if(not edges[i].is_closed()) {
+    if(edges[i].is_opened()) {
       sums[i] *= std::accumulate(edges[i].get_annotations().inside_probabilities.array.begin(),
                                  edges[i].get_annotations().inside_probabilities.array.end(),
                                  0.0);
@@ -232,8 +237,9 @@ void PCKYAllCell<Types>::beam(const std::vector<double>& priors, double threshol
 
   //looking for edges below threshold
   for(unsigned i = 0; i < max_size; ++i) {
-    if(not edges[i].is_closed()) {
+    if(edges[i].is_opened()) {
       if(sums[i] < beam) {
+        BLOCKTIMING("PCKYAllCell<Types>::beam(priors) - edges[i].close");
         edges[i].close();
       }
     }
