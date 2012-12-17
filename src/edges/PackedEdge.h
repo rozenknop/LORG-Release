@@ -37,8 +37,8 @@ typedef std::unordered_map<asymb, std::unordered_map< asymb, asymb> > PathMatrix
 
 
 /**
-  \class BasePackedEdge
-  \brief represents an edge in a chart
+  \class AnnotatedEdge
+  \brief represents inside and outside annotations of an edge in a chart
 */
 
 template<class Types> class UPackedEdge;
@@ -435,7 +435,7 @@ public:
   /**
    *   \brief build and add a daughter (lexical version)
    */
-  inline void add_daughters(LBPackedEdge<Types> & left, const UnaryRule* rule);
+  inline void add_daughters(Edge & left, const UnaryRule* rule);
   /**
    *   \brief build and add a daughter (lexical and binary versions)
    */
@@ -485,26 +485,61 @@ public:
       u.get_annotations().resize(size);
     }
   }
+  /**
+   * inside computation
+   */
+  inline void update_inside_annotations_from_lex() {
+    for(const auto& d: lb.get_lexical_daughters())
+      d.update_inside_annotations(this->annotations);
+  }
+  inline void update_inside_annotations_from_bin() {
+    for(const auto& d: lb.get_binary_daughters()) {
+      d.update_inside_annotations(this->annotations);
+    }
+  }
+  inline void update_unary_inside_annotations() {
+    for(const auto& d: u.get_unary_daughters()) {
+      d.update_inside_annotations(u.annotations);
+    }
+  }
   inline void add_from_unary_insides() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
-      this->annotations.inside_probabilities.array[i] += u.annotations.inside_probabilities.array[i];
+      if (u.annotations.inside_probabilities.array[i]!=LorgConstants::NullProba)
+        this->annotations.inside_probabilities.array[i] += u.annotations.inside_probabilities.array[i];
   }
-  inline void add_from_lb_insides() {
+
+  /**
+   * outside computation
+   */
+  inline void copy_to_unary_outsides() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
-      this->annotations.inside_probabilities.array[i] += lb.annotations.inside_probabilities.array[i];
+      u.annotations.outside_probabilities.array[i] = this->annotations.outside_probabilities.array[i];
   }
-  inline void add_from_lb_outsides() {
-    for(unsigned i=0; i<this->annotations.get_size(); ++i)
-      this->annotations.outside_probabilities.array[i] += lb.annotations.outside_probabilities.array[i];
+  inline void update_unary_dtrs_outside_annotations() {
+    for(const auto& d: u.get_unary_daughters()) {
+      d.update_outside_annotations(u.annotations);
+    }
   }
-  inline void add_to_unary_outsides() {
-    for(unsigned i=0; i<this->annotations.get_size(); ++i)
-      u.annotations.inside_probabilities.array[i] += this->annotations.inside_probabilities.array[i];
+  inline void update_binary_dtrs_outside_annotations() {
+    for(const auto& d: lb.get_binary_daughters()) {
+      d.update_outside_annotations(this->annotations);
+    }
   }
-  inline void add_to_lb_outsides() {
-    for(unsigned i=0; i<this->annotations.get_size(); ++i)
-      lb.annotations.inside_probabilities.array[i] += this->annotations.inside_probabilities.array[i];
-  }
+  
+
+
+//   inline void add_from_lb_insides() {
+//     for(unsigned i=0; i<this->annotations.get_size(); ++i)
+//       this->annotations.inside_probabilities.array[i] += lb.annotations.inside_probabilities.array[i];
+//   }
+//   inline void add_from_lb_outsides() {
+//     for(unsigned i=0; i<this->annotations.get_size(); ++i)
+//       this->annotations.outside_probabilities.array[i] += lb.annotations.outside_probabilities.array[i];
+//   }
+//   inline void add_to_lb_outsides() {
+//     for(unsigned i=0; i<this->annotations.get_size(); ++i)
+//       lb.annotations.outside_probabilities.array[i] += this->annotations.outside_probabilities.array[i];
+//   }
 
   
   inline void process(function<void(PEdge &)> f) {

@@ -120,41 +120,43 @@ public:
   typedef TypedRulePackedEdgeDaughters<typename Types::URule> Parent;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
+  typedef typename Types::AEdge AEdge;
   typedef typename Types::LBEdge LBEdge;
   typedef typename Types::UEdge UEdge;
-  typedef typename Types::LBEdge * EdgePtr ;
+  typedef typename Types::AEdge * EdgePtr ;
   typedef typename Types::URule Rule;
 
 protected:
-  EdgePtr left;
+  EdgePtr dtr;
 
 public:
 //   inline UnaryPackedEdgeDaughters & operator=(UnaryPackedEdgeDaughters<Types> && o) { *this = std::move(o); return *this; }
   
-  UnaryPackedEdgeDaughters(LBEdge & le, const Rule * ru) :
-    Parent(ru), left(&le)
+  UnaryPackedEdgeDaughters(AEdge & le, const Rule * ru) :
+  Parent(ru), dtr(&le)
   {};
 
   ~UnaryPackedEdgeDaughters() {};
 
   inline bool is_binary() const {return false;}
   inline bool is_lexical() const {return false;}
-//   inline const Edge& left_daughter() const  {return *left;}
-  inline LBEdge& left_daughter() const {return *left;}
-  
+  //   inline const Edge& left_daughter() const  {return *left;}
+  inline AEdge& daughter() const {return *dtr;}
+  inline LBEdge& lbdaughter() const {return (LBEdge &)(*dtr);}
+
   inline bool points_towards_invalid_edges() const
   {
-    return left->is_closed();
+    return dtr->is_closed();
   }
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(Parent::rule != NULL);
     Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
-                                                  left->get_annotations().inside_probabilities.array);
+                                                  dtr->get_annotations().inside_probabilities.array);
   }
   inline void update_outside_annotations(AnnotationInfo & annotations) const
   {
     Parent::get_rule()->update_outside_annotations(annotations.outside_probabilities.array,
-                                                   left->get_annotations().outside_probabilities.array);
+                                                   dtr->get_annotations().outside_probabilities.array);
   }
 };
 

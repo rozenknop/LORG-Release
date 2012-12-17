@@ -34,14 +34,14 @@ inline double MinDivBinaryDaughter::tree_log_proba(unsigned left_idx, unsigned r
 /***********************************************************/
 inline void MinDivUnaryDaughter::outside_and_marginal(AnnotationInfo & annotations)
 {
-  auto & leftannot = left_daughter().get_annotations();
+  auto & leftannot = lbdaughter().get_annotations();
   q = mp = get_rule()->update_outside_annotations_return_marginal(annotations.outside_probabilities.array,
                                                                 leftannot.inside_probabilities.array,
                                                                 leftannot.outside_probabilities.array)
   / MinDivProbabilityKB::get_normalisation_factor();
 }
 inline double MinDivUnaryDaughter::tree_log_proba(unsigned left_idx) const {
-  if (left_daughter().get_best().n_deriv() > left_idx)
+  if (lbdaughter().get_best().n_deriv() > left_idx)
   {
 //     std::cout << "left " << left << ": " << *left << std::endl;
 //     std::cout << "a_" << get_rule() << std::endl;
@@ -55,7 +55,7 @@ inline double MinDivUnaryDaughter::tree_log_proba(unsigned left_idx) const {
     return 
     std::min(0.0, 
              log(q) 
-             + left_daughter().get_best().get(left_idx).probability);
+             + lbdaughter().get_best().get(left_idx).probability);
   }
   return -std::numeric_limits < double >::infinity ();
   }

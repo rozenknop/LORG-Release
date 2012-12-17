@@ -48,7 +48,7 @@ void MaxRuleProbabilityMultiple::update_unary(UEdge& e, const UnaryDaughter & dt
   const AnnotationInfo & a = e.get_annotations();
   double probability = -std::numeric_limits<double>::infinity();
 
-  LBEdge& left  = dtr.left_daughter();
+  LBEdge& left  = dtr.lbdaughter();
   if(left.get_best().get(0).dtrs && (left.get_best().get(0).dtrs->is_lexical() || left.get_best().get(0).dtrs->is_binary())) {
     probability =  QInsideComputer::compute(a, dtr, log_normalisation_factor);
   }
@@ -237,7 +237,7 @@ void MaxRuleProbabilityMultiple::pick_best_unary(const UnaryDaughter & dtr)
 
     const UnaryDaughter* d = static_cast<const UnaryDaughter*>(p.dtrs);
 
-    LBEdge& left  = d->left_daughter();
+    LBEdge& left  = d->lbdaughter();
 
     if(left.get_best().get(0).dtrs) {
 
@@ -511,7 +511,7 @@ void MaxRuleProbabilityMultiple::find_succ(PEdge* edge, packed_edge_probability_
 
     const UnaryDaughter* d = static_cast<const UnaryDaughter*>(pep.dtrs);
 
-    LBEdge& left  = d->left_daughter();
+    LBEdge& left  = d->lbdaughter();
     const std::vector<AnnotationInfo>& leftannots = left.get_best().get_annotations_backup();
 
     //        std::cout << * d->get_rule() << std::endl;

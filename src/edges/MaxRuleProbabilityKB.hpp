@@ -260,7 +260,7 @@ inline void MaxRuleProbabilityKB::find_succ(PEdge* edge, packed_edge_probability
 
 
     //extend to the left
-    LBEdge& left  = d->left_daughter();
+    LBEdge& left  = d->lbdaughter();
     unsigned nextleft = pep.left_index + 1;
 
     left.extend_derivation(nextleft+1, false);

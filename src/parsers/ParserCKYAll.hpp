@@ -316,6 +316,7 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
           std::cout << "no axiom at root after beam_chart.beam of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         cell.clean();
+        std::clog << "after clean :" << *chart << std::endl;
         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
           std::cout << "no axiom at root after beam_chart.clean(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
         
@@ -481,6 +482,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // instead annot_descendants is changed in ParserCKYAllMaxVarMultiple::extract_solution
     // which is a bit .. hackish
     change_rules_resize(i, current_grammars);
+    std::clog << "after change_rules_resize :" << *chart << std::endl;
   }
 }
 

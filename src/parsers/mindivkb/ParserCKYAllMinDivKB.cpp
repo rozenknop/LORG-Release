@@ -198,7 +198,7 @@ inline void MinDivBest::find_succ(packed_edge_probability_with_index& pep, bool 
 
 
     //extend to the left
-    LBEdge& left  = d->left_daughter();
+    LBEdge& left  = d->lbdaughter();
     unsigned nextleft = pep.left_index + 1;
 
     left.get_best().extend_derivation(nextleft+1, false);
@@ -277,7 +277,7 @@ inline void MinDivProbabilityKB::update_inside_unary(const UnaryDaughter& dtr)
 {
   inside_prob += (
     dtr.q
-    * dtr.left_daughter().get_prob_model().inside_prob
+    * dtr.lbdaughter().get_prob_model().inside_prob
     );
 }
 
@@ -321,7 +321,7 @@ inline void MinDivProbabilityKB::update_outside_binary(const BinaryDaughter& dtr
 }
 inline void MinDivProbabilityKB::update_outside_unary(const UnaryDaughter& dtr)
 {
-  dtr. left_daughter().get_prob_model().outside_prob += (
+  dtr. lbdaughter().get_prob_model().outside_prob += (
     outside_prob
     * dtr.q
   );
@@ -379,7 +379,7 @@ inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
   if (outside_prob != LorgConstants::NullProba)
     dtr.q = dtr.mp / (
       outside_prob
-      * dtr.left_daughter().get_prob_model().inside_prob
+      * dtr.lbdaughter().get_prob_model().inside_prob
     );
 }
 inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)

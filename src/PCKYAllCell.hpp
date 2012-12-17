@@ -108,7 +108,7 @@ void PCKYAllCell<Types>::process_candidate(const UnaryRule* rule, double R_insid
   ++i;
 
   Edge & e = edges[rule->get_lhs()];
-  e.add_daughters(edges[rule->get_rhs0()].lbedge(),rule);
+  e.add_daughters(edges[rule->get_rhs0()],rule);
 
   //   std::cout << "PCKYAllCell<Types>::process_candidate. array at " << & e.get_annotations().inside_probabilities_unary_temp.array[0] << std::endl; std::cout.flush();
   e.uedge().get_annotations().inside_probabilities.array[0] += R_inside * rule->get_probability()[0][0];
@@ -142,26 +142,21 @@ void PCKYAllCell<Types>::reset_probabilities()
 template<class Types>
 void PCKYAllCell<Types>::compute_inside_probabilities()
 {
-//     apply_on_edges( & Edge::clean_invalidated_binaries);
-
   apply_on_edges(toFunc(&Edge::reset_probabilities));
-  apply_on_lbedges(& LexicalDaughter::update_inside_annotations  ,
-                   &  BinaryDaughter::update_inside_annotations  ,
-                   & Edge::add_from_lb_insides
+  apply_on_lbedges(& Edge::update_inside_annotations_from_lex  ,
+                   & Edge::update_inside_annotations_from_bin
                   );
 
-  apply_on_uedges(& UnaryDaughter::update_inside_annotations,
+  apply_on_uedges(& Edge::update_unary_inside_annotations,
                   & Edge::add_from_unary_insides  );
 }
 
 template<class Types>
 void PCKYAllCell<Types>::compute_outside_probabilities()
 {
-  apply_on_uedges( &           Edge::add_to_unary_outsides,
-                   &  UnaryDaughter::update_outside_annotations);
-  apply_on_lbedges(&           Edge::add_from_lb_outsides,
-                   &           Edge::add_to_lb_outsides,
-                   & BinaryDaughter::update_outside_annotations);
+  apply_on_uedges( & Edge::copy_to_unary_outsides,
+                   & Edge::update_unary_dtrs_outside_annotations);
+  apply_on_lbedges(& Edge::update_binary_dtrs_outside_annotations);
 }
 
 
@@ -291,7 +286,6 @@ void PCKYAllCell<Types>::beam(double log_threshold, double log_sent_prob)
 {
   double beam = log_threshold  + log_sent_prob;
   apply_on_edges(function<void(Edge&)>(std::bind(absolute_beam<Edge>, std::placeholders::_1, beam)));
-//   apply_on_uedges(function<void(UEdge&)>(std::bind(absolute_beam<UEdge>, std::placeholders::_1, beam)));
 }
 
 
@@ -307,7 +301,7 @@ struct pred_beam_huang_unary
 
   bool operator()(const typename Edge::UnaryDaughter& packededgedaughter) const
   {
-    Edge & lefty = packededgedaughter.left_daughter();
+    Edge & lefty = packededgedaughter.daughter();
     assert(not lefty.is_closed());
     const AnnotationInfo& ailefty = lefty.get_annotations();
 
@@ -411,7 +405,7 @@ void PCKYAllCell<Types>::beam_huang(double log_threshold, double log_sent_prob)
 
       total_out = std::log(total_out);
 
-      pred_beam_huang_unary<typename Types::LBEdge> huang(log_threshold, log_sent_prob, total_out);
+      pred_beam_huang_unary<typename Types::AEdge> huang(log_threshold, log_sent_prob, total_out);
 
       std::vector<typename Types::UnaryDaughter >& udaughters = edge.uedge().get_unary_daughters();
 

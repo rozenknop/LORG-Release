@@ -5,7 +5,7 @@
 
 template<class Types>
 inline
-void PackedEdge<Types>::add_daughters(LBPackedEdge<Types> & left, const UnaryRule* rule)
+void PackedEdge<Types>::add_daughters(Edge & left, const UnaryRule* rule)
 {
   if (this->is_closed()) {
     this->open = true;
@@ -399,7 +399,7 @@ PtbPsTree * BasePackedEdge<Types>::to_ptbpstree(int lhs, unsigned ith_deriv, boo
                   std::make_pair(daughters->get_rule()->get_rhs0(), best.get(ith_deriv).get_left_index()),
                   append_annot);
       int rhs0 = daughters->get_rule()->get_rhs0();
-      daughters->left_daughter().to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
+      daughters->lbdaughter().to_ptbpstree(*tree, pos, rhs0, best.get(ith_deriv).get_left_index(), append_annot, output_forms);
     }
 
     return tree;
@@ -510,7 +510,7 @@ void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
 
       int rhs0 = daughters->get_rule()->get_rhs0();
       //      std::cout << *daughters->get_rule() << std::endl;
-      daughters->left_daughter().to_ptbpstree(tree, pos, rhs0,
+      daughters->lbdaughter().to_ptbpstree(tree, pos, rhs0,
                                               best.get(index).get_left_index(), append_annot, output_forms);
     }
 

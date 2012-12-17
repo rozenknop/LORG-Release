@@ -173,9 +173,9 @@ public:
   {
     double probability = 0;
     
-    const PEdge & left = dtrs.left_daughter();
+    const LBEdge & left = dtrs.lbdaughter();
     
-    const scaled_array & left_inside = static_cast<const LBEdge&>(left).get_annotations ().inside_probabilities;
+    const scaled_array & left_inside = left.get_annotations ().inside_probabilities;
     const scaled_array & up_outside = up_annotations.outside_probabilities;
     const std::vector < std::vector < double >>&rule_probs = dtrs.get_rule ()->get_probability ();
     

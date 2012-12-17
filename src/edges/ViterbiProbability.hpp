@@ -28,7 +28,7 @@ inline void ViterbiProbability::update_unary(UEdge& edge, const UnaryDaughter& d
   const AnnotationInfo& a = edge.get_annotations();
   const std::vector<std::vector<double> >& rule_probs = dtr.get_rule()->get_probability();
 
-  const LBEdge& left = dtr.left_daughter();
+  const LBEdge& left = dtr.lbdaughter();
 
   for (unsigned i = 0; i < rule_probs.size(); ++i) {
     if(!a.valid_prob_at(i, LorgConstants::NullProba)) continue;
