@@ -81,6 +81,7 @@ public:
   inline AEdge& right_daughter() const {return *right;}
   inline PEdge& left_pdaughter() const {return (PEdge &) *left;}
   inline PEdge& right_pdaughter() const {return (PEdge &) *right;}
+  inline void set_daughters(AEdge& le, AEdge& ri) {left=&le;right=&ri;}
 
   inline bool operator==(const BinaryPackedEdgeDaughters& other)
   {
@@ -143,7 +144,8 @@ public:
   //   inline const Edge& left_daughter() const  {return *left;}
   inline AEdge& daughter() const {return *dtr;}
   inline LBEdge& lbdaughter() const {return (LBEdge &)(*dtr);}
-
+  inline void set_daughter(AEdge& e) { dtr=&e; }
+  
   inline bool points_towards_invalid_edges() const
   {
     return dtr->is_closed();

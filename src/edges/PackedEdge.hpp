@@ -214,7 +214,31 @@ void LBPackedEdge<Types>::replace_rule_probabilities(unsigned i)
   std::for_each(get_lexical_daughters().begin(), get_lexical_daughters().end(), c2f_replacer);
 }
 
+using std::vector;
 
+template <class Types>
+inline void PackedEdge<Types>::daughters_differentiation()
+{
+  if (u.open) {
+    for (auto & d: u.unary_daughters) {
+      d.set_daughter( ((Edge&)d.daughter()).lb );
+    }
+  }
+  if (lb.open) {
+    vector<BinaryDaughter> b; b.reserve(lb.binary_daughters.size());
+    for (BinaryDaughter & d: lb.binary_daughters) {
+      Edge & left = (Edge&) d.left_daughter(), & right = (Edge&) d.right_daughter();
+      for (AEdge * l : (AEdge*[]){&left.u, &left.lb}) {
+        for (AEdge * r : (AEdge*[]){&right.u, &right.lb}) {
+          if (l->open && r->open) {
+            b.push_back(BinaryDaughter(*l,*r,d.get_rule()));
+          }
+        }
+      }
+    }
+    lb.binary_daughters = std::move(b);
+  }
+}
 
 
 /////////////

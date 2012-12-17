@@ -75,6 +75,7 @@ class ParserCKYAll : public ParserCKY< GrammarAnnotated<BRuleC2f,URuleC2f, Lexic
   /**
      \brief computes the best solution (depends on the algorithm)
   */
+  virtual void edge_daughters_differentiation() = 0;
   virtual void extract_solution()=0;
 
   virtual   void initialise_chart(const std::vector< Word >& s,
@@ -247,6 +248,14 @@ protected:
      \brief computes the outside probability for all merged nodes in chart
   */
   virtual void compute_merged_outside_probabilities();
+
+  /**
+   * @brief reset edge daughters to differentiated edges (unary vs lexical/binary)
+   * @brief before computing real inside/outsides
+   *
+   * @return void
+   **/
+  void edge_daughters_differentiation();
 
   /**
      \brief computes the inside probability for all nodes in chart

@@ -276,6 +276,15 @@ void ParserCKYAll_Impl<Types>::compute_merged_inside_probabilities()
   this->chart->opencells_apply_bottom_up( & Cell::compute_merged_inside_probabilities );
 }
 
+
+template <class Types>
+void ParserCKYAll_Impl<Types>::edge_daughters_differentiation()
+{
+  this->chart->opencells_apply(std::function<void(Cell&)>([](Cell&cell){
+      cell.apply_on_edges(&Edge::daughters_differentiation);
+  }));
+}
+
 template <class Types>
 void ParserCKYAll_Impl<Types>::compute_outside_probabilities()
 {

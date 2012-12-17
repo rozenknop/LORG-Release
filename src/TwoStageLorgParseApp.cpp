@@ -84,8 +84,14 @@ int TwoStageLorgParseApp::run()
             // extract best solution with the finest grammar
             if(parser->is_chart_valid(start_symbol))
             {
-                            BLOCKTIMING("extract_solution");
-              parser->extract_solution();
+              {
+                BLOCKTIMING("edge_daughters_differentiation");
+                parser->edge_daughters_differentiation();
+              }
+              {
+                BLOCKTIMING("extract_solution");
+                parser->extract_solution();
+              }
             }
             if(parser->is_chart_valid(start_symbol))
             {

@@ -395,6 +395,7 @@ public:
   typedef typename Types::EdgeProbability ProbaModel;
   typedef typename Types::Cell Cell;
   typedef typename Types::Edge Edge;
+  typedef AnnotatedEdge<Types> AEdge;
   typedef BasePackedEdge<Types> PEdge;
   typedef UPackedEdge<Types> UEdge;
   typedef LBPackedEdge<Types> LBEdge;
@@ -547,6 +548,7 @@ public:
   }
   
 
+  inline void daughters_differentiation();
 
 //   inline void add_from_lb_insides() {
 //     for(unsigned i=0; i<this->annotations.get_size(); ++i)
