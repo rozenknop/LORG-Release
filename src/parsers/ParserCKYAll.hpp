@@ -280,6 +280,7 @@ void ParserCKYAll_Impl<Types>::compute_merged_inside_probabilities()
 template <class Types>
 void ParserCKYAll_Impl<Types>::edge_daughters_differentiation()
 {
+//   std::clog << "before daughter_differentiation : " << *chart << std::endl;
   this->chart->opencells_apply(std::function<void(Cell&)>([](Cell&cell){
       cell.apply_on_edges(&Edge::daughters_differentiation);
   }));
@@ -331,15 +332,17 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
 //         std::clog << "after clean_invalidated_binaries :" << *chart << std::endl;
 //         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
 //           std::cout << "no axiom at root after beam_chart.close_lb(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
+        
         cell.beam(log_threshold, log_sent_prob);
 //         std::clog << "after beam :" << *chart << std::endl;
 //         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
 //           std::cout << "no axiom at root after beam_chart.beam of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
+
         cell.clean();
 //         std::clog << "after clean :" << *chart << std::endl;
 //         if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(start_symbol))
 //           std::cout << "no axiom at root after beam_chart.clean(1) of cell (" << cell.get_end()-cell.get_begin()+1 << ","<<cell.get_begin()<<")"<<std::endl;
-        
+
         if(!cell.is_closed() && huang) {
           cell.apply_on_lbedges(&LBEdge::clean_invalidated_binaries,
                                 std::function<void(Edge&)>([](Edge&e){if (e.lbedge().no_daughters()) e.close_lb();}));
@@ -476,7 +479,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     //   std::cout << "top is not in root cell" << std::endl;
 
     if(chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx)) {
-//             std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
+      std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
       break;
     }
     //    std::cout << "after inside" << std::endl;

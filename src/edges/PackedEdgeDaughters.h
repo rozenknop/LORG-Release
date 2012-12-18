@@ -148,7 +148,7 @@ public:
   
   inline bool points_towards_invalid_edges() const
   {
-    return dtr->is_closed();
+    return ((Edge *)dtr)->lbedge().is_closed();
   }
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
     assert(Parent::rule != NULL);

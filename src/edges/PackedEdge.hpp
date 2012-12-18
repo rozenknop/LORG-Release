@@ -221,7 +221,11 @@ inline void PackedEdge<Types>::daughters_differentiation()
 {
   if (u.open) {
     for (auto & d: u.unary_daughters) {
+//       std::clog << "from " << this << " unary_daughter " << &(d.daughter()) ;
+      assert(d.daughter().open);
       d.set_daughter( ((Edge&)d.daughter()).lb );
+//       std::clog << " becomes " << &(d.daughter()) << " (lbdaughter = " << &(d.lbdaughter()) << ")" << std::endl;
+      assert(d.lbdaughter().open);
     }
   }
   if (lb.open) {

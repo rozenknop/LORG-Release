@@ -142,18 +142,19 @@ void PCKYAllCell<Types>::reset_probabilities()
 template<class Types>
 void PCKYAllCell<Types>::compute_merged_inside_probabilities()
 {
-#warning usefull ?
-// warning comment : one of the two following lines is useless. Maybe both.
-// this is linked with the c_r_s function in PCKYAllCell<Types>::change_rules_resize
-// which is called by ParserCKYAll_Impl<Types>::change_rules_resize
-// which is called at the end of ParserCKYAll_Impl<Types>::beam_c2f
-// The c_r_s function extends the annotation probabilities vectors, and nullify them,
-// excepted for LorgConstants::NullProba, that are inherited from the previous pass in beam_c2f
+  #warning usefull ?
+  // warning comment : one of the two following lines is useless. Maybe both.
+  // this is linked with the c_r_s function in PCKYAllCell<Types>::change_rules_resize
+  // which is called by ParserCKYAll_Impl<Types>::change_rules_resize
+  // which is called at the end of ParserCKYAll_Impl<Types>::beam_c2f
+  // The c_r_s function extends the annotation probabilities vectors, and nullify them,
+  // excepted for LorgConstants::NullProba, that are inherited from the previous pass in beam_c2f
 
-//   apply_on_edges(toFunc(&Edge::reset_probabilities)); // useful 1 ?
-  apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();})); // usefull 2 ?
+  //   apply_on_lbedges(toFunc(&Edge::reset_probabilities),
+  apply_on_edges(toFunc(&Edge::reset_probabilities)), apply_on_lbedges( // useful 1 ?
+  //   apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}), // usefull 2 ?
 
-  apply_on_lbedges(& Edge::update_merged_inside_annotations_from_lex  ,
+                   & Edge::update_merged_inside_annotations_from_lex  ,
                    & Edge::update_merged_inside_annotations_from_bin);
 
   apply_on_uedges(& Edge::update_unary_inside_annotations,
