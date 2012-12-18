@@ -174,7 +174,8 @@ void PCKYAllCell<Types>::compute_merged_outside_probabilities()
 template<class Types>
 void PCKYAllCell<Types>::compute_inside_probabilities()
 {
-  apply_on_edges(toFunc(&Edge::reset_probabilities)); // useful 1 ?
+//   apply_on_edges(toFunc(&Edge::reset_probabilities)); // useful 1 ?
+  apply_on_edges(toFunc(&Edge::reset_valid_probabilities)); // useful 1 ?
   apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}),
                    /*apply_on_lbedges(*/& Edge::update_lexical_inside_annotations,
                    & Edge:: update_binary_inside_annotations);

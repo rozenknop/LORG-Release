@@ -92,7 +92,15 @@ public:
     return left->is_closed() or right->is_closed() ;
   }
   
+  inline void first_update_inside_annotations(AnnotationInfo & annotations) const {
+    assert(Parent::rule != NULL);
+    Parent::get_rule()->first_update_inside_annotations(annotations.inside_probabilities.array,
+                                                  left-> get_annotations().inside_probabilities.array,
+                                                  right->get_annotations().inside_probabilities.array);
+  }
+  
   inline void update_inside_annotations(AnnotationInfo & annotations) const {
+//     BLOCKTIMING("BinaryDaughter::update_inside_annotations");
     assert(Parent::rule != NULL);
     Parent::get_rule()->update_inside_annotations(annotations.inside_probabilities.array,
                                                   left-> get_annotations().inside_probabilities.array,

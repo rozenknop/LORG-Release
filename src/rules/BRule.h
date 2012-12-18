@@ -123,6 +123,10 @@ public:
                                  const std::vector<double>& left,
                                  const std::vector<double>& right) const;
 
+  void first_update_inside_annotations(std::vector<double>& up,
+                                 const std::vector<double>& left,
+                                 const std::vector<double>& right) const;
+
   void update_inside_annotations(std::vector<double>& up,
                                  const double& left_right_precomputation) const;
 

@@ -501,24 +501,23 @@ public:
   }
   inline void update_merged_inside_annotations_from_bin() {
     for(const auto& d: lb.get_binary_daughters()) {
-      d.update_inside_annotations(this->annotations);
+      d.first_update_inside_annotations(this->annotations);
     }
   }
   inline void update_unary_inside_annotations() {
     for(const auto& d: u.get_unary_daughters()) {
-      BLOCKTIMING("UnaryDaughter::update_inside_annotations");
+//       BLOCKTIMING("UnaryDaughter::update_inside_annotations");
       d.update_inside_annotations(u.annotations);
     }
   }
   inline void update_binary_inside_annotations() {
     for(const auto& d: lb.get_binary_daughters()) {
-      BLOCKTIMING("BinaryDaughter::update_inside_annotations");
       d.update_inside_annotations(lb.annotations);
     }
   }
   inline void update_lexical_inside_annotations() {
     for(const auto& d: lb.get_lexical_daughters()) {
-      BLOCKTIMING("LexicalDaughter::update_inside_annotations");
+//       BLOCKTIMING("LexicalDaughter::update_inside_annotations");
       d.update_inside_annotations(lb.annotations);
     }
   }

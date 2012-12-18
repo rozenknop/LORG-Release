@@ -291,14 +291,14 @@ void ParserCKYAll_Impl<Types>::edge_daughters_differentiation()
 template <class Types>
 void ParserCKYAll_Impl<Types>::compute_outside_probabilities()
 {
-  BLOCKTIMING("ParserCKYAll_Impl<Types>::compute_outside_probabilities");
+  //   BLOCKTIMING("ParserCKYAll_Impl<Types>::compute_outside_probabilities");
   this->chart->opencells_apply_top_down( & Cell::compute_outside_probabilities) ;
 }
 
 template <class Types>
 void ParserCKYAll_Impl<Types>::compute_inside_probabilities()
 {
-  BLOCKTIMING("ParserCKYAll_Impl<Types>::compute_inside_probabilities");
+  //   BLOCKTIMING("ParserCKYAll_Impl<Types>::compute_inside_probabilities");
   this->chart->opencells_apply_bottom_up( & Cell::compute_inside_probabilities );
 }
 
@@ -564,6 +564,7 @@ const typename ParserCKYAll_Impl<Types>::AGrammar& ParserCKYAll_Impl<Types>::get
 template<class Types>
 void ParserCKYAll_Impl<Types>::compute_inside_outside_probabilities()
 {
+//   std::clog << " at the beginning of ParserCKYAll_Impl<Types>::compute_inside_outside_probabilities() : " << *chart << std::endl;
   compute_inside_probabilities();
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
   chart->get_root().get_edge(start_symbol).uedge().get_annotations().reset_outside_probabilities(1.0);

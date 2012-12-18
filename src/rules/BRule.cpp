@@ -6,6 +6,7 @@
 #include <numeric>
 //#include <iostream>
 
+#include "utils/tick_count.h"
 
 
 BRule::BRule(short l, short rhs0_, short rhs1_, const std::vector<binary_proba_info>& probs) :
@@ -63,11 +64,12 @@ std::ostream& operator<<(std::ostream& out, const BRule& rule)
   return out;
 }
 
-void BRule::update_inside_annotations(std::vector<double>& up,
+void BRule::first_update_inside_annotations(std::vector<double>& up,
                                       const std::vector<double>& left,
                                       const std::vector<double>& right) const
 {
-  for(size_t i = 0 ; i < probabilities.size();++i) {
+//    BLOCKTIMING("BRule::first_update_inside_annotations");
+ for(size_t i = 0 ; i < probabilities.size();++i) {
     if(up[i] == LorgConstants::NullProba) continue;
     for(size_t j = 0 ; j < probabilities[i].size();++j) {
       if(left[j] == LorgConstants::NullProba || left[j] == 0.0) continue;
@@ -75,7 +77,31 @@ void BRule::update_inside_annotations(std::vector<double>& up,
       for(size_t k = 0 ; k < probabilities[i][j].size();++k) {
         if(right[k] == LorgConstants::NullProba || right[k] == 0.0) continue;
         inner += right[k] * probabilities[i][j][k];
-      }
+//   BLOCKTIMING("BRule::update_inside_annotations inner");
+     }
+      //std::cout << *this << " " << up[i] << " " << i<< std::endl;
+      up[i] += left[j] * inner;
+    }
+    assert(up[i] >= 0.0);
+    assert(up[i] <= 1.0);
+  }
+}
+
+void BRule::update_inside_annotations(std::vector<double>& up,
+                                      const std::vector<double>& left,
+                                      const std::vector<double>& right) const
+{
+//    BLOCKTIMING("BRule::update_inside_annotations");
+ for(size_t i = 0 ; i < probabilities.size();++i) {
+    if(up[i] == LorgConstants::NullProba) continue;
+    for(size_t j = 0 ; j < probabilities[i].size();++j) {
+      if(left[j] == LorgConstants::NullProba || left[j] == 0.0) continue;
+      double inner = 0.0;
+      for(size_t k = 0 ; k < probabilities[i][j].size();++k) {
+        if(right[k] == LorgConstants::NullProba || right[k] == 0.0) continue;
+        inner += right[k] * probabilities[i][j][k];
+//   BLOCKTIMING("BRule::update_inside_annotations inner");
+     }
       //std::cout << *this << " " << up[i] << " " << i<< std::endl;
       up[i] += left[j] * inner;
     }

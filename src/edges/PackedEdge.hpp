@@ -234,6 +234,7 @@ inline void PackedEdge<Types>::daughters_differentiation()
 //       std::clog << " becomes " << &(d.daughter()) << " (lbdaughter = " << &(d.lbdaughter()) << ")" << std::endl;
       assert(d.lbdaughter().open);
     }
+    u.annotations = this->annotations;
   }
   if (lb.open) {
     vector<BinaryDaughter> b; b.reserve(lb.binary_daughters.size());
@@ -248,6 +249,7 @@ inline void PackedEdge<Types>::daughters_differentiation()
       }
     }
     lb.binary_daughters = std::move(b);
+    lb.annotations = std::move(this->annotations);
   }
 }
 
