@@ -123,6 +123,7 @@ public:
   AnnotationInfo& get_annotations();
   const AnnotationInfo& get_annotations() const;
   inline bool valid_prob_at(unsigned i) const;
+  inline void reset_valid_probabilities();
 
   inline bool is_closed() const { return not open; }
   inline bool is_opened() const { return open; }
@@ -474,6 +475,11 @@ public:
     if (lb.is_opened()) lb.get_annotations().reset_probabilities();
     if (u.is_opened()) u.get_annotations().reset_probabilities();
   }
+  inline void reset_valid_probabilities() {
+    AnnotatedEdge<Types>::reset_valid_probabilities();
+    if (lb.is_opened()) lb.reset_valid_probabilities();
+    if (u.is_opened()) u.reset_valid_probabilities();
+  }
   inline void resize_annotations(unsigned size) {
     this->get_annotations().reset_probabilities();
     this->get_annotations().resize(size);
@@ -500,22 +506,25 @@ public:
   }
   inline void update_unary_inside_annotations() {
     for(const auto& d: u.get_unary_daughters()) {
+      BLOCKTIMING("UnaryDaughter::update_inside_annotations");
       d.update_inside_annotations(u.annotations);
     }
   }
   inline void update_binary_inside_annotations() {
     for(const auto& d: lb.get_binary_daughters()) {
+      BLOCKTIMING("BinaryDaughter::update_inside_annotations");
       d.update_inside_annotations(lb.annotations);
     }
   }
   inline void update_lexical_inside_annotations() {
     for(const auto& d: lb.get_lexical_daughters()) {
+      BLOCKTIMING("LexicalDaughter::update_inside_annotations");
       d.update_inside_annotations(lb.annotations);
     }
   }
   inline void add_unary_insides_to_merged() {
     for(unsigned i=0; i<this->annotations.get_size(); ++i)
-      if (u.annotations.inside_probabilities.array[i]!=LorgConstants::NullProba)
+      if (this->annotations.inside_probabilities.array[i]!=LorgConstants::NullProba)
         this->annotations.inside_probabilities.array[i] += u.annotations.inside_probabilities.array[i];
   }
 

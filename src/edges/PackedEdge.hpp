@@ -155,6 +155,13 @@ bool AnnotatedEdge<Types>::valid_prob_at(unsigned i) const
   return get_annotations().valid_prob_at(i, LorgConstants::NullProba);
 }
 
+template<class Types>
+inline
+void AnnotatedEdge<Types>::reset_valid_probabilities()
+{
+  for (auto & prob: get_annotations(). inside_probabilities.array) if (prob!=LorgConstants::NullProba) prob=0;
+  for (auto & prob: get_annotations().outside_probabilities.array) if (prob!=LorgConstants::NullProba) prob=0;
+}
 
 
 //////////
@@ -555,32 +562,35 @@ void BasePackedEdge<Types>::to_ptbpstree(PtbPsTree& tree,
 template<class OPEP>
 void AnnotatedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(Annot: " << this<< ": (in,out)(0)=( " << get_annotations().get_inside(0) << " , " << get_annotations().get_outside(0) << " )";
+  out << "(Annot: " << this<< ": (in,out)=( ";
+  for (size_t i=0; i<get_annotations().get_size();i++) out << get_annotations().get_inside(i) << " ";
+  out << " , " ;
+  for (size_t i=0; i<get_annotations().get_size();i++) out << get_annotations().get_outside(i) << " "; out << " )";
 }
 
 template<class OPEP>
 void LBPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << (AnnotatedEdge<OPEP>&)(*this) << " best:" << BasePackedEdge<OPEP>::best;
+  out << (AnnotatedEdge<OPEP>&)(*this) /*<< " best:" << BasePackedEdge<OPEP>::best;
   for (const auto & dtr: lexical_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   for (const auto & dtr: binary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
-  out << ") ";
+  out << ") "*/;
 }
 
 template<class OPEP>
 void UPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << (AnnotatedEdge<OPEP>&)(*this) << " best:" << BasePackedEdge<OPEP>::best;
+  out << (AnnotatedEdge<OPEP>&)(*this) /*<< " best:" << BasePackedEdge<OPEP>::best;
   for (const auto & dtr: unary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
-  out << ") ";
+  out << ") "*/;
 }
 
 template<class OPEP>
 void PackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << "(edge: " << this << " " << (AnnotatedEdge<OPEP>&)(*this) << " : unaries = " ;
+  out << "(edge: " << this << " " << (AnnotatedEdge<OPEP>&)(*this) << std::endl << "  unaries = " ;
   if (u.is_closed()) out << "none" ; else out << u ;
-  out << " -- binaries = ";
+  out << std::endl << "  binaries = ";
   if (lb.is_closed()) out << "none" ; else out << lb ;
   out << ")";
 }

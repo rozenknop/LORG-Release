@@ -89,6 +89,8 @@ void ParserCKYAll_Impl<Types>::parse(int start_symbol) const
   while (stubbornness >=0 &&
          beam_threshold > 0 &&
          !chart->get_root().exists_uedge(start_symbol));
+  
+//   this->chart->opencells_apply(function<void(Cell&)>([](Cell&cell){cell.apply_on_edges(&Edge::reset_valid_probabilities);}));
 }
 
 template <class Types>
@@ -156,7 +158,7 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
                                               Cell& right_cell,
                                               Cell& result_cell) const
 {
-  BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates (binaires)");
+//   BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates (binaires)");
 //   std::clog << "ParserCKYAll_Impl<Types>::get_candidates("<<&left_cell<<","<<&right_cell<<","<<&result_cell<<")"<<std::endl;
   //   {
     //               BLOCKTIMING("get_candidates counting");
@@ -191,7 +193,7 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
             
             //iterating through all the rules P -> L R, indexed by P, R and L fixed
             for(const auto & rule: same_rhs) {
-              BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates result_cell.process_candidate(*left_edge,*right_edge, rule, LR);");
+//               BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates result_cell.process_candidate(*left_edge,*right_edge, rule, LR);");
 //                   std::clog << "calling result_cell.process_candidate(" << left_edge << " , " << right_edge << " , " << rule << " , " << LR << ")" << std::endl;
               result_cell.process_candidate(left_edge,right_edge, rule, LR);
             }
@@ -289,12 +291,14 @@ void ParserCKYAll_Impl<Types>::edge_daughters_differentiation()
 template <class Types>
 void ParserCKYAll_Impl<Types>::compute_outside_probabilities()
 {
+  BLOCKTIMING("ParserCKYAll_Impl<Types>::compute_outside_probabilities");
   this->chart->opencells_apply_top_down( & Cell::compute_outside_probabilities) ;
 }
 
 template <class Types>
 void ParserCKYAll_Impl<Types>::compute_inside_probabilities()
 {
+  BLOCKTIMING("ParserCKYAll_Impl<Types>::compute_inside_probabilities");
   this->chart->opencells_apply_bottom_up( & Cell::compute_inside_probabilities );
 }
 
@@ -467,7 +471,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // FIX: This test messes with product grammar parsing
     // TODO: Do this test only with the first grammar
 //     if(i != 0) {// inside_probs already computed when bulding the chart
-         std::clog << "ParserCKYAll_Impl<Types>::beam_c2f before inside, sentence probability = " << std::log(get_sentence_probability()) << std::endl;
+//          std::clog << "ParserCKYAll_Impl<Types>::beam_c2f before inside, sentence probability = " << std::log(get_sentence_probability()) << std::endl;
          compute_merged_inside_probabilities();
 //     }
 
@@ -478,14 +482,14 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // else if(!chart->get_root().exists_edge(top_idx))
     //   std::cout << "top is not in root cell" << std::endl;
 
-    if(chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx)) {
-      std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
-      break;
-    }
+//     if(chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx)) {
+//       std::cerr << "grammar " << i << " spoiled the fun :(" << std::endl;
+//       break;
+//     }
     //    std::cout << "after inside" << std::endl;
     //    std::cout << "before beam" << std::endl;
     double sp = std::log(get_sentence_probability());
-    std::clog << "ParserCKYAll_Impl<Types>::beam_c2f after inside, sentence probability: " << sp << std::endl;
+//     std::clog << "ParserCKYAll_Impl<Types>::beam_c2f after inside, sentence probability: " << sp << std::endl;
 
     // huang beam seems to affect only the first pass
     //bool huang = i == 0;
@@ -495,8 +499,8 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     //        std::cout << "after beam" << std::endl;
 
     // PCKYAllCell& root = chart->get_root();
-    if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx))
-      std::cout << "no axiom at root after beam" << std::endl;
+//     if (chart->get_root().is_closed() || !chart->get_root().exists_uedge(top_idx))
+//       std::cout << "no axiom at root after beam" << std::endl;
 
 
     //    std::cout << "before change" << std::endl;
@@ -505,7 +509,7 @@ void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_gr
     // instead annot_descendants is changed in ParserCKYAllMaxVarMultiple::extract_solution
     // which is a bit .. hackish
     change_rules_resize(i, current_grammars);
-    //     std::clog << "after change_rules_resize :" << *chart << std::endl;
+    //         std::clog << "after change_rules_resize :" << *chart << std::endl;
   }
 }
 

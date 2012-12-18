@@ -85,7 +85,7 @@ int TwoStageLorgParseApp::run()
             if(parser->is_chart_valid(start_symbol))
             {
               {
-                BLOCKTIMING("edge_daughters_differentiation");
+//                 BLOCKTIMING("edge_daughters_differentiation");
                 parser->edge_daughters_differentiation();
               }
               {

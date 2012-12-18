@@ -143,16 +143,16 @@ template<class Types>
 void PCKYAllCell<Types>::compute_merged_inside_probabilities()
 {
   #warning usefull ?
-  // warning comment : one of the two following lines is useless. Maybe both.
+  // warning comment : one of the three following lines is useless. Maybe both.
   // this is linked with the c_r_s function in PCKYAllCell<Types>::change_rules_resize
   // which is called by ParserCKYAll_Impl<Types>::change_rules_resize
   // which is called at the end of ParserCKYAll_Impl<Types>::beam_c2f
   // The c_r_s function extends the annotation probabilities vectors, and nullify them,
   // excepted for LorgConstants::NullProba, that are inherited from the previous pass in beam_c2f
 
-  //   apply_on_lbedges(toFunc(&Edge::reset_probabilities),
-  apply_on_edges(toFunc(&Edge::reset_probabilities)), apply_on_lbedges( // useful 1 ?
-  //   apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}), // usefull 2 ?
+  //   apply_on_lbedges(toFunc(&Edge::reset_probabilities), // useful 0 ?
+  //   apply_on_edges(toFunc(&Edge::reset_probabilities)), apply_on_lbedges( // useful 1 ?
+    apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}), // usefull 2 ?
 
                    & Edge::update_merged_inside_annotations_from_lex  ,
                    & Edge::update_merged_inside_annotations_from_bin);
@@ -175,7 +175,8 @@ template<class Types>
 void PCKYAllCell<Types>::compute_inside_probabilities()
 {
   apply_on_edges(toFunc(&Edge::reset_probabilities)); // useful 1 ?
-  apply_on_lbedges(& Edge::update_lexical_inside_annotations,
+  apply_on_lbedges(std::function<void(LBEdge&)>([](LBEdge& edge){if (edge.get_lex()) edge.get_annotations().reset_probabilities();}),
+                   /*apply_on_lbedges(*/& Edge::update_lexical_inside_annotations,
                    & Edge:: update_binary_inside_annotations);
   apply_on_uedges (& Edge::  update_unary_inside_annotations);
 }
@@ -205,10 +206,10 @@ void PCKYAllCell<Types>::clean()
       
       if (edge.uedge().no_daughters())
       {
-        BLOCKTIMING("PCKYAllCell<Types>::clean - edge.close_u()");
+//         BLOCKTIMING("PCKYAllCell<Types>::clean - edge.close_u()");
         edge.close_u();
         if (edge.is_closed()) {
-          BLOCKTIMING("PCKYAllCell<Types>::clean - edge.close_u() caused edge.is_closed()");
+//           BLOCKTIMING("PCKYAllCell<Types>::clean - edge.close_u() caused edge.is_closed()");
         }
       }
     }
@@ -261,7 +262,7 @@ void PCKYAllCell<Types>::beam(const std::vector<double>& priors, double threshol
   for(unsigned i = 0; i < max_size; ++i) {
     if(edges[i].is_opened()) {
       if(sums[i] < beam) {
-        BLOCKTIMING("PCKYAllCell<Types>::beam(priors) - edges[i].close");
+//         BLOCKTIMING("PCKYAllCell<Types>::beam(priors) - edges[i].close");
         edges[i].close();
       }
     }
@@ -276,7 +277,7 @@ void PCKYAllCell<Types>::beam(const std::vector<double>& priors, double threshol
 template<class EdgeType>
 static void absolute_beam(EdgeType & edge, double beam)
 {
-  BLOCKTIMING("absolute_beam");
+//   BLOCKTIMING("absolute_beam");
    bool all_invalid = true;
     AnnotationInfo& ai = edge.get_annotations();
 
@@ -290,11 +291,11 @@ static void absolute_beam(EdgeType & edge, double beam)
         //          double prob = std::log(ai.inside_probabilities.array[annot] * ai.outside_probabilities.array[annot]);
 
         if (prob > beam) {
-          BLOCKTIMING("absolute_beam --> remain");
+//           BLOCKTIMING("absolute_beam --> remain");
           all_invalid = false;
         }
         else {
-          BLOCKTIMING("absolute_beam --> NullProba");
+//           BLOCKTIMING("absolute_beam --> NullProba");
           ai.inside_probabilities.array[annot] = ai.outside_probabilities.array[annot] = LorgConstants::NullProba;
         }
       }
@@ -302,7 +303,7 @@ static void absolute_beam(EdgeType & edge, double beam)
 
     //remove edge if all annotations are NullProba
     if(all_invalid) {
-      BLOCKTIMING("absolute_beam --> edge.close");
+//       BLOCKTIMING("absolute_beam --> edge.close");
      edge.close();
     }
 }

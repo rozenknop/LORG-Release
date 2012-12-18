@@ -44,17 +44,17 @@ void ParserCKYAllMaxRuleKB::extend_all_derivations()
 void ParserCKYAllMaxRuleKB::extract_solution()
 {
   {
-    //     BLOCKTIMING("compute_inside_outside_probabilities");
+    BLOCKTIMING("ParserCKYAllMaxRuleKB::extract_solution compute_inside_outside_probabilities");
     compute_inside_outside_probabilities();
   }
   {
-//     BLOCKTIMING("initialize_candidates");
+    BLOCKTIMING("ParserCKYAllMaxRuleKB::extract_solution initialize_candidates");
     initialise_candidates();
   }
   //  std::cout << "after init cand" << std::endl;
 
   {
-//     BLOCKTIMING("extend_all_derivations");
+    BLOCKTIMING("ParserCKYAllMaxRuleKB::extract_solution extend_all_derivations");
     extend_all_derivations();
   }
 }
