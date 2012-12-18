@@ -44,7 +44,8 @@ void ParserCKYAllMinDivKB::extract_solution()
 //   update_q();
   
   /* min divergence computation here ! : fixed point iterations */
-  while (false) {
+  for (int i=0; i<2; ++i) {
+//   while (false) {
     compute_inside_outside_q_probabilities();
     update_q();
   }

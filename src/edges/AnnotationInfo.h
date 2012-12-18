@@ -56,7 +56,7 @@ struct AnnotationInfo
 {
   scaled_array inside_probabilities;
   scaled_array outside_probabilities;
-
+  AnnotationInfo(){}
   AnnotationInfo(unsigned i, double d);
 
   AnnotationInfo(const AnnotationInfo& other);

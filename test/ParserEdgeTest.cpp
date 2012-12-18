@@ -9,6 +9,7 @@
 #include "edges/PackedEdgeProbability.h"
 #include "parsers/maxrule/MaxRuleProbabilityKB.h"
 #include "parsers/maxrule/MaxRuleProbabilityMultiple.h"
+#include "parsers/maxrule/MaxRuleProbabilityMultiple.hpp"
 #include "utils/PtbPsTree.h"
 
 #include "rules/BRuleC2f.h"
@@ -21,15 +22,22 @@
 
 #include "Word.h"
 
+struct emptybest {};
+
 //using namespace std;
 struct StringType {
   typedef typename std::string Cell;
+  typedef emptybest Best;
   typedef emptystruct EdgeProbability;
   typedef emptystruct EdgeDaughterProbability;
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge<StringType> Edge;
+  typedef AnnotatedEdge<StringType> AEdge;
+  typedef BasePackedEdge<StringType> PEdge;
+  typedef LBPackedEdge<StringType> LBEdge;
+  typedef UPackedEdge<StringType> UEdge;
   typedef BinaryPackedEdgeDaughters<StringType> BinaryDaughter;
   typedef UnaryPackedEdgeDaughters<StringType> UnaryDaughter;
   typedef LexicalPackedEdgeDaughters<StringType> LexicalDaughter;
@@ -37,12 +45,17 @@ struct StringType {
 
 struct StringMultipleType {
   typedef typename std::string Cell;
+  typedef emptybest Best;
   typedef MaxRuleProbabilityMultiple EdgeProbability;
   typedef emptystruct EdgeDaughterProbability;
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
   typedef PackedEdge<StringMultipleType> Edge;
+  typedef AnnotatedEdge<StringType> AEdge;
+  typedef BasePackedEdge<StringType> PEdge;
+  typedef LBPackedEdge<StringType> LBEdge;
+  typedef UPackedEdge<StringType> UEdge;
   typedef BinaryPackedEdgeDaughters<StringMultipleType> BinaryDaughter;
   typedef UnaryPackedEdgeDaughters<StringMultipleType> UnaryDaughter;
   typedef LexicalPackedEdgeDaughters<StringMultipleType> LexicalDaughter;
@@ -152,7 +165,7 @@ BOOST_AUTO_TEST_CASE(BinaryEdgeDaughtersTest){
 
     BOOST_CHECK_EQUAL(uped->is_binary(), false);
     BOOST_CHECK_EQUAL(uped->is_lexical(), false);
-    BOOST_CHECK_EQUAL(& uped->left_daughter(), left);
+    BOOST_CHECK_EQUAL(& uped->daughter(), left);
 
     SymbolTable& st_word  = SymbolTable::instance_word();
     st_word.insert("cat");
@@ -301,17 +314,17 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
     ped2->add_daughters(*left, nullptr);
     ped3->add_daughters(nullptr, nullptr);
 
-    BOOST_CHECK_EQUAL(ped->get_binary_daughters().size(), 1U);
+    BOOST_CHECK_EQUAL(ped->lbedge().get_binary_daughters().size(), 1U);
 
     // What ??
     //BOOST_CHECK_THROW(ped->get_binary_daughter(1), std::out_of_range);
-    BOOST_CHECK_EQUAL(ped->get_unary_daughters().size(), 0U);
+    BOOST_CHECK_EQUAL(ped->uedge().get_unary_daughters().size(), 0U);
 
-    BOOST_CHECK_EQUAL(ped2->get_unary_daughters().size(), 1U);
+    BOOST_CHECK_EQUAL(ped2->uedge().get_unary_daughters().size(), 1U);
     // What ??
     //    BOOST_CHECK_THROW(ped2->get_unary_daughter(1), std::out_of_range);
 
-    BOOST_CHECK_EQUAL(ped3->get_lexical_daughters().size(), 1U);
+    BOOST_CHECK_EQUAL(ped3->lbedge().get_lexical_daughters().size(), 1U);
     // What ?
     //    BOOST_CHECK_THROW(ped3->get_lexical_daughter(1), std::out_of_range);
 
@@ -320,7 +333,7 @@ BOOST_AUTO_TEST_CASE(PackedEdgeAccessorsTest){
 
     //Backup is only in use for MaxRuleProbabilityMultiple
     typename StringMultipleType::Edge *ped_maxrulem = (StringMultipleType::Edge *) new char[sizeof(StringMultipleType::Edge)];
-    std::vector<AnnotationInfo>& backup = ped_maxrulem->get_prob_model().get_annotations_backup();
+    std::vector<AnnotationInfo>& backup = ped_maxrulem->lbedge().get_prob_model().get_annotations_backup();
     BOOST_CHECK_EQUAL(backup.size(), 0U);
 }
 
