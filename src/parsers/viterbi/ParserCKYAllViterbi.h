@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLVITERBI_H_
 #define _PARSERCKYALLVITERBI_H_
 
-#include "ParserCKYAll.h"
-#include "edges/ViterbiProbability.h"
+#include "parsers/ParserCKYAll.h"
+#include "ViterbiProbability.h"
 #include "emptystruct.h"
 
 

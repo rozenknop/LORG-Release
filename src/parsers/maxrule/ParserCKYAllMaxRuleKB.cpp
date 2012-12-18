@@ -2,9 +2,9 @@
 #ifndef _PARSERCKYALLMAXVARKB_CPP_
 #define _PARSERCKYALLMAXVARKB_CPP_
 
-#include "ParserCKYAllMaxVarKB.h"
-#include "ParserCKYAll.hpp"
-#include "edges/MaxRuleProbabilityKB.hpp"
+#include "ParserCKYAllMaxRuleKB.h"
+#include "parsers/ParserCKYAll.hpp"
+#include "MaxRuleProbabilityKB.hpp"
 
 #include "utils/tick_count.h"
 

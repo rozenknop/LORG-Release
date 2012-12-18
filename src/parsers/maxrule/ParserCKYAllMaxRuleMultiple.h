@@ -2,8 +2,8 @@
 #ifndef _PARSERCKYALLMAXVARMULTIPLE_H_
 #define _PARSERCKYALLMAXVARMULTIPLE_H_
 
-#include "ParserCKYAllMaxVar.h"
-#include "edges/MaxRuleProbabilityMultiple.h"
+#include "ParserCKYAllMaxRule.h"
+#include "MaxRuleProbabilityMultiple.h"
 
 
 class ParserCKYAllMaxRuleMultiple : public ParserCKYAllMaxRule<MaxRuleMultipleTypes>

@@ -2,8 +2,8 @@
 #ifndef _MAXRULEPROBABILITYKB_H_
 #define _MAXRULEPROBABILITYKB_H_
 
-#include "PackedEdgeProbability.h"
-#include "PackedEdge.h"
+#include "edges/PackedEdgeProbability.h"
+#include "edges/PackedEdge.h"
 #include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
@@ -16,7 +16,7 @@ struct MaxRuleKBTypes {
   typedef emptystruct EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
-  
+
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
@@ -49,7 +49,7 @@ public:
   typedef typename MaxRuleKBTypes::BinaryDaughter BinaryDaughter;
   typedef typename MaxRuleKBTypes::LexicalDaughter LexicalDaughter;
   typedef MaxRuleTreeLogProbaComputer<MaxRuleProbabilityKB> QInsideComputer;
-  
+
 private:
 
   heap_type candidates;
@@ -88,7 +88,7 @@ public:
   inline bool has_solution(unsigned i) const {return i <derivations.size();}
 
 private:
-  
+
   struct test_helper
   {
     const packed_edge_probability_with_index& pep;
@@ -100,7 +100,7 @@ private:
       ;
     }
   };
-  
+
   public:
     inline std::ostream& operator>>(std::ostream& out) const;
 };

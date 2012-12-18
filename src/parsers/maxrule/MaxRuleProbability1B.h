@@ -3,9 +3,8 @@
 #define _MAXRULEPROBABILITY1B_H_
 #include <numeric>
 
-
-#include "PackedEdgeProbability.h"
-#include "PackedEdge.h"
+#include "edges/PackedEdgeProbability.h"
+#include "edges/PackedEdge.h"
 #include "MaxRuleTreeLogProbaComputer.h"
 #include "emptystruct.h"
 #include "ChartCKY.h"
@@ -17,7 +16,7 @@ struct MaxRule1BTypes {
   typedef emptystruct EdgeProbability ;
   typedef emptystruct EdgeDaughterProbability ;
   typedef Word ChartWord ;
-  
+
   typedef BRuleC2f BRule;
   typedef URuleC2f URule;
   typedef LexicalRuleC2f LRule;
@@ -74,6 +73,7 @@ inline std::ostream& operator<<(std::ostream& out, const MaxRuleProbability1B & 
 {
   return out << "((MaxRule1BProb: " << &prob << ")";
 }
+
 
 
 

@@ -2,9 +2,9 @@
 #ifndef _PARSERCKYALLMAXVARMULTIPLE_CPP_
 #define _PARSERCKYALLMAXVARMULTIPLE_CPP_
 
-#include "ParserCKYAll.hpp"
-#include "ParserCKYAllMaxVarMultiple.h"
-#include "edges/MaxRuleProbabilityMultiple.hpp"
+#include "parsers/ParserCKYAll.hpp"
+#include "ParserCKYAllMaxRuleMultiple.h"
+#include "MaxRuleProbabilityMultiple.hpp"
 
 
 ParserCKYAllMaxRuleMultiple::ParserCKYAllMaxRuleMultiple(std::vector<AGrammar*>& cgs,

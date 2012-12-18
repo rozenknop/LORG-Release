@@ -3,9 +3,9 @@
 #define _PARSERCKYALLMAXVARONEBEST_CPP_
 
 #include "edges/PackedEdge.hpp"
-#include "ParserCKYAllMaxVar1B.h"
-#include "ParserCKYAll.hpp"
-#include "edges/MaxRuleProbability1B.hpp"
+#include "ParserCKYAllMaxRule1B.h"
+#include "parsers/ParserCKYAll.hpp"
+#include "MaxRuleProbability1B.hpp"
 
 
 

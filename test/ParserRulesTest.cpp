@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(ProductionTest){
 
     //Unary production
     rhs.pop_back();
-    BOOST_CHECK_EQUAL(rhs.size(), 1);
+    BOOST_CHECK_EQUAL(rhs.size(), 1U);
 
     Production uprod(0, rhs, false);
     BOOST_CHECK_EQUAL(uprod.get_lhs(), 0);
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(CompactUnaryRuleTest){
     after = u.get_probability();
 
     BOOST_CHECK_NE(before[0].size(), after[0].size());
-    BOOST_CHECK_EQUAL(after[0].size(), 0); //The vector has been compacted
+    BOOST_CHECK_EQUAL(after[0].size(), 0U); //The vector has been compacted
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(BinaryRuleCompactTest){
     after = b.get_probability();
 
     BOOST_CHECK_NE(before[0][0].size(), after[0][0].size());
-    BOOST_CHECK_EQUAL(after[0][0].size(), 0); //The vector has been compacted
+    BOOST_CHECK_EQUAL(after[0][0].size(), 0U); //The vector has been compacted
 }
 
 BOOST_AUTO_TEST_SUITE_END()
