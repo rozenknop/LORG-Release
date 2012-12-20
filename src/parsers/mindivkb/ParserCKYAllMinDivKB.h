@@ -86,37 +86,39 @@ public:
 private:
   friend class ParserCKYAllMinDivKB;
 
-  double inside_prob;
-  double outside_prob;
+  double inside_q;
+  double outside_q;
+  double inside_p;
+  double outside_p;
 
   static double log_normalisation_factor;
   static double normalisation_factor;
 
-public:
 
-  MinDivProbabilityKB() :  inside_prob(0), outside_prob(0) {}
+  MinDivProbabilityKB();
+public:
   ~MinDivProbabilityKB() {}
 
   inline static void   set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
   inline static double get_log_normalisation_factor() {return log_normalisation_factor;};
   inline static void   set_normalisation_factor(double lnf) {normalisation_factor = lnf;};
   inline static double get_normalisation_factor() {return normalisation_factor;};
-  inline double & get_inside_prob() { return inside_prob; }
-  inline const double & get_inside_prob() const { return inside_prob; }
-  inline double & get_outside_prob() { return outside_prob; }
-  inline const double & get_outside_prob() const { return outside_prob; }
-  void set_outside_prob(double prob) {outside_prob = prob;}
+  inline double & get_inside_q() { return inside_q; }
+  inline const double & get_inside_q() const { return inside_q; }
+  inline double & get_outside_q() { return outside_q; }
+  inline const double & get_outside_q() const { return outside_q; }
+  void set_outside_q(double prob) {outside_q = prob;}
   
 
   inline void reinit_inside_outside(double val);
 
-  inline void update_inside_lexical(const LexicalDaughter& dtr);
-  inline void update_inside_unary(const UnaryDaughter& dtr);
-  inline void update_inside_binary(const BinaryDaughter& dtr);
+  inline void update_inside_q_lexical(const LexicalDaughter& dtr);
+  inline void update_inside_q_unary(const UnaryDaughter& dtr);
+  inline void update_inside_q_binary(const BinaryDaughter& dtr);
   
-  inline void update_outside_lexical(const LexicalDaughter& dtr);
-  inline void update_outside_unary(const UnaryDaughter& dtr);
-  inline void update_outside_binary(const BinaryDaughter& dtr);
+  inline void update_outside_q_lexical(const LexicalDaughter& dtr);
+  inline void update_outside_q_unary(const UnaryDaughter& dtr);
+  inline void update_outside_q_binary(const BinaryDaughter& dtr);
   
   inline void update_q_lexical(LexicalDaughter& dtr);
   inline void update_q_unary(UnaryDaughter& dtr);

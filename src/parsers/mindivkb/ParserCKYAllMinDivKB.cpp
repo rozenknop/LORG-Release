@@ -265,23 +265,23 @@ inline void ParserCKYAllMinDivKB::compute_outside_probabilities()
 /****************************************************/
 /*     computation of q insides                     */
 /****************************************************/
-inline void MinDivProbabilityKB::update_inside_lexical(const LexicalDaughter& dtr)
+inline void MinDivProbabilityKB::update_inside_q_lexical(const LexicalDaughter& dtr)
 {
-  inside_prob += dtr.q ;
+  inside_q += dtr.q ;
 }
-inline void MinDivProbabilityKB::update_inside_binary(const BinaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_inside_q_binary(const BinaryDaughter& dtr)
 {
-  inside_prob += (
+  inside_q += (
     dtr.q 
-    * dtr.left_pdaughter().get_prob_model().inside_prob
-    * dtr.right_pdaughter().get_prob_model().inside_prob
+    * dtr.left_pdaughter().get_prob_model().inside_q
+    * dtr.right_pdaughter().get_prob_model().inside_q
   );
 }
-inline void MinDivProbabilityKB::update_inside_unary(const UnaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_inside_q_unary(const UnaryDaughter& dtr)
 {
-  inside_prob += (
+  inside_q += (
     dtr.q
-    * dtr.lbdaughter().get_prob_model().inside_prob
+    * dtr.lbdaughter().get_prob_model().inside_q
     );
 }
 
@@ -289,10 +289,10 @@ inline void ParserCKYAllMinDivKB::compute_inside_q_probabilities()
 {
   this->chart->opencells_apply_bottom_up([&](Cell & cell)
   {
-    cell.apply_on_lbedges(& MinDivProbabilityKB::update_inside_lexical,
-                          & MinDivProbabilityKB::update_inside_binary);
+    cell.apply_on_lbedges(& MinDivProbabilityKB::update_inside_q_lexical,
+                          & MinDivProbabilityKB::update_inside_q_binary);
     
-    cell.apply_on_uedges(& MinDivProbabilityKB::update_inside_unary);
+    cell.apply_on_uedges(& MinDivProbabilityKB::update_inside_q_unary);
   }
   );
 }
@@ -303,30 +303,30 @@ inline void ParserCKYAllMinDivKB::compute_inside_q_probabilities()
 
 #include "utils/threads.h"
 
-inline void MinDivProbabilityKB::update_outside_binary(const BinaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_outside_q_binary(const BinaryDaughter& dtr)
 {
   #ifdef USE_THREADS
-  tbb::atomic<double> * left  = (tbb::atomic<double> *) &dtr. left_pdaughter().get_prob_model().outside_prob;
-  tbb::atomic<double> * right = (tbb::atomic<double> *) &dtr.right_pdaughter().get_prob_model().outside_prob;
+  tbb::atomic<double> * left  = (tbb::atomic<double> *) &dtr. left_pdaughter().get_prob_model().outside_q;
+  tbb::atomic<double> * right = (tbb::atomic<double> *) &dtr.right_pdaughter().get_prob_model().outside_q;
   #else
   double * left  = &dtr. left_pdaughter().get_prob_model().outside_prob;
   double * right = &dtr.right_pdaughter().get_prob_model().outside_prob;
   #endif
   *left += (
-    outside_prob
+    outside_q
     * dtr.q 
-    * dtr.right_pdaughter().get_prob_model().inside_prob
+    * dtr.right_pdaughter().get_prob_model().inside_q
   );
   *right += (
-    outside_prob
+    outside_q
     * dtr.q 
-    * dtr.left_pdaughter().get_prob_model().inside_prob
+    * dtr.left_pdaughter().get_prob_model().inside_q
   );
 }
-inline void MinDivProbabilityKB::update_outside_unary(const UnaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_outside_q_unary(const UnaryDaughter& dtr)
 {
-  dtr. lbdaughter().get_prob_model().outside_prob += (
-    outside_prob
+  dtr. lbdaughter().get_prob_model().outside_q += (
+    outside_q
     * dtr.q
   );
 }
@@ -336,8 +336,8 @@ inline void ParserCKYAllMinDivKB::compute_outside_q_probabilities()
 {
   this->chart->opencells_apply_top_down([&](Cell & cell)
   {
-    cell.apply_on_uedges(& MinDivProbabilityKB::update_outside_unary);
-    cell.apply_on_lbedges(& MinDivProbabilityKB::update_outside_binary);
+    cell.apply_on_uedges(& MinDivProbabilityKB::update_outside_q_unary);
+    cell.apply_on_lbedges(& MinDivProbabilityKB::update_outside_q_binary);
   }
   );
 }
@@ -348,7 +348,7 @@ inline void ParserCKYAllMinDivKB::compute_outside_q_probabilities()
 /*********************************************************************/
 inline void MinDivProbabilityKB::reinit_inside_outside(double val)
 {
-  inside_prob = outside_prob = val;
+  inside_q = outside_q = inside_p = outside_p = val;
 }
 
 inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
@@ -359,7 +359,7 @@ inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
     cell.apply_on_edges(reinit_0);
   });
   static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
-  this->chart->get_root().get_edge(start_symbol).uedge().get_prob_model().set_outside_prob(1.0);
+  this->chart->get_root().get_edge(start_symbol).uedge().get_prob_model().set_outside_q(1.0);
   
   compute_inside_q_probabilities();
   
@@ -372,32 +372,32 @@ inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
 /***********************************************************************/
 inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 {
-  if (outside_prob != LorgConstants::NullProba)
+  if (outside_q != LorgConstants::NullProba)
 //     dtr.q = dtr.mp / outside_prob;
 //     dtr.q += (dtr.mp / outside_prob - dtr.q) * 0.01;
-     dtr.q += (dtr.mp / outside_prob - dtr.q) * 0.01;
+     dtr.q += (dtr.mp / outside_q - dtr.q) * 0.01;
   else
     dtr.q = 0 ;
 }
 
 inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
 {
-  if (outside_prob != LorgConstants::NullProba)
+  if (outside_q != LorgConstants::NullProba)
 //     dtr.q = dtr.mp / (
 //       outside_prob
 //       * dtr.lbdaughter().get_prob_model().inside_prob
 //     );
-    dtr.q += (dtr.mp / (outside_prob * dtr.lbdaughter().get_prob_model().inside_prob) - dtr.q) * 0.01;
+    dtr.q += (dtr.mp / (outside_q * dtr.lbdaughter().get_prob_model().inside_q) - dtr.q) * 0.01;
 }
 inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
 {
-  if (outside_prob != LorgConstants::NullProba)
+  if (outside_q != LorgConstants::NullProba)
 //     dtr.q = dtr.mp / (
 //       outside_prob
 //       * dtr. left_pdaughter().get_prob_model().inside_prob
 //       * dtr.right_pdaughter().get_prob_model().inside_prob
 //     );
-    dtr.q += (dtr.mp / (outside_prob * dtr. left_pdaughter().get_prob_model().inside_prob * dtr.right_pdaughter().get_prob_model().inside_prob) - dtr.q) * 0.01;
+    dtr.q += (dtr.mp / (outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q) - dtr.q) * 0.01;
 }
 
 
@@ -493,7 +493,7 @@ inline void ParserCKYAllMinDivKB::initialise_candidates()
 template<>
 std::ostream & operator<<(std::ostream & out, const BasePackedEdge<MinDivKBTypes> & e)
 {
-  out << "  (in,out)=(" << e.get_prob_model().get_inside_prob() << ", " << e.get_prob_model().get_outside_prob() << ")";
+  out << "  (in,out)=(" << e.get_prob_model().get_inside_q() << ", " << e.get_prob_model().get_outside_q() << ")";
   return out;
 }
 
