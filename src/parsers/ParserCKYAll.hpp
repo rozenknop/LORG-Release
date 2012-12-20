@@ -456,7 +456,7 @@ template <class Types>
 void ParserCKYAll_Impl<Types>::beam_c2f(const std::vector<AGrammar*>& current_grammars,
                                         const annot_descendants_type& /*current_annot_descendants*/)
 {
-  static int top_idx = SymbolTable::instance_nt().get_label_id(LorgConstants::tree_root_name);
+//   static int top_idx = SymbolTable::instance_nt().get_label_id(LorgConstants::tree_root_name);
 
   //  std::cout << "beam_c2f" << std::endl;
 

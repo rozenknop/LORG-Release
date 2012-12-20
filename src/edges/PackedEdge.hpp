@@ -571,9 +571,15 @@ void AnnotatedEdge<OPEP>::dump(std::ostream& out) const
 }
 
 template<class OPEP>
+void BasePackedEdge<OPEP>::dump(std::ostream & out) const
+{
+  out << (AnnotatedEdge<OPEP>&)*this ;
+}
+
+template<class OPEP>
 void LBPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << (AnnotatedEdge<OPEP>&)(*this) /*<< " best:" << BasePackedEdge<OPEP>::best;
+  out << (BasePackedEdge<OPEP>&)(*this) /*<< " best:" << BasePackedEdge<OPEP>::best;
   for (const auto & dtr: lexical_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   for (const auto & dtr: binary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   out << ") "*/;
@@ -582,7 +588,7 @@ void LBPackedEdge<OPEP>::dump(std::ostream& out) const
 template<class OPEP>
 void UPackedEdge<OPEP>::dump(std::ostream& out) const
 {
-  out << (AnnotatedEdge<OPEP>&)(*this) /*<< " best:" << BasePackedEdge<OPEP>::best;
+  out << (BasePackedEdge<OPEP>&)(*this) /*<< " best:" << BasePackedEdge<OPEP>::best;
   for (const auto & dtr: unary_daughters) {out<<"(dtr: " << *dtr.get_rule() << ") ";}
   out << ") "*/;
 }

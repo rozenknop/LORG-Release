@@ -178,7 +178,8 @@ private:
 };
 
 
-
+template<>
+std::ostream & operator<<(std::ostream &, const BasePackedEdge<MinDivKBTypes> &);
 
 
 

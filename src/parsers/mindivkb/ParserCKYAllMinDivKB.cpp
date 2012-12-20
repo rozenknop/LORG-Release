@@ -44,11 +44,14 @@ void ParserCKYAllMinDivKB::extract_solution()
 //   update_q();
   
   /* min divergence computation here ! : fixed point iterations */
-  for (int i=0; i<2; ++i) {
-//   while (false) {
-    compute_inside_outside_q_probabilities();
-    update_q();
+      std::clog << *chart << std::endl;
+  for (int i=0; i<100; ++i) {
+    //   while (false) {
+      compute_inside_outside_q_probabilities();
+      update_q();
+      std::clog << *chart << std::endl;
   }
+  std::clog << *chart << std::endl;
   
   // compute the probability of the best subtree starting at each edge daughter
   // and initialize structures "candidates" and "derivations" of the edge
@@ -370,7 +373,9 @@ inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
 inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 {
   if (outside_prob != LorgConstants::NullProba)
-    dtr.q = dtr.mp / outside_prob;
+//     dtr.q = dtr.mp / outside_prob;
+//     dtr.q += (dtr.mp / outside_prob - dtr.q) * 0.01;
+     dtr.q += (dtr.mp / outside_prob - dtr.q) * 0.01;
   else
     dtr.q = 0 ;
 }
@@ -378,19 +383,21 @@ inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
 {
   if (outside_prob != LorgConstants::NullProba)
-    dtr.q = dtr.mp / (
-      outside_prob
-      * dtr.lbdaughter().get_prob_model().inside_prob
-    );
+//     dtr.q = dtr.mp / (
+//       outside_prob
+//       * dtr.lbdaughter().get_prob_model().inside_prob
+//     );
+    dtr.q += (dtr.mp / (outside_prob * dtr.lbdaughter().get_prob_model().inside_prob) - dtr.q) * 0.01;
 }
 inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
 {
   if (outside_prob != LorgConstants::NullProba)
-    dtr.q = dtr.mp / (
-      outside_prob
-      * dtr. left_pdaughter().get_prob_model().inside_prob
-      * dtr.right_pdaughter().get_prob_model().inside_prob
-    );
+//     dtr.q = dtr.mp / (
+//       outside_prob
+//       * dtr. left_pdaughter().get_prob_model().inside_prob
+//       * dtr.right_pdaughter().get_prob_model().inside_prob
+//     );
+    dtr.q += (dtr.mp / (outside_prob * dtr. left_pdaughter().get_prob_model().inside_prob * dtr.right_pdaughter().get_prob_model().inside_prob) - dtr.q) * 0.01;
 }
 
 
@@ -483,8 +490,61 @@ inline void ParserCKYAllMinDivKB::initialise_candidates()
 
 
 
+template<>
+std::ostream & operator<<(std::ostream & out, const BasePackedEdge<MinDivKBTypes> & e)
+{
+  out << "  (in,out)=(" << e.get_prob_model().get_inside_prob() << ", " << e.get_prob_model().get_outside_prob() << ")";
+  return out;
+}
 
+template<>
+std::ostream & operator<<(std::ostream & out, const UPackedEdge<MinDivKBTypes> & e)
+{
+  out << (BasePackedEdge<MinDivKBTypes>&)e;
+  if (not e.get_unary_daughters().empty()) {
+    out << std::endl << "  unary dtrs : ";
+    for (const auto& dtr: e.get_unary_daughters()) {
+      out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_lhs());
+      out << "->" << SymbolTable::instance_nt().translate(dtr.get_rule()->get_rhs0());
+      out << " (" << dtr.q << " ["<< dtr.mp << "])";
+    }
+  }
+  return out;
+}
 
+template<>
+std::ostream & operator<<(std::ostream & out, const LBPackedEdge<MinDivKBTypes> & e)
+{
+  out << (BasePackedEdge<MinDivKBTypes>&)e;
+  if (not e.get_lexical_daughters().empty()) {
+    out << std::endl << "  lexical dtrs : ";
+    for (const auto & dtr: e.get_lexical_daughters()) {
+      out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_lhs());
+      out << "->" << SymbolTable::instance_word().translate(dtr.get_rule()->get_rhs0());
+      out << " (" << dtr.q << " ["<< dtr.mp << "])";
+    }
+  }
+  if (not e.get_binary_daughters().empty()) {
+    out << std::endl << "  binary dtrs : ";
+    for (const auto & dtr: e.get_binary_daughters()) {
+      out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_lhs());
+      out << "->" << SymbolTable::instance_nt().translate(dtr.get_rule()->get_rhs0());
+      out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_rhs1());
+      out << " (" << dtr.q << " ["<< dtr.mp << "])";
+    }
+  }
+  return out;
+}
+
+template<>
+std::ostream & operator<<(std::ostream & out, const PackedEdge<MinDivKBTypes> & e)
+{
+  out << "(edge: " << &e << " " << (AnnotatedEdge<MinDivKBTypes>&)(e);
+  if (e.uedge().is_opened()) out << std::endl << e.uedge() ;
+  if (e.lbedge().is_opened()) out << std::endl << e.lbedge() ;
+  out << ")";
+  return out;
+}
 
 
 
