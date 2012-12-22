@@ -39,6 +39,8 @@ struct MinDivEdgeDaughterProbability
   double mp;
   /// rule probability on q
   double q;
+  /// marginal probability on q
+  double mq;
 };
 
 

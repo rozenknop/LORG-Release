@@ -45,13 +45,13 @@ void ParserCKYAllMinDivKB::extract_solution()
   
   /* min divergence computation here ! : fixed point iterations */
       std::clog << *chart << std::endl;
-  for (int i=0; i<100; ++i) {
+  for (int i=0; i<10; ++i) {
     //   while (false) {
       compute_inside_outside_q_probabilities();
-      update_q();
       std::clog << *chart << std::endl;
+      update_q();
   }
-  std::clog << *chart << std::endl;
+//   std::clog << *chart << std::endl;
   
   // compute the probability of the best subtree starting at each edge daughter
   // and initialize structures "candidates" and "derivations" of the edge
@@ -75,6 +75,8 @@ void ParserCKYAllMinDivKB::extract_solution()
 
 double MinDivProbabilityKB::log_normalisation_factor = 0;
 double MinDivProbabilityKB::normalisation_factor = 0;
+double MinDivProbabilityKB::log_normalisation_factor_q = 0;
+double MinDivProbabilityKB::normalisation_factor_q = 0;
 unsigned MinDivBest::size = 0;
 
 
@@ -303,7 +305,7 @@ inline void ParserCKYAllMinDivKB::compute_inside_q_probabilities()
 
 #include "utils/threads.h"
 
-inline void MinDivProbabilityKB::update_outside_q_binary(const BinaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_outside_q_binary(BinaryDaughter& dtr)
 {
   #ifdef USE_THREADS
   tbb::atomic<double> * left  = (tbb::atomic<double> *) &dtr. left_pdaughter().get_prob_model().outside_q;
@@ -322,13 +324,20 @@ inline void MinDivProbabilityKB::update_outside_q_binary(const BinaryDaughter& d
     * dtr.q 
     * dtr.left_pdaughter().get_prob_model().inside_q
   );
+  dtr.mq = dtr.q * outside_q *  dtr.left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q;
 }
-inline void MinDivProbabilityKB::update_outside_q_unary(const UnaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_outside_q_unary(UnaryDaughter& dtr)
 {
   dtr. lbdaughter().get_prob_model().outside_q += (
     outside_q
     * dtr.q
   );
+  dtr.mq = dtr.q * outside_q * dtr. lbdaughter().get_prob_model().inside_q ;
+}
+
+inline void MinDivProbabilityKB::update_outside_q_lexical(LexicalDaughter& dtr)
+{
+  dtr.mq = dtr.q * outside_q;
 }
 
 
@@ -338,6 +347,7 @@ inline void ParserCKYAllMinDivKB::compute_outside_q_probabilities()
   {
     cell.apply_on_uedges(& MinDivProbabilityKB::update_outside_q_unary);
     cell.apply_on_lbedges(& MinDivProbabilityKB::update_outside_q_binary);
+    cell.apply_on_lbedges(& MinDivProbabilityKB::update_outside_q_lexical);
   }
   );
 }
@@ -351,9 +361,14 @@ inline void MinDivProbabilityKB::reinit_inside_outside(double val)
   inside_q = outside_q = inside_p = outside_p = val;
 }
 
+inline void MinDivProbabilityKB::reinit_q_inside_outside(double val)
+{
+  inside_q = outside_q = val;
+}
+
 inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
 {
-  function<void(MinDivProbabilityKB&)> reinit_0 = [](MinDivProbabilityKB&p){p.reinit_inside_outside(0);};
+  function<void(MinDivProbabilityKB&)> reinit_0 = [](MinDivProbabilityKB&p){p.reinit_q_inside_outside(0);};
   this->chart->opencells_apply([&](Cell & cell)
   {
     cell.apply_on_edges(reinit_0);
@@ -366,16 +381,34 @@ inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
   compute_outside_q_probabilities();
 }
 
+double ParserCKYAllMinDivKB::get_sentence_probability_q() const
+{
+  static int start_symbol = SymbolTable::instance_nt().get(LorgConstants::tree_root_name);
+
+  if(chart->get_root().exists_uedge(start_symbol))
+    return chart->get_root().get_edge(start_symbol).uedge().get_prob_model().get_inside_q();
+  else
+    return LorgConstants::NullProba;
+}
 
 /***********************************************************************/
-/*      update q as marginal(p) / (inside(q)*outside(q))               */
+/*      update q as marginal(p) * sentence_probability(q) / (inside(q)*outside(q))               */
 /***********************************************************************/
+
+inline double formula(double q, double mp, double sq, double ioq)
+{
+  return mp / ioq ;
+//  return mp * sq / ioq ;
+//   return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (1/ioq);
+}
+
 inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 {
   if (outside_q != LorgConstants::NullProba)
 //     dtr.q = dtr.mp / outside_prob;
 //     dtr.q += (dtr.mp / outside_prob - dtr.q) * 0.01;
-     dtr.q += (dtr.mp / outside_q - dtr.q) * 0.01;
+//      dtr.q += (dtr.mp / outside_q - dtr.q) * 0.01;
+    dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(), outside_q) ;
   else
     dtr.q = 0 ;
 }
@@ -383,31 +416,67 @@ inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
 {
   if (outside_q != LorgConstants::NullProba)
+    dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
+                    outside_q * dtr.lbdaughter().get_prob_model().inside_q) ;
+//     dtr.q = dtr.mp * get_normalisation_factor_q() / (
+//       outside_q
+//       * dtr.lbdaughter().get_prob_model().inside_q
+//     );
 //     dtr.q = dtr.mp / (
 //       outside_prob
 //       * dtr.lbdaughter().get_prob_model().inside_prob
 //     );
-    dtr.q += (dtr.mp / (outside_q * dtr.lbdaughter().get_prob_model().inside_q) - dtr.q) * 0.01;
+//     dtr.q += (dtr.mp / (outside_q * dtr.lbdaughter().get_prob_model().inside_q) - dtr.q) * 0.01;
 }
 inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
 {
   if (outside_q != LorgConstants::NullProba)
+    dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
+                    outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q) ;
+//     dtr.q = dtr.mp * get_normalisation_factor_q() / (
+//       outside_q
+//       * dtr. left_pdaughter().get_prob_model().inside_q
+//       * dtr.right_pdaughter().get_prob_model().inside_q
+//     );
 //     dtr.q = dtr.mp / (
 //       outside_prob
 //       * dtr. left_pdaughter().get_prob_model().inside_prob
 //       * dtr.right_pdaughter().get_prob_model().inside_prob
 //     );
-    dtr.q += (dtr.mp / (outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q) - dtr.q) * 0.01;
+//     dtr.q += (dtr.mp / (outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q) - dtr.q) * 0.01;
 }
 
 
 inline void ParserCKYAllMinDivKB::update_q()
 {
-  this->chart->opencells_apply([&](Cell & cell)
+  MinDivProbabilityKB::set_normalisation_factor_q(get_sentence_probability_q());
+
+//   this->chart->opencells_apply([&](Cell & cell)
+//   {
+//     cell.apply_on_lbedges(& MinDivProbabilityKB::update_q_lexical,
+//                           & MinDivProbabilityKB::update_q_binary);
+//     cell.apply_on_uedges(& MinDivProbabilityKB::update_q_unary);
+//   });
+  this->chart->opencells_apply_top_down_nothread([&](Cell & cell)
   {
-    cell.apply_on_lbedges(& MinDivProbabilityKB::update_q_lexical,
-                          & MinDivProbabilityKB::update_q_binary);
-    cell.apply_on_uedges(& MinDivProbabilityKB::update_q_unary);
+    cell.apply_on_edges( function<void(Edge &)>([&](Edge & e){
+      if (e.lbedge().is_opened()) {
+        for (auto & dtr: e.lbedge().get_lexical_daughters()) {
+          e.lbedge().get_prob_model().update_q_lexical(dtr);
+          compute_inside_outside_q_probabilities();
+        }
+        for (auto & dtr: e.lbedge().get_binary_daughters()) {
+          e.lbedge().get_prob_model().update_q_binary(dtr);
+          compute_inside_outside_q_probabilities();
+        }
+      }
+      if (e.uedge().is_opened()) {
+        for (auto & dtr: e.uedge().get_unary_daughters()) {
+          e.uedge().get_prob_model().update_inside_q_unary(dtr);
+          compute_inside_outside_q_probabilities();
+        }
+      }
+    }));
   });
 }
 
@@ -506,7 +575,7 @@ std::ostream & operator<<(std::ostream & out, const UPackedEdge<MinDivKBTypes> &
     for (const auto& dtr: e.get_unary_daughters()) {
       out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_lhs());
       out << "->" << SymbolTable::instance_nt().translate(dtr.get_rule()->get_rhs0());
-      out << " (" << dtr.q << " ["<< dtr.mp << "])";
+      out << " (" << dtr.q << " ["<< dtr.mq << " ~ " << dtr.mp << "])";
     }
   }
   return out;
@@ -521,7 +590,7 @@ std::ostream & operator<<(std::ostream & out, const LBPackedEdge<MinDivKBTypes> 
     for (const auto & dtr: e.get_lexical_daughters()) {
       out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_lhs());
       out << "->" << SymbolTable::instance_word().translate(dtr.get_rule()->get_rhs0());
-      out << " (" << dtr.q << " ["<< dtr.mp << "])";
+      out << " (" << dtr.q << " ["<< dtr.mq << " ~ " << dtr.mp << "])";
     }
   }
   if (not e.get_binary_daughters().empty()) {
@@ -530,7 +599,7 @@ std::ostream & operator<<(std::ostream & out, const LBPackedEdge<MinDivKBTypes> 
       out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_lhs());
       out << "->" << SymbolTable::instance_nt().translate(dtr.get_rule()->get_rhs0());
       out << " " << SymbolTable::instance_nt().translate(dtr.get_rule()->get_rhs1());
-      out << " (" << dtr.q << " ["<< dtr.mp << "])";
+      out << " (" << dtr.q << " ["<< dtr.mq << " ~ " << dtr.mp << "])";
     }
   }
   return out;

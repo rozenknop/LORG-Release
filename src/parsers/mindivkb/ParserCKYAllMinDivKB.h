@@ -93,16 +93,24 @@ private:
 
   static double log_normalisation_factor;
   static double normalisation_factor;
+  static double log_normalisation_factor_q;
+  static double     normalisation_factor_q;
 
 
   MinDivProbabilityKB();
 public:
   ~MinDivProbabilityKB() {}
 
-  inline static void   set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
-  inline static double get_log_normalisation_factor() {return log_normalisation_factor;};
   inline static void   set_normalisation_factor(double lnf) {normalisation_factor = lnf;};
   inline static double get_normalisation_factor() {return normalisation_factor;};
+  inline static void   set_log_normalisation_factor(double lnf) {log_normalisation_factor = lnf;};
+  inline static double get_log_normalisation_factor() {return log_normalisation_factor;};
+  inline static void   set_log_normalisation_factor_q(double lnf) {log_normalisation_factor_q = lnf;};
+  inline static double get_log_normalisation_factor_q() {return log_normalisation_factor_q;};
+  inline static void   set_normalisation_factor_q(double lnf) {normalisation_factor_q = lnf;};
+  inline static double get_normalisation_factor_q() {return normalisation_factor_q;};
+//   inline static void   set_normalisation_factor(double lnf) {normalisation_factor = lnf;};
+//   inline static double get_normalisation_factor() {return normalisation_factor;};
   inline double & get_inside_q() { return inside_q; }
   inline const double & get_inside_q() const { return inside_q; }
   inline double & get_outside_q() { return outside_q; }
@@ -111,19 +119,21 @@ public:
   
 
   inline void reinit_inside_outside(double val);
+  inline void reinit_q_inside_outside(double val);
 
   inline void update_inside_q_lexical(const LexicalDaughter& dtr);
   inline void update_inside_q_unary(const UnaryDaughter& dtr);
   inline void update_inside_q_binary(const BinaryDaughter& dtr);
   
-  inline void update_outside_q_lexical(const LexicalDaughter& dtr);
-  inline void update_outside_q_unary(const UnaryDaughter& dtr);
-  inline void update_outside_q_binary(const BinaryDaughter& dtr);
+  inline void update_outside_q_lexical(LexicalDaughter& dtr);
+  inline void update_outside_q_unary(UnaryDaughter& dtr);
+  inline void update_outside_q_binary(BinaryDaughter& dtr);
   
   inline void update_q_lexical(LexicalDaughter& dtr);
   inline void update_q_unary(UnaryDaughter& dtr);
   inline void update_q_binary(BinaryDaughter& dtr);
 
+  
   
   public:
     inline std::ostream& operator>>(std::ostream& out) const;
@@ -168,6 +178,7 @@ private:
   inline void compute_inside_q_probabilities();
   inline void compute_outside_q_probabilities();
   inline void compute_inside_outside_q_probabilities();
+  inline double get_sentence_probability_q() const;
 
   /* computes q as marginal(p) / (inside(q)*outside(q)) */
   inline void update_q();
