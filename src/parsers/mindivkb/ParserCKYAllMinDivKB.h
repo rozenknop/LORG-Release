@@ -5,7 +5,7 @@
 #include "parsers/ParserCKYAll.h"
 #include "emptystruct.h"
 #include "MinDivTypes.h"
-
+#include "utils/threads.h"
 
 class MinDivBest
 {
@@ -95,7 +95,7 @@ private:
   static double normalisation_factor;
   static double log_normalisation_factor_q;
   static double     normalisation_factor_q;
-
+  static ATOMIC_DOUBLE kl_distance_pq;
 
   MinDivProbabilityKB();
 public:
@@ -133,7 +133,7 @@ public:
   inline void update_q_unary(UnaryDaughter& dtr);
   inline void update_q_binary(BinaryDaughter& dtr);
 
-  
+  inline static void update_kl_distance(Edge & edge);
   
   public:
     inline std::ostream& operator>>(std::ostream& out) const;
@@ -169,6 +169,8 @@ public:
   inline ~ParserCKYAllMinDivKB() {};
 
   void extract_solution();
+
+  void compute_kl_distance();
 
 private:
   /** also computes marginals for each daughter */

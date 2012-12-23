@@ -4,6 +4,7 @@
 
 #include "ParserCKYAllMinDivKB.h"
 #include <utils/tick_count.h>
+#include "utils/threads.h"
 
 
 
@@ -44,11 +45,13 @@ void ParserCKYAllMinDivKB::extract_solution()
 //   update_q();
   
   /* min divergence computation here ! : fixed point iterations */
-      std::clog << *chart << std::endl;
-  for (int i=0; i<10; ++i) {
+  std::clog << *chart << std::endl;
+
+  for (int i=0; i<1000; ++i) {
     //   while (false) {
       compute_inside_outside_q_probabilities();
-      std::clog << *chart << std::endl;
+//       std::clog << *chart << std::endl;
+      compute_kl_distance();
       update_q();
   }
 //   std::clog << *chart << std::endl;
@@ -251,6 +254,15 @@ inline void ParserCKYAllMinDivKB::extend_all_derivations()
 /*    real parsing stuff                                                     */
 /*****************************************************************************/
 
+ATOMIC_DOUBLE MinDivProbabilityKB::kl_distance_pq;
+
+void ParserCKYAllMinDivKB::compute_kl_distance()
+{
+  MinDivProbabilityKB::kl_distance_pq = 0.0 ;
+  chart->opencells_apply_top_down_nothread( [](Cell & cell){ cell.apply_on_edges(std::function<void(Edge&)>(MinDivProbabilityKB::update_kl_distance) ); } );
+  MinDivProbabilityKB::kl_distance_pq += log2(MinDivProbabilityKB::normalisation_factor_q) /* * MinDivProbabilityKB::normalisation_factor*/;
+  std::clog.precision(30); std::clog << "Divergence(p,q) = " << MinDivProbabilityKB::kl_distance_pq << std::endl;
+}
 
 inline void ParserCKYAllMinDivKB::compute_outside_probabilities()
 {
@@ -297,13 +309,14 @@ inline void ParserCKYAllMinDivKB::compute_inside_q_probabilities()
     cell.apply_on_uedges(& MinDivProbabilityKB::update_inside_q_unary);
   }
   );
+
+  MinDivProbabilityKB::set_normalisation_factor_q(get_sentence_probability_q());
 }
 
 /****************************************************/
 /*     computation of q outsides                    */
 /****************************************************/
 
-#include "utils/threads.h"
 
 inline void MinDivProbabilityKB::update_outside_q_binary(BinaryDaughter& dtr)
 {
@@ -324,7 +337,7 @@ inline void MinDivProbabilityKB::update_outside_q_binary(BinaryDaughter& dtr)
     * dtr.q 
     * dtr.left_pdaughter().get_prob_model().inside_q
   );
-  dtr.mq = dtr.q * outside_q *  dtr.left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q;
+  dtr.mq = dtr.q * outside_q *  dtr.left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q / get_normalisation_factor_q();
 }
 inline void MinDivProbabilityKB::update_outside_q_unary(UnaryDaughter& dtr)
 {
@@ -332,12 +345,12 @@ inline void MinDivProbabilityKB::update_outside_q_unary(UnaryDaughter& dtr)
     outside_q
     * dtr.q
   );
-  dtr.mq = dtr.q * outside_q * dtr. lbdaughter().get_prob_model().inside_q ;
+  dtr.mq = dtr.q * outside_q * dtr. lbdaughter().get_prob_model().inside_q  / get_normalisation_factor_q();
 }
 
 inline void MinDivProbabilityKB::update_outside_q_lexical(LexicalDaughter& dtr)
 {
-  dtr.mq = dtr.q * outside_q;
+  dtr.mq = dtr.q * outside_q / get_normalisation_factor_q();
 }
 
 
@@ -377,7 +390,7 @@ inline void ParserCKYAllMinDivKB::compute_inside_outside_q_probabilities()
   this->chart->get_root().get_edge(start_symbol).uedge().get_prob_model().set_outside_q(1.0);
   
   compute_inside_q_probabilities();
-  
+
   compute_outside_q_probabilities();
 }
 
@@ -398,8 +411,10 @@ double ParserCKYAllMinDivKB::get_sentence_probability_q() const
 inline double formula(double q, double mp, double sq, double ioq)
 {
   return mp / ioq ;
-//  return mp * sq / ioq ;
-//   return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (1/ioq);
+  //   return std::min(1.,mp / ioq) ;
+  //   return mp * sq / ioq;
+  //  return std::min(1.0, mp * sq / ioq) ;
+  //   return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq);
 }
 
 inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
@@ -449,7 +464,6 @@ inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
 
 inline void ParserCKYAllMinDivKB::update_q()
 {
-  MinDivProbabilityKB::set_normalisation_factor_q(get_sentence_probability_q());
 
 //   this->chart->opencells_apply([&](Cell & cell)
 //   {
@@ -480,6 +494,33 @@ inline void ParserCKYAllMinDivKB::update_q()
   });
 }
 
+
+/**************************************************************/
+/* Computation of the Kullback-Leibler distance KL(p,q)       */
+/**************************************************************/
+
+inline void MinDivProbabilityKB::update_kl_distance(Edge & edge)
+{
+  if (edge.uedge().is_opened()) {
+    for (const auto & dtr : edge.uedge().get_unary_daughters()) {
+      kl_distance_pq += dtr.get_rule()->entropy_term(edge.get_annotations().outside_probabilities.array,
+                                                     dtr.lbdaughter().get_annotations().inside_probabilities.array) / normalisation_factor
+      - dtr.mp * log2(dtr.q);
+    }
+  }
+  if (edge.lbedge().is_opened()) {
+    for (const auto & dtr : edge.lbedge().get_lexical_daughters()) {
+      kl_distance_pq += dtr.get_rule()->entropy_term(edge.get_annotations().outside_probabilities.array) / normalisation_factor
+      - dtr.mp * log2(dtr.q);
+    }
+    for (const auto & dtr : edge.lbedge().get_binary_daughters()) {
+      kl_distance_pq += dtr.get_rule()->entropy_term(edge.get_annotations().outside_probabilities.array,
+                                                     dtr.left_pdaughter().get_annotations().inside_probabilities.array,
+                                                     dtr.right_pdaughter().get_annotations().inside_probabilities.array) / normalisation_factor
+      - dtr.mp * log2(dtr.q);
+    }
+  }
+}
 
 /**************************************************************/
 /* Filling the structures before Best Tree extraction         */

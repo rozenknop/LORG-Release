@@ -195,7 +195,7 @@ void ParserCKYAll_Impl<Types>::get_candidates(Cell& left_cell,
             for(const auto & rule: same_rhs) {
 //               BLOCKTIMING("ParserCKYAll_Impl<Types>::get_candidates result_cell.process_candidate(*left_edge,*right_edge, rule, LR);");
 //                   std::clog << "calling result_cell.process_candidate(" << left_edge << " , " << right_edge << " , " << rule << " , " << LR << ")" << std::endl;
-              result_cell.process_candidate(left_edge,right_edge, rule, LR);
+              result_cell.process_candidate(left_edge,right_edge, reinterpret_cast<const BinaryRule*>(rule), LR);
             }
           }
         }

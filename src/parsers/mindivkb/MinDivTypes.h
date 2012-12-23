@@ -27,12 +27,12 @@ struct MinDivKBTypes {
   typedef LBPackedEdge< MinDivKBTypes > LBEdge ;
   typedef PCKYAllCell< MinDivKBTypes > Cell ;
   typedef ChartCKY< MinDivKBTypes > Chart ;
-//   typedef MinDivBRule BRule;
-//   typedef MinDivURule URule;
-//   typedef MinDivLRule LRule;
-  typedef BRuleC2f BRule;
-  typedef URuleC2f URule;
-  typedef LexicalRuleC2f LRule;
+  typedef MinDivBRule BRule;
+  typedef MinDivURule URule;
+  typedef MinDivLRule LRule;
+//   typedef BRuleC2f BRule;
+//   typedef URuleC2f URule;
+//   typedef LexicalRuleC2f LRule;
   typedef MinDivBinaryDaughter BinaryDaughter;
   typedef MinDivUnaryDaughter  UnaryDaughter;
   typedef MinDivLexicalDaughter LexicalDaughter;

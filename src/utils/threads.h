@@ -24,6 +24,12 @@ namespace {
   }
 };
 
+#define ATOMIC_DOUBLE tbb::atomic<double>
+
+#else
+
+#define ATOMIC_DOUBLE double
+
 #endif
 
 #endif

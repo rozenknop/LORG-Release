@@ -85,3 +85,62 @@ double MinDivLRule::update_outside_annotations_return_marginal(const std::vector
 }
 
 
+
+double
+MinDivBRule::entropy_term(const std::vector< double >& up_out, 
+                          const std::vector< double >& left_in, 
+                          const std::vector< double >& right_in) const
+{
+  double term = 0.0;
+  for(unsigned short i = 0; i < probabilities.size(); ++i) {
+    if(up_out[i] == LorgConstants::NullProba || up_out[i] == 0.0) continue;
+    const std::vector<std::vector<double> >& dim_i = probabilities[i];
+    for(unsigned short j = 0; j < dim_i.size(); ++j) {
+      const std::vector<double>& dim_j = dim_i[j];
+      if(left_in[j] == LorgConstants::NullProba || left_in[j] == 0.0) continue;
+      double factor4right = up_out[i] * left_in[j];
+      for(unsigned short k = 0; k < dim_j.size(); ++k) {
+        const double& t = dim_j[k];
+        // if(right_in[k] != LorgConstants::NullProba) temp4left += right_in[k] * t;
+        // if(right_out[k] != LorgConstants::NullProba) right_out[k] += factor4right * t;
+        
+        // I and O are always Null at the same time
+        if(right_in[k] != LorgConstants::NullProba && t != 0.0) {
+          term += factor4right * right_in[k] * t * log2(t);
+        }
+      }
+    }
+  }
+  return term ;
+}
+
+
+double MinDivURule::entropy_term(const std::vector< double >& out_up, 
+                                 const std::vector< double >& in_down) const
+{
+  double term = 0.0;
+  for(unsigned short i = 0 ; i < probabilities.size();++i) {
+    if(out_up[i] == LorgConstants::NullProba || out_up[i] == 0.0 ) continue;
+    const std::vector<double>& dim_i = probabilities[i];
+    for(unsigned short j = 0 ; j < dim_i.size();++j) {
+      double t = dim_i[j] ;
+      if(in_down[j] != LorgConstants::NullProba && t != 0.0)
+        term += out_up[i] * in_down[j] * t * log2(t);
+    }
+  }
+  return term ;
+}
+
+
+double MinDivLRule::entropy_term(const std::vector< double >& out_up) const
+{
+  double term = 0;
+  for(unsigned i = 0 ; i < probabilities.size();++i) {
+    double t = probabilities[i];
+    if(out_up[i] != LorgConstants::NullProba && t != 0.0)
+      term += out_up[i] * t * log2(t);
+  }
+  return term ;
+}
+
+

@@ -16,16 +16,22 @@ struct MinDivBRule : public BRuleC2f {
                                                     const std::vector<double>& right_in,
                                                     std::vector<double>& left_out,
                                                     std::vector<double>& right_out) const;
+  double entropy_term(const std::vector<double>& up_out,
+                      const std::vector<double>& left_in,
+                      const std::vector<double>& right_in) const;
 };
 
 struct MinDivURule : public URuleC2f {
   double update_outside_annotations_return_marginal(const std::vector<double>& up,
                                                     const std::vector<double>& in_left,
                                                     std::vector<double>& out_left) const;
+  double entropy_term(const std::vector<double>& out_up,
+                      const std::vector<double>& in_down) const;
 };
 
 struct MinDivLRule : public LexicalRuleC2f {
   double update_outside_annotations_return_marginal(const std::vector<double>& up) const;
+  double entropy_term(const std::vector<double>& out_up) const;
 };
 
 
