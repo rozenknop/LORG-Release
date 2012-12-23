@@ -411,10 +411,11 @@ double ParserCKYAllMinDivKB::get_sentence_probability_q() const
 inline double formula(double q, double mp, double sq, double ioq)
 {
   return mp / ioq ;
-  //   return std::min(1.,mp / ioq) ;
-  //   return mp * sq / ioq;
-  //  return std::min(1.0, mp * sq / ioq) ;
-  //   return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq);
+//     return std::min(1.,mp / ioq) ;
+//     return mp * sq / ioq;
+//    return std::min(1.0, mp * sq / ioq) ;
+//     return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq);
+//     return std::min(1., mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq));
 }
 
 inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
@@ -471,7 +472,7 @@ inline void ParserCKYAllMinDivKB::update_q()
 //                           & MinDivProbabilityKB::update_q_binary);
 //     cell.apply_on_uedges(& MinDivProbabilityKB::update_q_unary);
 //   });
-  this->chart->opencells_apply_top_down_nothread([&](Cell & cell)
+  this->chart->opencells_apply_bottom_up([&](Cell & cell)
   {
     cell.apply_on_edges( function<void(Edge &)>([&](Edge & e){
       if (e.lbedge().is_opened()) {
@@ -486,7 +487,7 @@ inline void ParserCKYAllMinDivKB::update_q()
       }
       if (e.uedge().is_opened()) {
         for (auto & dtr: e.uedge().get_unary_daughters()) {
-          e.uedge().get_prob_model().update_inside_q_unary(dtr);
+          e.uedge().get_prob_model().update_q_unary(dtr);
           compute_inside_outside_q_probabilities();
         }
       }
