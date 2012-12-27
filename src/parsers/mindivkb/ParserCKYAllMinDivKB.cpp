@@ -45,6 +45,8 @@ void ParserCKYAllMinDivKB::extract_solution()
 //   update_q();
   
   /* min divergence computation here ! : fixed point iterations */
+  compute_inout_p();
+  
   std::clog << *chart << std::endl;
 
   for (int i=0; i<1000; ++i) {
@@ -264,6 +266,11 @@ void ParserCKYAllMinDivKB::compute_kl_distance()
   std::clog.precision(30); std::clog << "Divergence(p,q) = " << MinDivProbabilityKB::kl_distance_pq << std::endl;
 }
 
+void ParserCKYAllMinDivKB::compute_inout_p()
+{
+  chart->opencells_apply( [](Cell & cell){ cell.apply_on_edges(std::function<void(Edge&)>(MinDivProbabilityKB::compute_inout_p) ); } );
+}
+
 inline void ParserCKYAllMinDivKB::compute_outside_probabilities()
 {
   MinDivProbabilityKB::set_normalisation_factor(get_sentence_probability());
@@ -408,9 +415,10 @@ double ParserCKYAllMinDivKB::get_sentence_probability_q() const
 /*      update q as marginal(p) * sentence_probability(q) / (inside(q)*outside(q))               */
 /***********************************************************************/
 
-inline double formula(double q, double mp, double sq, double ioq)
+inline double formula(double q, double mp, double sq, double ioq, double iop)
 {
-  return mp / ioq ;
+  return mp / iop ;
+//   return mp / ioq ;
 //     return std::min(1.,mp / ioq) ;
 //     return mp * sq / ioq;
 //    return std::min(1.0, mp * sq / ioq) ;
@@ -424,7 +432,7 @@ inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 //     dtr.q = dtr.mp / outside_prob;
 //     dtr.q += (dtr.mp / outside_prob - dtr.q) * 0.01;
 //      dtr.q += (dtr.mp / outside_q - dtr.q) * 0.01;
-    dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(), outside_q) ;
+    dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(), outside_q, outside_p/normalisation_factor) ;
   else
     dtr.q = 0 ;
 }
@@ -433,7 +441,9 @@ inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
 {
   if (outside_q != LorgConstants::NullProba)
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
-                    outside_q * dtr.lbdaughter().get_prob_model().inside_q) ;
+                    outside_q * dtr.lbdaughter().get_prob_model().inside_q,
+                    outside_p * dtr.lbdaughter().get_prob_model().inside_p / normalisation_factor
+                   ) ;
 //     dtr.q = dtr.mp * get_normalisation_factor_q() / (
 //       outside_q
 //       * dtr.lbdaughter().get_prob_model().inside_q
@@ -448,7 +458,8 @@ inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
 {
   if (outside_q != LorgConstants::NullProba)
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
-                    outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q) ;
+                    outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q,
+                    outside_p * dtr. left_pdaughter().get_prob_model().inside_p * dtr.right_pdaughter().get_prob_model().inside_p / normalisation_factor) ;
 //     dtr.q = dtr.mp * get_normalisation_factor_q() / (
 //       outside_q
 //       * dtr. left_pdaughter().get_prob_model().inside_q
@@ -519,6 +530,32 @@ inline void MinDivProbabilityKB::update_kl_distance(Edge & edge)
                                                      dtr.left_pdaughter().get_annotations().inside_probabilities.array,
                                                      dtr.right_pdaughter().get_annotations().inside_probabilities.array) / normalisation_factor
       - dtr.mp * log2(dtr.q);
+    }
+  }
+}
+
+void MinDivProbabilityKB::compute_inout_p(MinDivProbabilityKB::Edge& edge)
+{
+  if (edge.uedge().is_opened()) {
+    auto & e = edge.uedge();
+    auto & pr = e.get_prob_model();
+    pr.inside_p = pr.outside_p = 0;
+    for (auto & p : e.get_annotations().inside_probabilities.array) {
+      if (p!=LorgConstants::NullProba) pr.inside_p += p;
+    }
+    for (auto & p : e.get_annotations().outside_probabilities.array) {
+      if (p!=LorgConstants::NullProba) pr.outside_p += p;
+    }
+  }
+  if (edge.lbedge().is_opened()) {
+    auto & e = edge.lbedge();
+    auto & pr = e.get_prob_model();
+    pr.inside_p = pr.outside_p = 0;
+    for (auto & p : e.get_annotations().inside_probabilities.array) {
+      if (p!=LorgConstants::NullProba) pr.inside_p += p;
+    }
+    for (auto & p : e.get_annotations().outside_probabilities.array) {
+      if (p!=LorgConstants::NullProba) pr.outside_p += p;
     }
   }
 }

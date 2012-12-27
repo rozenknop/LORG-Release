@@ -134,6 +134,7 @@ public:
   inline void update_q_binary(BinaryDaughter& dtr);
 
   inline static void update_kl_distance(Edge & edge);
+  inline static void compute_inout_p(Edge & edge);
   
   public:
     inline std::ostream& operator>>(std::ostream& out) const;
@@ -171,6 +172,7 @@ public:
   void extract_solution();
 
   void compute_kl_distance();
+  void compute_inout_p();
 
 private:
   /** also computes marginals for each daughter */
