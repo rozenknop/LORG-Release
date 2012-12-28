@@ -49,7 +49,7 @@ void ParserCKYAllMinDivKB::extract_solution()
   
   std::clog << *chart << std::endl;
 
-  for (int i=0; i<1000; ++i) {
+  for (int i=0; i<2; ++i) {
     //   while (false) {
       compute_inside_outside_q_probabilities();
 //       std::clog << *chart << std::endl;
@@ -415,8 +415,12 @@ double ParserCKYAllMinDivKB::get_sentence_probability_q() const
 /*      update q as marginal(p) * sentence_probability(q) / (inside(q)*outside(q))               */
 /***********************************************************************/
 
+int init_rand() { srand(time(NULL)); return rand(); }
+static int __init_rand = init_rand();
+
 inline double formula(double q, double mp, double sq, double ioq, double iop)
 {
+//   return std::rand() * (0.00000001 / RAND_MAX);
   return mp / iop ;
 //   return mp / ioq ;
 //     return std::min(1.,mp / ioq) ;

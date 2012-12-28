@@ -102,6 +102,31 @@ ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(Cell &)> 
   }
 }
 
+
+template<class Types>
+void
+ChartCKY<Types>::opencells_apply_left_right( std::function<void(const Cell &)> before_left,
+                                        std::function<void(const Cell &)> before_right,
+                                        std::function<void(const Cell &)> after_daughters)
+{
+  opencells_apply_left_right_rec(before_left,before_right,after_daughters, get_size()-1, 0, true);
+}
+
+template<class Types>
+void 
+ChartCKY<Types>::opencells_apply_left_right_rec( std::function<void(const Cell &)> before_left,
+                                            std::function<void(const Cell &)> before_right,
+                                            std::function<void(const Cell &)> after_daughters,
+                                            unsigned span, unsigned beg, bool go_left)
+{
+  Cell& cell = access( beg, beg+span );
+  if (not cell.is_closed()) before_left(cell);
+  if (go_left and span!=0) opencells_apply_left_right_rec( before_left, before_right, after_daughters, span-1, beg, true );
+  if (not cell.is_closed()) before_right(cell);
+  if (span!=0) opencells_apply_left_right_rec( before_left, before_right, after_daughters, span-1, beg+1, false );
+  if (not cell.is_closed()) after_daughters(cell);
+}
+
 template<class Types>
 void
 ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(const Cell &)> f) const
