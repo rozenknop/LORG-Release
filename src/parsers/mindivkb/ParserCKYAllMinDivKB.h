@@ -149,9 +149,11 @@ public:
   inline void update_q_unary(UnaryDaughter& dtr);
   inline void update_q_binary(BinaryDaughter& dtr);
 
-  inline void update_q_and_inout_lexical(LexicalDaughter& dtr);
-  inline void update_q_and_inout_unary(UnaryDaughter& dtr);
-  inline void update_q_and_inout_binary(BinaryDaughter& dtr);
+  inline void update_q_and_in_lexical(LexicalDaughter& dtr);
+  inline void update_q_and_in_unary(UnaryDaughter& dtr);
+  inline void update_q_and_in_binary(BinaryDaughter& dtr);
+  inline void update_rightout_q_unary(UnaryDaughter& dtr);
+  inline void update_rightout_q_binary(BinaryDaughter& dtr);
 
   inline static void update_kl_distance(Edge & edge);
   inline static void compute_inout_p(Edge & edge);

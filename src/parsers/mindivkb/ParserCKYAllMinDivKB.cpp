@@ -47,14 +47,16 @@ void ParserCKYAllMinDivKB::extract_solution()
   /* min divergence computation here ! : fixed point iterations */
   compute_inout_p();
   
-  std::clog << *chart << std::endl;
+//   std::clog << *chart << std::endl;
 
-  for (int i=0; i<2; ++i) {
+  for (int i=0; i<100; ++i) {
     //   while (false) {
       compute_inside_outside_q_probabilities();
-//       std::clog << *chart << std::endl;
+//       std::clog << *chart << std::endl; std::clog.flush();
+
       compute_kl_distance();
-      update_q_test();
+//       update_q_test(); // working but slow
+      update_q();
   }
 //   std::clog << *chart << std::endl;
   
@@ -263,7 +265,7 @@ void ParserCKYAllMinDivKB::compute_kl_distance()
   MinDivProbabilityKB::kl_distance_pq = 0.0 ;
   chart->opencells_apply_top_down_nothread( [](Cell & cell){ cell.apply_on_edges(std::function<void(Edge&)>(MinDivProbabilityKB::update_kl_distance) ); } );
   MinDivProbabilityKB::kl_distance_pq += log2(MinDivProbabilityKB::normalisation_factor_q) /* * MinDivProbabilityKB::normalisation_factor*/;
-  std::clog.precision(30); std::clog << "Divergence(p,q) = " << MinDivProbabilityKB::kl_distance_pq << std::endl;
+  std::clog.precision(30); std::clog << "Divergence(p,q) = " << MinDivProbabilityKB::kl_distance_pq << std::endl; std::clog.flush();
 }
 
 void ParserCKYAllMinDivKB::compute_inout_p()
@@ -421,100 +423,134 @@ static int __init_rand = init_rand();
 
 inline double formula(double q, double mp, double sq, double ioq, double iop)
 {
-//   return std::rand() * (0.00000001 / RAND_MAX);
-  return mp / iop ;
-//   return mp / ioq ;
-//     return std::min(1.,mp / ioq) ;
-//     return mp * sq / ioq;
-//    return std::min(1.0, mp * sq / ioq) ;
-//     return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq);
-//     return std::min(1., mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq));
+  //   return std::rand() * (0.00000001 / RAND_MAX);
+  //   return mp / iop ;
+//   return (mp==0 ? 0 : mp / ioq) ;
+      return std::min(1.,mp / ioq) ;
+  //     return mp * sq / ioq;
+  //    return std::min(1.0, mp * sq / ioq) ;
+  //     return mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq);
+  //     return std::min(1., mp<1 ? (mp/(1-mp))*(sq/ioq - q) : (sq/ioq));
 }
 
 inline void MinDivProbabilityKB::update_q_lexical(LexicalDaughter& dtr)
 {
-  if (outside_q != LorgConstants::NullProba)
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(), outside_q, outside_p/normalisation_factor) ;
+  }
   else
     dtr.q = 0 ;
 }
 
 inline void MinDivProbabilityKB::update_q_unary(UnaryDaughter& dtr)
 {
-  if (outside_q != LorgConstants::NullProba)
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
                     outside_q * dtr.lbdaughter().get_prob_model().inside_q,
                     outside_p * dtr.lbdaughter().get_prob_model().inside_p / normalisation_factor
                    ) ;
+  }
 }
 inline void MinDivProbabilityKB::update_q_binary(BinaryDaughter& dtr)
 {
-  if (outside_q != LorgConstants::NullProba)
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
                     outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q,
                     outside_p * dtr. left_pdaughter().get_prob_model().inside_p * dtr.right_pdaughter().get_prob_model().inside_p / normalisation_factor) ;
+  }
 }
 
 
-inline void MinDivProbabilityKB::update_q_and_inout_lexical(LexicalDaughter& dtr)
+inline void MinDivProbabilityKB::update_q_and_in_lexical(LexicalDaughter& dtr)
 {
-  if (outside_q != LorgConstants::NullProba) {
-    double delta = -dtr.q ;
-    delta += dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(), outside_q, outside_p/normalisation_factor) ;
-    inside_q += delta ;
-    inside_q_delta += delta ;
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
+    inside_q -= dtr.q ;
+    inside_q_delta -= dtr.q ;
+    dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(), outside_q, outside_p/normalisation_factor) ;
+    inside_q += dtr.q ;
+    inside_q_delta += dtr.q ;
+    assert(std::isnormal(inside_q));
   }
   else
     dtr.q = 0 ;
 }
 
-inline void MinDivProbabilityKB::update_q_and_inout_unary(UnaryDaughter& dtr)
+inline void MinDivProbabilityKB::update_rightout_q_unary(MinDivProbabilityKB::UnaryDaughter& dtr)
 {
-  if (outside_q != LorgConstants::NullProba) {
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
+    double delta_outside = dtr.q * outside_q_delta ;
+    dtr.lbdaughter().get_prob_model().outside_q += delta_outside ;
+    dtr.lbdaughter().get_prob_model().outside_q_delta += delta_outside ;
+    assert(std::isnormal(dtr.lbdaughter().get_prob_model().outside_q));
+  }
+}
 
-    double delta_inside = -dtr.q * (dtr.lbdaughter().get_prob_model().inside_q - dtr.lbdaughter().get_prob_model().inside_q_delta);
-    double delta_outside = -dtr.q * (outside_q - outside_q_delta);
+inline void MinDivProbabilityKB::update_q_and_in_unary(UnaryDaughter& dtr)
+{
+  if (dtr.mp != 0) {
+    
+    assert( std::isfinite(outside_q) );
+
+    double delta_inside = dtr.q * (dtr.lbdaughter().get_prob_model().inside_q - dtr.lbdaughter().get_prob_model().inside_q_delta);
+    inside_q -= delta_inside ;
+    inside_q_delta -= delta_inside;
 
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
                     outside_q * dtr.lbdaughter().get_prob_model().inside_q,
                     outside_p * dtr.lbdaughter().get_prob_model().inside_p / normalisation_factor
     ) ;
 
-    delta_inside += dtr.q * dtr.lbdaughter().get_prob_model().inside_q ;
+    delta_inside = dtr.q * dtr.lbdaughter().get_prob_model().inside_q ;
     inside_q += delta_inside ;
     inside_q_delta += delta_inside;
-
-    delta_outside += dtr.q * outside_q;
-    dtr.lbdaughter().get_prob_model().outside_q += delta_outside ;
-    dtr.lbdaughter().get_prob_model().outside_q_delta += delta_outside ;
+    assert(std::isnormal(inside_q));
   }
   else
     dtr.q = 0 ;
 }
-inline void MinDivProbabilityKB::update_q_and_inout_binary(BinaryDaughter& dtr)
-{
-  if (outside_q != LorgConstants::NullProba) {
 
-    double delta_inside = - dtr.q * (dtr.left_pdaughter().get_prob_model().inside_q - dtr.left_pdaughter().get_prob_model().inside_q_delta) * (dtr.right_pdaughter().get_prob_model().inside_q - dtr.right_pdaughter().get_prob_model().inside_q_delta);
-    double delta_outside_left  = - dtr.q * (outside_q - outside_q_delta) * (dtr.right_pdaughter().get_prob_model().inside_q - dtr.right_pdaughter().get_prob_model().inside_q_delta);
-    double delta_outside_right = - dtr.q * (outside_q - outside_q_delta) * (dtr.left_pdaughter(). get_prob_model().inside_q - dtr.left_pdaughter() .get_prob_model().inside_q_delta);
+inline void MinDivProbabilityKB::update_rightout_q_binary(MinDivProbabilityKB::BinaryDaughter& dtr)
+{
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
+    double delta_outside_right = - (outside_q - outside_q_delta) * (dtr.left_pdaughter(). get_prob_model().inside_q - dtr.left_pdaughter() .get_prob_model().inside_q_delta);
+    delta_outside_right += outside_q * dtr.left_pdaughter().get_prob_model().inside_q ;
+    delta_outside_right *= dtr.q ;
+    dtr.right_pdaughter().get_prob_model().outside_q += delta_outside_right ;
+    dtr.right_pdaughter().get_prob_model().outside_q_delta += delta_outside_right ;    
+    assert(std::isnormal(dtr.right_pdaughter().get_prob_model().outside_q));
+  }
+}
+
+inline void MinDivProbabilityKB::update_q_and_in_binary(BinaryDaughter& dtr)
+{
+  assert( std::isfinite(outside_q) );
+  if (dtr.mp != 0) {
+
+    double delta_inside = dtr.q * (dtr.left_pdaughter().get_prob_model().inside_q - dtr.left_pdaughter().get_prob_model().inside_q_delta) * (dtr.right_pdaughter().get_prob_model().inside_q - dtr.right_pdaughter().get_prob_model().inside_q_delta);
+    //     double delta_outside_left  = - dtr.q * (outside_q - outside_q_delta) * (dtr.right_pdaughter().get_prob_model().inside_q - dtr.right_pdaughter().get_prob_model().inside_q_delta);
+    inside_q -= delta_inside;
+    inside_q_delta -= delta_inside;
   
     dtr.q = formula(dtr.q, dtr.mp, get_normalisation_factor_q(),
                     outside_q * dtr. left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q,
                     outside_p * dtr. left_pdaughter().get_prob_model().inside_p * dtr.right_pdaughter().get_prob_model().inside_p / normalisation_factor
     ) ;
 
-    delta_inside += dtr.q * dtr.left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q;
+    delta_inside = dtr.q * dtr.left_pdaughter().get_prob_model().inside_q * dtr.right_pdaughter().get_prob_model().inside_q;
     inside_q += delta_inside;
     inside_q_delta += delta_inside;
 
-    delta_outside_left += dtr.q * outside_q * dtr.right_pdaughter().get_prob_model().inside_q ;
-    dtr.left_pdaughter().get_prob_model().outside_q += delta_outside_left ;
-    dtr.left_pdaughter().get_prob_model().outside_q_delta += delta_outside_left ;
+    assert(std::isnormal(inside_q));
 
-    delta_outside_right += dtr.q * outside_q * dtr.left_pdaughter().get_prob_model().inside_q ;
-    dtr.right_pdaughter().get_prob_model().outside_q += delta_outside_right ;
-    dtr.right_pdaughter().get_prob_model().outside_q_delta += delta_outside_right ;
+    //     delta_outside_left += dtr.q * outside_q * dtr.right_pdaughter().get_prob_model().inside_q ;
+    //     dtr.left_pdaughter().get_prob_model().outside_q += delta_outside_left ;
+    //     dtr.left_pdaughter().get_prob_model().outside_q_delta += delta_outside_left ;
   }
   else
     dtr.q = 0 ;
@@ -524,11 +560,21 @@ inline void ParserCKYAllMinDivKB::update_q()
 {
   function<void(Cell&)> before_left = [](Cell &){};
 
-  // assertion : outside ok, inside of children are ok
-  // - update q(r), insides(edge) and outside(children)
-  function<void(Cell&)> after_children = [](Cell &){};
+  // assertion : insides of left cells (same begin, smaller span) are definitive
+  // --> update right outsides
+  function<void(Cell&)> before_right = [](Cell & cell){
+    cell.apply_on_uedges(&MinDivProbabilityKB::update_rightout_q_unary);
+    cell.apply_on_lbedges(&MinDivProbabilityKB::update_rightout_q_binary);
+  };
 
-  function<void(Cell&)> before_right = [](Cell &){};
+  // assertion : outside ok, inside of children are ok
+  // - update q(r) and insides(edge)
+  function<void(Cell&)> after_children = [](Cell & cell){
+    cell.apply_on_lbedges(&MinDivProbabilityKB::update_q_and_in_lexical,
+                          &MinDivProbabilityKB::update_q_and_in_binary);
+    cell.apply_on_uedges(&MinDivProbabilityKB::update_q_and_in_unary);
+  };
+
   this->chart->opencells_apply_left_right(before_left, before_right, after_children);
 }
 
@@ -572,19 +618,19 @@ inline void MinDivProbabilityKB::update_kl_distance(Edge & edge)
     for (const auto & dtr : edge.uedge().get_unary_daughters()) {
       kl_distance_pq += dtr.get_rule()->entropy_term(edge.get_annotations().outside_probabilities.array,
                                                      dtr.lbdaughter().get_annotations().inside_probabilities.array) / normalisation_factor
-      - dtr.mp * log2(dtr.q);
+      - dtr.mp * (dtr.mp==0 ? 0 : log2(dtr.q));
     }
   }
   if (edge.lbedge().is_opened()) {
     for (const auto & dtr : edge.lbedge().get_lexical_daughters()) {
       kl_distance_pq += dtr.get_rule()->entropy_term(edge.get_annotations().outside_probabilities.array) / normalisation_factor
-      - dtr.mp * log2(dtr.q);
+      - dtr.mp * (dtr.mp==0 ? 0 : log2(dtr.q));
     }
     for (const auto & dtr : edge.lbedge().get_binary_daughters()) {
       kl_distance_pq += dtr.get_rule()->entropy_term(edge.get_annotations().outside_probabilities.array,
                                                      dtr.left_pdaughter().get_annotations().inside_probabilities.array,
                                                      dtr.right_pdaughter().get_annotations().inside_probabilities.array) / normalisation_factor
-      - dtr.mp * log2(dtr.q);
+      - dtr.mp * (dtr.mp==0 ? 0 : log2(dtr.q));
     }
   }
 }
