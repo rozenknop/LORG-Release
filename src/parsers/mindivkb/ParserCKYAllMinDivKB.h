@@ -7,6 +7,13 @@
 #include "MinDivTypes.h"
 #include "utils/threads.h"
 
+
+
+
+/** **********************************************************************
+ *  Best structure for KB
+ */
+
 class MinDivBest
 {
 public:
@@ -69,6 +76,13 @@ inline std::ostream& operator<<(std::ostream& out, const MinDivBest & best)
   return out << "(Best: " << &best << ")";
 }
 
+
+
+
+/** *******************************************************************************
+ * Probability structure for MinDivKB
+ */
+
 class MinDivProbabilityKB
 {
 
@@ -88,6 +102,8 @@ private:
 
   double inside_q;
   double outside_q;
+  double inside_q_delta; // used for iteratively updating q
+  double outside_q_delta;
   double inside_p;
   double outside_p;
 
@@ -133,6 +149,10 @@ public:
   inline void update_q_unary(UnaryDaughter& dtr);
   inline void update_q_binary(BinaryDaughter& dtr);
 
+  inline void update_q_and_inout_lexical(LexicalDaughter& dtr);
+  inline void update_q_and_inout_unary(UnaryDaughter& dtr);
+  inline void update_q_and_inout_binary(BinaryDaughter& dtr);
+
   inline static void update_kl_distance(Edge & edge);
   inline static void compute_inout_p(Edge & edge);
   
@@ -145,6 +165,14 @@ inline std::ostream& operator<<(std::ostream& out, const MinDivProbabilityKB & p
   return out << "(MinDivProb: " << &prob << ")";
 }
 
+
+
+
+
+
+/** **********************************************************************
+ * Parser for MinDivKB
+ */
 
 #include "MinDivDaughters.h"
 
@@ -186,6 +214,7 @@ private:
 
   /* computes q as marginal(p) / (inside(q)*outside(q)) */
   inline void update_q();
+  inline void update_q_test(); // working but slow
   
   /* filling edge probability structures with "best" pointers */
   inline void fill_bests();

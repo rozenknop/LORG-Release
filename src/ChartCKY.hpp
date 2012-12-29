@@ -105,18 +105,18 @@ ChartCKY<Types>::opencells_apply_top_down_nothread( std::function<void(Cell &)> 
 
 template<class Types>
 void
-ChartCKY<Types>::opencells_apply_left_right( std::function<void(const Cell &)> before_left,
-                                        std::function<void(const Cell &)> before_right,
-                                        std::function<void(const Cell &)> after_daughters)
+ChartCKY<Types>::opencells_apply_left_right( std::function<void(Cell &)> before_left,
+                                        std::function<void(Cell &)> before_right,
+                                        std::function<void(Cell &)> after_daughters)
 {
   opencells_apply_left_right_rec(before_left,before_right,after_daughters, get_size()-1, 0, true);
 }
 
 template<class Types>
 void 
-ChartCKY<Types>::opencells_apply_left_right_rec( std::function<void(const Cell &)> before_left,
-                                            std::function<void(const Cell &)> before_right,
-                                            std::function<void(const Cell &)> after_daughters,
+ChartCKY<Types>::opencells_apply_left_right_rec( std::function<void(Cell &)> before_left,
+                                            std::function<void(Cell &)> before_right,
+                                            std::function<void(Cell &)> after_daughters,
                                             unsigned span, unsigned beg, bool go_left)
 {
   Cell& cell = access( beg, beg+span );

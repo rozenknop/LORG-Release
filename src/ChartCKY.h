@@ -100,12 +100,12 @@ public:
   inline void opencells_apply_top_down( std::function<void(Cell &)> f );
   inline void opencells_apply_top_down_nothread( std::function<void(Cell &)> f );
   inline void opencells_apply_top_down_nothread( std::function<void(const Cell &)> f ) const;
-  inline void opencells_apply_left_right( std::function<void(const Cell &)> before_left,
-                                          std::function<void(const Cell &)> before_right,
-                                          std::function<void(const Cell &)> after_daughters);
-  inline void opencells_apply_left_right_rec( std::function<void(const Cell &)> before_left,
-                                              std::function<void(const Cell &)> before_right,
-                                              std::function<void(const Cell &)> after_daughters,
+  inline void opencells_apply_left_right( std::function<void(Cell &)> before_left,
+                                          std::function<void(Cell &)> before_right,
+                                          std::function<void(Cell &)> after_daughters);
+  inline void opencells_apply_left_right_rec( std::function<void(Cell &)> before_left,
+                                              std::function<void(Cell &)> before_right,
+                                              std::function<void(Cell &)> after_daughters,
                                               unsigned span, unsigned beg, bool go_left
                                             );
 };
