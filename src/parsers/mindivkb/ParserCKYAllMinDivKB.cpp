@@ -49,12 +49,16 @@ void ParserCKYAllMinDivKB::extract_solution()
   
 //   std::clog << *chart << std::endl;
 
-  for (int i=0; i<100; ++i) {
+  double delta_distance = 1 ;
+  while (delta_distance > 0.001) {
     //   while (false) {
       compute_inside_outside_q_probabilities();
 //       std::clog << *chart << std::endl; std::clog.flush();
 
+      double last_distance = MinDivProbabilityKB::kl_distance_pq;
       compute_kl_distance();
+      delta_distance = fabs(last_distance - MinDivProbabilityKB::kl_distance_pq) / MinDivProbabilityKB::kl_distance_pq ;
+      std::clog << "delta divergence ratio = " << delta_distance << std::endl;
 //       update_q_test(); // working but slow
       update_q();
   }
