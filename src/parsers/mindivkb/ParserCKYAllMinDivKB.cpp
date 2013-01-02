@@ -48,7 +48,13 @@ void ParserCKYAllMinDivKB::extract_solution()
   compute_inout_p();
   
 //   std::clog << *chart << std::endl;
+  std::clog << "before normalize_by_edge : " ;
+  compute_kl_distance();
+  
+  normalize_by_edge();
 
+  std::clog << "after  normalize_by_edge : " ;
+  
   double delta_distance = 1 ;
   while (delta_distance > 0.001) {
     //   while (false) {
@@ -275,6 +281,11 @@ void ParserCKYAllMinDivKB::compute_kl_distance()
 void ParserCKYAllMinDivKB::compute_inout_p()
 {
   chart->opencells_apply( [](Cell & cell){ cell.apply_on_edges(std::function<void(Edge&)>(MinDivProbabilityKB::compute_inout_p) ); } );
+}
+
+void ParserCKYAllMinDivKB::normalize_by_edge()
+{
+  chart->opencells_apply( [](Cell & cell){ cell.apply_on_edges(std::function<void(Edge&)>(MinDivProbabilityKB::normalize_by_edge)); } );
 }
 
 inline void ParserCKYAllMinDivKB::compute_outside_probabilities()
@@ -664,6 +675,36 @@ void MinDivProbabilityKB::compute_inout_p(MinDivProbabilityKB::Edge& edge)
     }
   }
 }
+
+/**************************************************************/
+/* Local normalization on edges                               */
+/**************************************************************/
+
+void MinDivProbabilityKB::normalize_by_edge(MinDivProbabilityKB::Edge& edge)
+{
+  if (edge.uedge().is_opened())
+  {
+    auto & e = edge.uedge();
+    double sum = 0 ;
+    for (const auto & dtr: e.get_unary_daughters()) sum += dtr.q ;
+    if (sum != 0) {
+      for (auto & dtr: e.get_unary_daughters()) dtr.q /= sum ;
+    }
+  }
+  if (edge.lbedge().is_opened())
+  {
+    auto & e = edge.lbedge();
+    double sum = 0;
+    for (const auto & dtr: e.get_binary_daughters()) sum += dtr.q ;
+    for (const auto & dtr: e.get_lexical_daughters()) sum += dtr.q ;
+    if (sum != 0) {
+      for (auto & dtr: e.get_binary_daughters()) dtr.q /= sum;
+      for (auto & dtr: e.get_lexical_daughters()) dtr.q /= sum;
+    }
+  }
+
+}
+
 
 /**************************************************************/
 /* Filling the structures before Best Tree extraction         */

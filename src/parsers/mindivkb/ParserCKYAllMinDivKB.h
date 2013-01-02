@@ -157,6 +157,7 @@ public:
 
   inline static void update_kl_distance(Edge & edge);
   inline static void compute_inout_p(Edge & edge);
+  inline static void normalize_by_edge(Edge & edge);
   
   public:
     inline std::ostream& operator>>(std::ostream& out) const;
@@ -208,6 +209,9 @@ private:
   /** also computes marginals for each daughter */
   inline virtual void compute_outside_probabilities();
   
+  /* edge normalization */
+  inline void normalize_by_edge();
+
   /* computes inside-outside on q */
   inline void compute_inside_q_probabilities();
   inline void compute_outside_q_probabilities();
