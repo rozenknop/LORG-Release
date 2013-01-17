@@ -447,9 +447,9 @@ public:
   /**
    * \brief close the edge, releasing memory
    */
-  inline void close() { 
-    this->open = lb.open = u.open = false;
+  inline void close() {
     PackedEdge::~PackedEdge();
+    std::fill((char*)this,(char*)(this+1),0);
   }
   /**
    * \brief close the unary edge, and the PackedEdge if lexical/binary part already closed

@@ -551,22 +551,26 @@ void ChartCKY<Types>::dump(ostream & s) const {
   template<class Types>
   void ChartCKY<Types>::prepare_retry()
   {
-    this->clear();
     this->reset_probabilities();
-    
+
     for(unsigned i = 0; i < size; ++i) {
-      // j == 0 -> word position
-      Cell& cell = access(i,i); //the_chart[i]; //chart[i][0];
-      cell.reinit(false);
-      cell.process_candidates(sentence[i]);
-      
       // regular chart cells
       for(unsigned j = 1; j < size-i;++j) {
         bool close = brackets.end() != std::find_if(brackets.begin(),brackets.end(),
                                                     [&](const bracketing & other){return bracketing(i,i+j).overlap(other);}) ;
-        access(i,i+j)/*chart[i][j]*/.reinit(close);
+        access(i,i+j).reinit(close);
       }
     }
+
+    for (const auto & word: sentence)
+    {
+      Cell& cell = this->access(word.get_start(), word.get_end() -1);
+      if(cell.is_closed())
+        std::clog << "Problem in chart initialisation: brackets and tokenization are insconsistent." << std::endl;
+      cell.process_candidates(word);
+    }
+
+
   }
   
   

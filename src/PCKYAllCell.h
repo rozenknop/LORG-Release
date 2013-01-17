@@ -267,9 +267,10 @@ template<class Types>
 inline
 void PCKYAllCell<Types>::reinit(bool cl)
 {
-  if(!(closed = cl)) {
+  if(not closed) {
     clear();
   }
+  closed = cl;
 }
 
 template<class Types>
