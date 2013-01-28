@@ -328,7 +328,7 @@ void ParserCKYAll_Impl<Types>::beam_chart(double log_sent_prob, double log_thres
 //     std::cout << "no axiom at root after beam_chart.compute_outside_probabilities" << std::endl;
 
   this->chart->opencells_apply_bottom_up(
-      [log_sent_prob, log_threshold, huang, &chart, &start_symbol]
+      [&]
       (Cell& cell)
       {
         cell.apply_on_lbedges(&LBEdge::clean_invalidated_binaries,

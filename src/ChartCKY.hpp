@@ -26,8 +26,8 @@ ChartCKY<Types>::ChartCKY(const std::vector< MyWord >& s, unsigned grammar_size,
     //       the_cells.assign(nbcells, protoCell);
     the_cells = (Cell*) new char[nb_cells*sizeof(Cell)];
     the_edges = (Edge*) new char[nb_edges*sizeof(Edge)];
-//     std::fill((char*)the_cells, (char*)(the_cells+nb_cells), 0);
-//     std::fill((char*)the_edges, (char*)(the_edges+nb_edges), 0);
+    //     std::fill((char*)the_cells, (char*)(the_cells+nb_cells), 0);
+    //     std::fill((char*)the_edges, (char*)(the_edges+nb_edges), 0);
   }
 //     chart = new Cell * [size];
 
@@ -561,6 +561,8 @@ void ChartCKY<Types>::dump(ostream & s) const {
         access(i,i+j).reinit(close);
       }
     }
+    
+    //     std::fill((char*)the_edges, (char*)(the_edges + nb_cells * Cell::get_max_size()), 0);
 
     for (const auto & word: sentence)
     {
